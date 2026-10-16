@@ -61,6 +61,13 @@ of the current PS4 implementation while integration is prepared.
 Source, build instructions and releases will be added here as the work lands.
 PS5 and future-console support are planned.
 
+## License
+
+Original Omarchy psX code and documentation use the [MIT License](LICENSE).
+The [Linux psX](https://github.com/meerzulee/linux-psx) kernel work remains
+GPLv2, with existing per-file licenses preserved. Other bundled components
+retain their own licenses and copyright notices.
+
 ---
 
 Want to help with development, testing or documentation?
