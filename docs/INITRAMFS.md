@@ -69,10 +69,33 @@ a new candidate with a new identity and require their own validation.
 Compression-library differences can also change gzip bytes; compare the
 reported digest rather than assuming identical output on every host.
 
-The earlier full assembler in `omarchy-ps4/scripts/build-xfce-initramfs`
-constructed the whole-device base from the historical v26-with-EDID firmware
-seed plus Omarchy splash and small userspace tools. That full assembler and
-its binary-input acquisition have not been migrated by this preservation step.
+## Reconstruct from the public historical seed
+
+The complete assembler and its source are now under `platforms/ps4/`. A fresh
+clone can acquire the original seed from an immutable public GitHub path:
+
+```sh
+./scripts/fetch-ps4-initramfs-seed
+./scripts/sync-omarchy-upstream
+cd platforms/ps4
+./scripts/build-initramfs-tools
+./scripts/build-xfce-initramfs
+```
+
+The last two commands use the existing Mac/OrbStack build path. The resulting
+candidate is `platforms/ps4/output/xfce-baseline/initramfs.cpio.gz`. This uses
+the migrated `/init`, `install-rootfs`, splash source and userspace tools. The
+seed downloader verifies **4,082,183 bytes**, SHA256
+`245df0d98133fd14efc09ab2c5a309b065f9668d5a07b0887bee4fcf1237f113`, against
+[`ps4-initramfs-seed.json`](../manifests/ps4-initramfs-seed.json); an explicit
+`PS4_SOURCE_INITRAMFS` override is subject to that seed contract too.
+
+The original seed is **not** the `824530…` generated base or `31e793…` accepted
+historical result. Historical Alpine/APK tool versions were not fully pinned;
+reconstruction creates a new candidate unless its actual digest matches a
+recorded accepted artifact. The exact historical repacker above deliberately
+refuses arbitrary bases. No old sibling source checkout or private source
+archive is needed to run the full source reconstruction path.
 
 ## Kernel and firmware boundary
 

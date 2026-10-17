@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omarchy-ps4.invalid/schema/release-manifest-v2.json",
+  "title": "Omarchy PS4 release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "release", "target", "first_boot", "loader", "boot_set", "usb_image"],
+  "oneOf": [
+    {
+      "properties": {
+        "private_profile": false,
+        "target": { "properties": { "root_layout": { "const": "whole-device-filesystem" } } },
+        "usb_image": {
+          "properties": {
+            "layout": { "const": "whole-device-filesystem" },
+            "auto_grow": { "const": true },
+            "contains_boot_files": { "const": false },
+            "partition_table": false,
+            "logical_sector_bytes": false,
+            "partitions": false
+          }
+        }
+      }
+    },
+    {
+      "required": ["private_profile"],
+      "properties": {
+        "target": { "properties": { "root_layout": { "const": "partitioned-usb" } } },
+        "usb_image": {
+          "required": ["partition_table", "logical_sector_bytes", "partitions"],
+          "properties": {
+            "layout": { "const": "partitioned-usb" },
+            "auto_grow": { "const": false },
+            "contains_boot_files": { "const": true }
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema": { "const": 2 },
+    "private_profile": {
+      "const": { "name": "private-kernel-manager-partitioned", "app_version": "0.32", "release_eligible": false }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "channel", "sequence", "published_at"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "channel": { "enum": ["edge", "stable"] },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "published_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architecture", "models", "southbridges", "root_transport", "root_layout", "root_filesystem", "root_label"],
+      "properties": {
+        "architecture": { "const": "x86_64" },
+        "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "southbridges": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "firmwares": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" } },
+        "root_transport": { "const": "usb" },
+        "root_layout": { "enum": ["whole-device-filesystem", "partitioned-usb"] },
+        "root_filesystem": { "const": "ext4" },
+        "root_label": { "const": "OMARCHY-PS4" }
+      }
+    },
+    "first_boot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "pending_marker", "service", "default_password"],
+      "properties": {
+        "mode": { "const": "deferred-owner" },
+        "pending_marker": { "const": "/var/lib/omarchy-ps4/provisioning/pending" },
+        "service": { "const": "omarchy-ps4-provision-owner.service" },
+        "default_password": { "type": "boolean", "const": false }
+      }
+    },
+    "loader": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delivery", "app_path", "source_url", "source_commit", "version", "sha256", "license"],
+      "properties": {
+        "delivery": { "const": "embedded" },
+        "app_path": { "const": "/app0/assets/misc/ps4-linux-loader.elf" },
+        "source_url": { "type": "string", "format": "uri" },
+        "source_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "version": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "license": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boot_set": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["storage", "active_path", "previous_suffix", "transaction_marker", "vram_mb", "artifacts"],
+      "properties": {
+        "storage": { "const": "orbis-internal" },
+        "active_path": { "const": "/data/linux/boot" },
+        "previous_suffix": { "const": ".omarchy-prev" },
+        "transaction_marker": { "const": "/data/linux/.omarchy-ps4-staging" },
+        "vram_mb": { "const": 1024 },
+        "artifacts": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "role", "app_path", "active_name", "size", "sha256"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+              "role": { "enum": ["kernel", "initramfs", "bootargs", "vram"] },
+              "app_path": { "type": "string", "pattern": "^/app0/assets/misc/[A-Za-z0-9._-]+$" },
+              "active_name": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+              "size": { "type": "integer", "minimum": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        }
+      }
+    },
+    "usb_image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "compression", "compressed_size", "sha256", "uncompressed_size", "uncompressed_sha256", "layout", "filesystem", "label", "minimum_device_bytes", "auto_grow", "contains_boot_files"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "url": { "type": "string", "pattern": "^https://" },
+        "compression": { "const": "xz" },
+        "compressed_size": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "uncompressed_size": { "type": "integer", "minimum": 1 },
+        "uncompressed_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "layout": { "enum": ["whole-device-filesystem", "partitioned-usb"] },
+        "filesystem": { "const": "ext4" },
+        "label": { "const": "OMARCHY-PS4" },
+        "minimum_device_bytes": { "type": "integer", "minimum": 32000000000 },
+        "auto_grow": { "type": "boolean" },
+        "contains_boot_files": { "type": "boolean" },
+        "partition_table": { "const": "dos" },
+        "logical_sector_bytes": { "const": 512 },
+        "partitions": {
+          "const": [
+            { "number": 1, "role": "boot", "filesystem": "fat32", "label": "PS4BOOT", "start_sector": 2048, "size_sectors": 8388608, "partition_type": "0c", "bootable": true },
+            { "number": 2, "role": "system", "filesystem": "ext4", "label": "OMARCHY-PS4", "start_sector": 8390656, "size": "remaining", "partition_type": "83", "bootable": false }
+          ]
+        }
+      }
+    }
+  }
+}

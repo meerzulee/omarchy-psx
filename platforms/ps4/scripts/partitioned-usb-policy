@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Plan and verify the private 4 GiB FAT32 + ext4 USB geometry (no writes)."""
+
+import argparse
+import json
+import sys
+
+BOOT_START = 2048
+BOOT_SECTORS = 8388608
+ROOT_START = BOOT_START + BOOT_SECTORS
+MINIMUM_BYTES = 32_000_000_000
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def verify(table, sectors, device):
+    require(sectors * 512 >= MINIMUM_BYTES, "USB is smaller than 32 GB")
+    table = table["partitiontable"]
+    require(table["device"] == device, "partition table belongs to another device")
+    require(table["label"] == "dos", "partition table must be DOS/MBR")
+    require(table["unit"] == "sectors" and table["sectorsize"] == 512,
+            "partition table must use 512-byte sectors")
+    parts = table["partitions"]
+    require(len(parts) == 2, "expected exactly two partitions")
+    suffix = "p" if device[-1].isdigit() else ""
+    for number, part in enumerate(parts, 1):
+        require(part["node"] == f"{device}{suffix}{number}", "unexpected partition node")
+    boot, root = parts
+    require(boot["start"] == BOOT_START and boot["size"] == BOOT_SECTORS,
+            "boot partition must be exactly 4 GiB starting at 1 MiB")
+    require(boot["type"].lower().lstrip("0") == "c" and boot.get("bootable") is True,
+            "boot partition must be active FAT32 LBA (0c)")
+    require(root["start"] == ROOT_START and root["size"] == sectors - ROOT_START,
+            "system partition must consume the remaining disk")
+    require(root["type"].lower() == "83" and not root.get("bootable", False),
+            "system partition must be Linux (83) and inactive")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=["plan", "verify"])
+    parser.add_argument("--disk-sectors", required=True, type=int)
+    parser.add_argument("--device")
+    args = parser.parse_args()
+    try:
+        require(args.disk_sectors * 512 >= MINIMUM_BYTES, "USB is smaller than 32 GB")
+        if args.mode == "plan":
+            print("label: dos\nunit: sectors\nsector-size: 512\n")
+            print(f"start={BOOT_START}, size={BOOT_SECTORS}, type=c, bootable")
+            print(f"start={ROOT_START}, size={args.disk_sectors - ROOT_START}, type=83")
+        else:
+            require(args.device and args.device.startswith("/dev/"), "device path is required")
+            verify(json.load(sys.stdin), args.disk_sectors, args.device)
+            print("Partition geometry verified: 4 GiB FAT32 + remaining Linux.")
+    except (ValueError, KeyError, TypeError) as error:
+        parser.exit(2, f"partitioned-usb-policy: {error}\n")
+
+
+if __name__ == "__main__":
+    main()

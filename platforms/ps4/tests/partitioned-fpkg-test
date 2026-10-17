@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Verify strict private partitioned policy and unchanged whole-device policy."""
+
+from copy import deepcopy
+import json
+from pathlib import Path
+import runpy
+import unittest
+
+REPO = Path(__file__).resolve().parents[1]
+API = runpy.run_path(str(REPO / "fpkg/tools/validate-manifest"))
+validate = API["validate"]
+PolicyError = API["PolicyError"]
+SCHEMA = json.loads((REPO / "fpkg/manifest/release-manifest.schema.json").read_text())
+LEGACY = json.loads((REPO / "fpkg/manifest/release-manifest.example.json").read_text())
+PARTITIONED = json.loads((REPO / "fpkg/manifest/release-manifest.partitioned-dev.json").read_text())
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:
+    Draft202012Validator = None
+
+
+def changed(original, path, value):
+    document = deepcopy(original)
+    parent = document
+    for key in path[:-1]:
+        parent = parent[key]
+    parent[path[-1]] = value
+    return document
+
+
+INVALID = [
+    changed(PARTITIONED, ["target", "root_layout"], "whole-device-filesystem"),
+    changed(PARTITIONED, ["usb_image", "layout"], "whole-device-filesystem"),
+    changed(PARTITIONED, ["usb_image", "contains_boot_files"], False),
+    changed(PARTITIONED, ["usb_image", "auto_grow"], True),
+    changed(PARTITIONED, ["usb_image", "partition_table"], "gpt"),
+    changed(PARTITIONED, ["usb_image", "logical_sector_bytes"], 4096),
+    changed(PARTITIONED, ["usb_image", "partitions", 0, "size_sectors"], 8388607),
+    changed(PARTITIONED, ["usb_image", "partitions", 0, "start_sector"], 0),
+    changed(PARTITIONED, ["usb_image", "partitions", 0, "bootable"], False),
+    changed(PARTITIONED, ["usb_image", "partitions", 0, "filesystem"], "ext4"),
+    changed(PARTITIONED, ["usb_image", "partitions", 0, "label"], "OTHER"),
+    changed(PARTITIONED, ["usb_image", "partitions", 1, "start_sector"], 8388608),
+    changed(PARTITIONED, ["usb_image", "partitions", 1, "number"], True),
+    changed(PARTITIONED, ["usb_image", "partitions", 1, "size"], 1000),
+    changed(PARTITIONED, ["private_profile", "release_eligible"], True),
+    changed(PARTITIONED, ["private_profile", "app_version"], "0.31"),
+    changed(PARTITIONED, ["private_profile", "unexpected"], True),
+    changed(LEGACY, ["usb_image", "contains_boot_files"], True),
+    changed(LEGACY, ["usb_image", "auto_grow"], False),
+    changed(LEGACY, ["usb_image", "layout"], "partitioned-usb"),
+    changed(LEGACY, ["usb_image", "partitions"], []),
+]
+missing_private = deepcopy(PARTITIONED)
+del missing_private["private_profile"]
+INVALID.append(missing_private)
+extra_partition = deepcopy(PARTITIONED)
+extra_partition["usb_image"]["partitions"].append({"number": 3})
+INVALID.append(extra_partition)
+
+
+class PartitionedPolicyTests(unittest.TestCase):
+    def test_both_draft_contracts_are_valid(self):
+        validate(LEGACY, production=False)
+        warnings = validate(PARTITIONED, production=False)
+        self.assertTrue(any("release ineligible" in warning for warning in warnings))
+
+    def test_mixed_layouts_and_geometry_changes_are_rejected(self):
+        for index, document in enumerate(INVALID):
+            with self.subTest(index=index), self.assertRaises(PolicyError):
+                validate(document, production=False)
+
+    def test_private_profile_cannot_pass_production_after_placeholders_are_removed(self):
+        document = deepcopy(PARTITIONED)
+        document["loader"]["license"] = "GPL-2.0-only"
+        document["usb_image"].update(url="https://example.org/private.img.xz", sha256="a" * 64,
+                                     uncompressed_sha256="b" * 64)
+        with self.assertRaisesRegex(PolicyError, "release ineligible"):
+            validate(document, production=True)
+
+    @unittest.skipIf(Draft202012Validator is None, "optional jsonschema validator is not installed")
+    def test_json_schema_accepts_only_the_same_exact_layout_branches(self):
+        Draft202012Validator.check_schema(SCHEMA)
+        validator = Draft202012Validator(SCHEMA)
+        validator.validate(LEGACY)
+        validator.validate(PARTITIONED)
+        for index, document in enumerate(INVALID):
+            with self.subTest(index=index):
+                self.assertFalse(validator.is_valid(document))
+
+
+if __name__ == "__main__":
+    unittest.main()

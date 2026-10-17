@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Reject missing private/historical inputs without touching any live target."""
+import os
+from pathlib import Path
+import subprocess
+import unittest
+
+PLATFORM = Path(__file__).resolve().parents[1]
+
+
+class MigrationInputGuards(unittest.TestCase):
+    def call(self, relative, *args):
+        environment = dict(os.environ)
+        for name in ("PS4_HISTORICAL_KERNEL_IMAGE", "PS4_HISTORICAL_KERNEL_OUTPUT", "OMARCHY_RECOVERY_KEY_FINGERPRINT"):
+            environment.pop(name, None)
+        return subprocess.run(["bash", str(PLATFORM / relative), *args],
+                              env=environment, capture_output=True, text=True)
+
+    def test_debug_provision_requires_explicit_private_config(self):
+        result = self.call("scripts/provision-debug-rootfs", "/never-open-this-root", "/never-read-this-key")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("--private-config PASSWORD_HASH_FILE", result.stderr)
+        self.assertNotIn("target root does not exist", result.stderr)
+
+    def test_recovery_requires_intended_fingerprint_before_any_root_probe(self):
+        result = self.call("gift-dev/arm-recovery", "--check", "EXP-20261017-999-A1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("OMARCHY_RECOVERY_KEY_FINGERPRINT must be supplied", result.stderr)
+        self.assertNotIn("root source", result.stderr)
+
+    def test_frozen_profiles_require_explicit_historical_kernel(self):
+        for profile in ((), ("--ultrawide",), ("--partitioned",)):
+            with self.subTest(profile=profile):
+                result = self.call("fpkg/tools/stage-internal-boot-set", *profile)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("PS4_HISTORICAL_KERNEL_IMAGE", result.stderr)
+
+    def test_frozen_offline_bundle_does_not_acquire_or_stage_without_kernel(self):
+        result = self.call("fpkg/tools/stage-offline-bundle", "--allow-development-rootfs")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("PS4_HISTORICAL_KERNEL_IMAGE", result.stderr)
+        self.assertNotIn("loader: missing input", result.stderr)
+
+    def test_frozen_beta_release_requires_matching_historical_output_before_any_build(self):
+        result = self.call("scripts/build-baikal-beta-release")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("PS4_HISTORICAL_KERNEL_OUTPUT", result.stderr)
+        self.assertNotIn("OrbStack", result.stderr)
+
+    def test_archived_whole_device_writer_is_disabled_before_disk_probes(self):
+        result = self.call("scripts/apply-usb-boot-profile-linux", "--device", "/never-probe-this",
+                           "--profile", "baikal-b1-beta1", "--apply")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("archived whole-device boot-profile writer is disabled", result.stderr)
+        self.assertNotIn("not a block device", result.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

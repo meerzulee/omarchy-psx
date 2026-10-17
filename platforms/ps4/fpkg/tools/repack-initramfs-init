@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Replace /init as data in the pinned private initramfs; run no target code."""
+
+from __future__ import annotations
+
+import argparse
+import gzip
+import hashlib
+import io
+import json
+import os
+from pathlib import Path, PurePosixPath
+import stat
+import sys
+import tempfile
+from typing import NamedTuple
+
+BASE_SHA256 = "824530e22392376d5fc27994a9ccff97f0442b7a41681155f46e183f892365ae"
+BASE_SIZE = 1686508
+
+
+class ArchiveError(ValueError):
+    pass
+
+
+class Entry(NamedTuple):
+    name: bytes
+    header: bytes
+    prefix: bytes
+    data: bytes
+    raw: bytes
+    mode: int
+    nlink: int
+
+
+def align4(value: int) -> int:
+    return (value + 3) & ~3
+
+
+def parse_newc(archive: bytes) -> tuple[list[Entry], bytes]:
+    """Parse one newc archive strictly, including its trailer and zero padding."""
+    entries = []
+    names = set()
+    offset = 0
+    while True:
+        start = offset
+        header = archive[offset:offset + 110]
+        if len(header) != 110 or header[:6] != b"070701":
+            raise ArchiveError("expected a complete 070701 newc header")
+        try:
+            if any(byte not in b"0123456789abcdefABCDEF" for byte in header[6:]):
+                raise ValueError
+            fields = [int(header[index:index + 8], 16) for index in range(6, 110, 8)]
+        except ValueError as error:
+            raise ArchiveError("invalid newc hexadecimal field") from error
+        mode, nlink, size, name_size, check = fields[1], fields[4], fields[6], fields[11], fields[12]
+        if name_size < 2 or check != 0:
+            raise ArchiveError("invalid newc name size or checksum field")
+        name_start = offset + 110
+        data_start = align4(name_start + name_size)
+        data_end = data_start + size
+        end = align4(data_end)
+        if end > len(archive):
+            raise ArchiveError("truncated newc name, data or padding")
+        encoded_name = archive[name_start:name_start + name_size]
+        if encoded_name[-1:] != b"\0" or b"\0" in encoded_name[:-1]:
+            raise ArchiveError("newc name must have exactly one terminal NUL")
+        name = encoded_name[:-1]
+        if name == b"TRAILER!!!":
+            if size != 0 or any(archive[end:]):
+                raise ArchiveError("invalid trailer or nonzero trailing data")
+            return entries, archive[start:]
+        try:
+            decoded_name = name.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ArchiveError("newc name is not UTF-8") from error
+        path = PurePosixPath(decoded_name)
+        if path.is_absolute() or ".." in path.parts:
+            raise ArchiveError("unsafe newc path")
+        canonical_name = str(path)
+        if canonical_name in names:
+            raise ArchiveError("duplicate newc path")
+        names.add(canonical_name)
+        entries.append(Entry(name, header, archive[start:data_start], archive[data_start:data_end],
+                             archive[start:end], mode, nlink))
+        offset = end
+
+
+def replace_init(archive: bytes, replacement: bytes) -> bytes:
+    entries, trailer = parse_newc(archive)
+    init_entries = [entry for entry in entries if str(PurePosixPath(entry.name.decode())) == "init"]
+    if len(init_entries) != 1:
+        raise ArchiveError("archive must contain exactly one init")
+    original = init_entries[0]
+    if not stat.S_ISREG(original.mode) or not original.mode & 0o111 or original.nlink != 1:
+        raise ArchiveError("init must be an executable regular file without hardlinks")
+    if not replacement or len(replacement) > 1024 * 1024:
+        raise ArchiveError("replacement init must contain 1..1048576 bytes")
+    output = bytearray()
+    for entry in entries:
+        if entry is original:
+            prefix = bytearray(entry.prefix)
+            prefix[54:62] = f"{len(replacement):08x}".encode("ascii")
+            output.extend(prefix)
+            output.extend(replacement)
+            output.extend(b"\0" * (-len(output) % 4))
+        else:
+            output.extend(entry.raw)
+    output.extend(trailer)
+    output.extend(b"\0" * (-len(output) % 512))
+    result = bytes(output)
+    rebuilt, _ = parse_newc(result)
+    for old, new in zip(entries, rebuilt, strict=True):
+        if old is original:
+            if (old.header[:54] + old.header[62:] != new.header[:54] + new.header[62:]
+                    or old.prefix[110:] != new.prefix[110:] or new.data != replacement):
+                raise ArchiveError("replacement changed init metadata")
+        elif old.raw != new.raw:
+            raise ArchiveError("replacement changed a non-init entry")
+    return result
+
+
+def repack(base: bytes, replacement: bytes) -> bytes:
+    if len(base) != BASE_SIZE or hashlib.sha256(base).hexdigest() != BASE_SHA256:
+        raise ArchiveError("base initramfs size/SHA-256 does not match the accepted private archive")
+    try:
+        archive = gzip.decompress(base)
+    except (OSError, EOFError) as error:
+        raise ArchiveError("base initramfs is not valid gzip") from error
+    updated = replace_init(archive, replacement)
+    compressed = io.BytesIO()
+    with gzip.GzipFile(filename="", fileobj=compressed, mode="wb", compresslevel=9, mtime=0) as stream:
+        stream.write(updated)
+    return compressed.getvalue()
+
+
+def main() -> int:
+    repo = Path(__file__).resolve().parents[2]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", type=Path, default=repo / "fpkg/vendor/internal-boot/initramfs.cpio.gz")
+    parser.add_argument("--init", type=Path, default=repo / "rootfs/initramfs/init")
+    parser.add_argument("--output", type=Path, default=repo / "output/partitioned-dev/initramfs.cpio.gz")
+    args = parser.parse_args()
+    temporary = None
+    try:
+        if args.output.resolve() in {args.base.resolve(), args.init.resolve()}:
+            raise ArchiveError("output must be separate from the base archive and replacement init")
+        base = args.base.read_bytes()
+        replacement = args.init.read_bytes()
+        result = repack(base, replacement)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=args.output.parent, prefix=".initramfs-", delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(result)
+        temporary.chmod(0o644)
+        os.replace(temporary, args.output)
+        temporary = None
+        print(json.dumps({
+            "base_sha256": BASE_SHA256,
+            "init_sha256": hashlib.sha256(replacement).hexdigest(),
+            "size": len(result),
+            "sha256": hashlib.sha256(result).hexdigest(),
+            "non_init_entries_preserved": True,
+            "output": str(args.output),
+        }, indent=2))
+    except (OSError, ArchiveError) as error:
+        print(f"initramfs-repack: FAIL: {error}", file=sys.stderr)
+        return 1
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+"""Compatibility entry point for the root multi-console workspace bootstrap."""
+import os
+from pathlib import Path
+import sys
+
+root = Path(__file__).resolve().parents[3]
+os.execv(sys.executable, [sys.executable, str(root / "scripts/setup-workspace"), *sys.argv[1:]])

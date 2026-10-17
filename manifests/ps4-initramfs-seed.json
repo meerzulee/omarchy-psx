@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "purpose": "Explicit acquisition of the historical public seed; not an accepted complete Omarchy boot set",
+  "repository": "https://github.com/meerzulee/linux-ps4.git",
+  "commit": "386df1ad97d92defee1794bf961a0e2f5dc85a1b",
+  "source_path": "checkpoint/initramfs/initramfs-v26-with-edid.cpio.gz",
+  "url": "https://raw.githubusercontent.com/meerzulee/linux-ps4/386df1ad97d92defee1794bf961a0e2f5dc85a1b/checkpoint/initramfs/initramfs-v26-with-edid.cpio.gz",
+  "bytes": 4082183,
+  "sha256": "245df0d98133fd14efc09ab2c5a309b065f9668d5a07b0887bee4fcf1237f113",
+  "cache_path": "cache/ps4/initramfs-v26-with-edid.cpio.gz",
+  "contents_policy": "External BusyBox/firmware seed; component rights remain with their respective owners. No redistribution or license grant is implied by downloading. Keep the archive out of this source repository.",
+  "reconstruction": "platforms/ps4/scripts/build-xfce-initramfs reconstructs a new candidate using the migrated source/tools. Unpinned historical APK tool versions mean byte-identical accepted-base reproduction is not guaranteed."
+}

@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import stat
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,7 +29,36 @@ def main():
     kernel = json.loads((ROOT / "manifests/kernel-source.json").read_text())
     if not isinstance(kernel["revision"], str) or not re.fullmatch(r"[0-9a-f]{40}", kernel["revision"]):
         raise ValueError("kernel source must have an immutable full commit pin")
-    print(f"PASS: {count} imported source hashes, init identity and immutable kernel handoff")
+    development = json.loads((ROOT / "manifests/development-sources.json").read_text())
+    sources = development["repositories"]
+    if development["schema"] != 1 or {s["directory"] for s in sources} != {"linux-psx", "ps4-uart"}:
+        raise ValueError("development handoff must contain kernel and UART sources")
+    for source in sources:
+        if not re.fullmatch(r"[0-9a-f]{40}", source["commit"]):
+            raise ValueError("development source must have a full immutable commit")
+    pinned_kernel = next(s for s in sources if s["directory"] == "linux-psx")
+    if pinned_kernel["commit"] != kernel["revision"] or pinned_kernel["url"] != kernel["repository"]:
+        raise ValueError("kernel manifests disagree")
+    imported = json.loads((ROOT / "provenance/ps4-worktree-import.json").read_text())
+    seen = set()
+    for item in imported["files"]:
+        name = item["destination"]
+        if name in seen or not name.startswith("platforms/ps4/"):
+            raise ValueError("duplicate or misplaced PS4 source disposition")
+        seen.add(name)
+        check_file(name, item["destination_sha256"])
+        if stat.S_IMODE((ROOT / name).stat().st_mode) != int(item["destination_mode"], 8):
+            raise ValueError(f"source mode differs: {name}")
+    for item in imported["added_files"]:
+        check_file(item["destination"], item["sha256"])
+        if stat.S_IMODE((ROOT / item["destination"]).stat().st_mode) != int(item["mode"], 8):
+            raise ValueError("added platform source mode differs")
+    if (ROOT / "platforms/ps4/rootfs/initramfs/init").read_bytes() != (ROOT / "rootfs/initramfs/init").read_bytes():
+        raise ValueError("preserved init source copies disagree; define a distinct candidate before changing")
+    seed = json.loads((ROOT / "manifests/ps4-initramfs-seed.json").read_text())
+    if not re.fullmatch(r"[0-9a-f]{40}", seed["commit"]) or seed["commit"] not in seed["url"]:
+        raise ValueError("seed acquisition must use an immutable URL")
+    print(f"PASS: {count} integration + {len(seen)} PS4 source hashes/modes, init identity and pinned source handoff")
 
 
 if __name__ == "__main__":

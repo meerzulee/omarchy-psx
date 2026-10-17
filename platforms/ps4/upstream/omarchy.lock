@@ -1,0 +1,7 @@
+OMARCHY_URL=https://github.com/basecamp/omarchy.git
+OMARCHY_BRANCH=quattro
+OMARCHY_COMMIT=f0020448ca87329199de7cb12f2015ebc4a3e5e7
+OMARCHY_SOURCE_VERSION=4.0.0.alpha
+OMARCHY_RELEASE_VERSION=4.0.0
+OMARCHY_PKGS_URL=https://github.com/omacom-io/omarchy-pkgs.git
+OMARCHY_PKGS_COMMIT=bb66b9dafc2eaa10cde9280e0094aed9382b9b0b

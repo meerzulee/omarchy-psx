@@ -1,0 +1,182 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH
+
+say() {
+  [ "${OMARCHY_SPLASH:-0}" = 1 ] || printf '%s\n' "[omarchy-ps4-initramfs] $*"
+  printf '%s\n' "[omarchy-ps4-initramfs] $*" > /dev/kmsg 2>/dev/null || true
+}
+
+SPLASH_PID=""
+stop_splash() {
+  [ -n "$SPLASH_PID" ] || return 0
+  [ "${1:-complete}" != failed ] || : > /run/omarchy-splash.failed
+  : > /run/omarchy-splash.stop
+  wait "$SPLASH_PID" 2>/dev/null || true
+  SPLASH_PID=""
+}
+
+rescue() {
+  stop_splash failed
+  say "$*"
+  say "Dropping to a root rescue shell."
+  exec /bin/sh
+}
+
+mount -t proc proc /proc || rescue "Could not mount proc."
+mount -t sysfs sysfs /sys || rescue "Could not mount sysfs."
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
+mkdir -p /run /newroot /dev/pts
+mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run || rescue "Could not mount /run."
+mount -t devpts devpts /dev/pts 2>/dev/null || true
+
+printf '%s\n' /bin/mdev > /proc/sys/kernel/hotplug 2>/dev/null || true
+mdev -s 2>/dev/null || true
+
+ROOT_SPEC="LABEL=OMARCHY-PS4"
+ROOT_FSTYPE="ext4"
+OMARCHY_SPLASH=0
+OMARCHY_INSTALL=""
+OMARCHY_BUNDLE_SPEC="LABEL=PS4BOOT"
+OMARCHY_ROOTFS_PATH="/omarchy-ps4/omarchy-ps4-rootfs.tar.zst"
+OMARCHY_ALLOW_DEVELOPMENT_ROOTFS=0
+OMARCHY_REQUIRE_USB=0
+OMARCHY_ROOT_LAYOUT=""
+
+kernel_command_line=$(cat /proc/cmdline)
+for parameter in $kernel_command_line; do
+  case "$parameter" in
+    root=*) ROOT_SPEC=${parameter#root=} ;;
+    rootfstype=*) ROOT_FSTYPE=${parameter#rootfstype=} ;;
+    omarchy.splash=1) OMARCHY_SPLASH=1 ;;
+    omarchy.install=*) OMARCHY_INSTALL=${parameter#omarchy.install=} ;;
+    omarchy.bundle=*) OMARCHY_BUNDLE_SPEC=${parameter#omarchy.bundle=} ;;
+    omarchy.rootfs=*) OMARCHY_ROOTFS_PATH=${parameter#omarchy.rootfs=} ;;
+    omarchy.allow_development_rootfs=1) OMARCHY_ALLOW_DEVELOPMENT_ROOTFS=1 ;;
+    omarchy.require_usb=1) OMARCHY_REQUIRE_USB=1 ;;
+    omarchy.root_layout=*) OMARCHY_ROOT_LAYOUT=${parameter#omarchy.root_layout=} ;;
+  esac
+done
+
+export OMARCHY_SPLASH OMARCHY_ROOT_SPEC="$ROOT_SPEC" OMARCHY_BUNDLE_SPEC OMARCHY_ROOTFS_PATH OMARCHY_ALLOW_DEVELOPMENT_ROOTFS
+
+if [ "$OMARCHY_SPLASH" = 1 ] && [ -x /bin/omarchy-splash ]; then
+  rm -f /run/omarchy-splash.stop /run/omarchy-splash.failed
+  /bin/omarchy-splash >/dev/null 2>&1 &
+  SPLASH_PID=$!
+fi
+
+say "Linux $(uname -r) reached the initramfs."
+say "Command line: $(cat /proc/cmdline)"
+if [ "$OMARCHY_INSTALL" = usb ]; then
+  [ "$OMARCHY_ROOT_LAYOUT" != partitioned-usb ] || \
+    rescue "The partitioned USB must be installed on the development host."
+  say "Starting verified external-USB installation."
+  /install-rootfs || rescue "External-USB installation failed."
+fi
+
+say "Waiting for root filesystem $ROOT_SPEC ($ROOT_FSTYPE)."
+
+ROOT_DEVICE=$(cat /run/ps4-root-device 2>/dev/null || true)
+attempt=0
+while [ "$attempt" -lt 60 ]; do
+  mdev -s 2>/dev/null || true
+
+  case "$ROOT_SPEC" in
+    LABEL=*|UUID=*|PARTUUID=*)
+      ROOT_DEVICE=$(findfs "$ROOT_SPEC" 2>/dev/null || true)
+      ;;
+    /dev/*)
+      [ -b "$ROOT_SPEC" ] && ROOT_DEVICE=$ROOT_SPEC
+      ;;
+  esac
+
+  [ -n "$ROOT_DEVICE" ] && [ -b "$ROOT_DEVICE" ] && break
+  attempt=$((attempt + 1))
+  sleep 1
+done
+
+if [ -z "$ROOT_DEVICE" ] || [ ! -b "$ROOT_DEVICE" ]; then
+  say "Available block filesystems:"
+  blkid 2>/dev/null || true
+  rescue "Root filesystem $ROOT_SPEC was not found after 60 seconds."
+fi
+
+say "Resolved $ROOT_SPEC to $ROOT_DEVICE."
+if [ "$OMARCHY_REQUIRE_USB" = 1 ]; then
+  [ "$ROOT_SPEC" = 'LABEL=OMARCHY-PS4' ] || rescue "Product root must be LABEL=OMARCHY-PS4."
+  [ "$ROOT_FSTYPE" = ext4 ] || rescue "Product root filesystem must be ext4."
+  root_name=${ROOT_DEVICE#/dev/}
+  root_sysfs=$(readlink -f "/sys/class/block/$root_name" 2>/dev/null || true)
+  case "$root_sysfs" in
+    *'/usb'*) ;;
+    *) rescue "$ROOT_DEVICE is not below USB in sysfs." ;;
+  esac
+  case "$OMARCHY_ROOT_LAYOUT" in
+    whole-device-filesystem)
+      [ ! -e "/sys/class/block/$root_name/partition" ] || \
+        rescue "$ROOT_DEVICE is a partition; expected the whole-device Omarchy image."
+      ;;
+    partitioned-usb)
+      [ "$(cat "/sys/class/block/$root_name/partition" 2>/dev/null)" = 2 ] || \
+        rescue "The partitioned USB root must be partition 2."
+      parent_sysfs=${root_sysfs%/*}
+      boot_name=""
+      partition_count=0
+      for partition_file in "$parent_sysfs"/*/partition; do
+        [ -r "$partition_file" ] || continue
+        partition_count=$((partition_count + 1))
+        if [ "$(cat "$partition_file")" = 1 ]; then
+          boot_path=${partition_file%/partition}
+          boot_name=${boot_path##*/}
+        fi
+      done
+      [ "$partition_count" = 2 ] && [ -n "$boot_name" ] || \
+        rescue "Expected exactly one boot partition and one system partition."
+      [ "$(cat "/sys/class/block/$boot_name/size")" = 8388608 ] && \
+        [ "$(cat "/sys/class/block/$boot_name/start")" = 2048 ] && \
+        [ "$(cat "/sys/class/block/$root_name/start")" = 8390656 ] || \
+        rescue "The USB must have a 4 GiB boot partition followed by the system."
+      boot_identity=$(blkid "/dev/$boot_name" 2>/dev/null)
+      case "$boot_identity" in
+        *' TYPE="vfat"'*) ;;
+        *) rescue "The first USB partition must be FAT32." ;;
+      esac
+      case "$boot_identity" in
+        *' LABEL="PS4BOOT"'*) ;;
+        *) rescue "The first USB partition must be labelled PS4BOOT." ;;
+      esac
+      ;;
+    *) rescue "Product root layout is missing or unsupported." ;;
+  esac
+  root_identity=$(blkid "$ROOT_DEVICE" 2>/dev/null)
+  case "$root_identity" in
+    *' TYPE="ext4"'*) ;;
+    *) rescue "The USB root must be ext4." ;;
+  esac
+  case "$root_identity" in
+    *' LABEL="OMARCHY-PS4"'*) ;;
+    *) rescue "The USB root must be labelled OMARCHY-PS4." ;;
+  esac
+fi
+if [ ! -e /newroot/etc/os-release ]; then
+  mount -t "$ROOT_FSTYPE" -o rw "$ROOT_DEVICE" /newroot || rescue "Could not mount $ROOT_DEVICE."
+fi
+
+if [ ! -e /newroot/etc/os-release ] || [ ! -x /newroot/sbin/init ]; then
+  umount /newroot 2>/dev/null || true
+  rescue "$ROOT_DEVICE does not contain the expected Linux root filesystem."
+fi
+
+printf '%s\n' "$ROOT_DEVICE" > /run/ps4-root-device
+say "Root filesystem validated; starting systemd."
+stop_splash
+
+mkdir -p /newroot/dev /newroot/proc /newroot/sys /newroot/run
+mount --move /dev /newroot/dev || rescue "Could not move /dev."
+mount --move /proc /newroot/proc || rescue "Could not move /proc."
+mount --move /sys /newroot/sys || rescue "Could not move /sys."
+mount --move /run /newroot/run || rescue "Could not move /run."
+
+exec switch_root /newroot /sbin/init

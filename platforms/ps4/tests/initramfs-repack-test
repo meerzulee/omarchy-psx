@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""Host-only newc preservation and malformed-input tests; execute no archive code."""
+
+import gzip
+import hashlib
+from pathlib import Path
+import runpy
+import subprocess
+import sys
+import tempfile
+import unittest
+
+REPO = Path(__file__).resolve().parents[1]
+TOOL = REPO / "fpkg/tools/repack-initramfs-init"
+API = runpy.run_path(str(TOOL))
+ArchiveError = API["ArchiveError"]
+parse_newc = API["parse_newc"]
+replace_init = API["replace_init"]
+
+
+def record(name, data=b"", mode=0o100755, nlink=1, ino=1):
+    name = name.encode() + b"\0"
+    fields = [ino, mode, 27, 42, nlink, 123456789, len(data), 7, 8, 0, 0, len(name), 0]
+    result = b"070701" + b"".join(f"{value:08x}".encode() for value in fields) + name
+    result += b"\0" * (-len(result) % 4)
+    result += data
+    return result + b"\0" * (-len(result) % 4)
+
+
+def archive(*entries):
+    result = b"".join(entries) + record("TRAILER!!!", mode=0, nlink=1)
+    return result + b"\0" * (-len(result) % 512)
+
+
+class RepackTests(unittest.TestCase):
+    def test_only_init_data_and_filesize_change(self):
+        original = archive(record(".", mode=0o40755), record("init", b"#!/bin/sh\nold\n"),
+                           record("bin/busybox", b"binary\0bytes"),
+                           record("bin/sh", b"busybox", mode=0o120777),
+                           record("dev/console", mode=0o20600))
+        replacement = b"#!/bin/sh\nreplacement with another size\n"
+        result = replace_init(original, replacement)
+        before, trailer_before = parse_newc(original)
+        after, trailer_after = parse_newc(result)
+        self.assertEqual(len(result) % 512, 0)
+        self.assertEqual(len(before), len(after))
+        self.assertTrue(trailer_after.startswith(trailer_before))
+        for old, new in zip(before, after):
+            if old.name == b"init":
+                self.assertEqual(old.header[:54] + old.header[62:], new.header[:54] + new.header[62:])
+                self.assertEqual(old.prefix[110:], new.prefix[110:])
+                self.assertEqual(new.data, replacement)
+                self.assertEqual(new.mode, 0o100755)
+            else:
+                self.assertEqual(old.raw, new.raw)
+
+    def test_malformed_or_ambiguous_archives_fail(self):
+        valid = archive(record("init", b"old"))
+        malformed = {
+            "truncated header": valid[:100],
+            "wrong magic": b"070702" + valid[6:],
+            "invalid hex": valid[:6] + b"xxxxxxxx" + valid[14:],
+            "truncated data": record("init", b"old")[:-4],
+            "missing trailer": record("init", b"old"),
+            "trailing junk": valid + b"x",
+            "missing init": archive(record("bin/busybox", b"binary")),
+            "duplicate init": archive(record("init", b"old"), record("./init", b"other")),
+            "hardlinked init": archive(record("init", b"old", nlink=2)),
+            "symlink init": archive(record("init", b"bin/sh", mode=0o120777)),
+            "nonexecutable init": archive(record("init", b"old", mode=0o100644)),
+            "unsafe name": archive(record("../init", b"old")),
+        }
+        for description, candidate in malformed.items():
+            with self.subTest(description=description), self.assertRaises(ArchiveError):
+                replace_init(candidate, b"replacement")
+
+    def test_cli_rejects_unpinned_base_without_writing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory) / "base.gz"
+            init = Path(directory) / "init"
+            output = Path(directory) / "result.gz"
+            base.write_bytes(gzip.compress(archive(record("init", b"old"))))
+            init.write_bytes(b"#!/bin/sh\nnew\n")
+            result = subprocess.run([sys.executable, str(TOOL), "--base", str(base), "--init", str(init),
+                                     "--output", str(output)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("size/SHA-256", result.stderr)
+            self.assertFalse(output.exists())
+
+    def test_accepted_base_preserves_all_non_init_entries_and_is_deterministic(self):
+        base_path = REPO / "fpkg/vendor/internal-boot/initramfs.cpio.gz"
+        if not base_path.exists():
+            self.skipTest("private accepted archive is not staged")
+        base = base_path.read_bytes()
+        self.assertEqual(hashlib.sha256(base).hexdigest(), API["BASE_SHA256"])
+        replacement = b"#!/bin/sh\n# preservation test data only\n"
+        first = API["repack"](base, replacement)
+        self.assertEqual(first, API["repack"](base, replacement))
+        before, _ = parse_newc(gzip.decompress(base))
+        after, _ = parse_newc(gzip.decompress(first))
+        self.assertEqual([entry.name for entry in before], [entry.name for entry in after])
+        self.assertEqual([entry.raw for entry in before if entry.name != b"init"],
+                         [entry.raw for entry in after if entry.name != b"init"])
+
+
+if __name__ == "__main__":
+    unittest.main()

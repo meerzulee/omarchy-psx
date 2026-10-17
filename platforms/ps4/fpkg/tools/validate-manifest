@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+"""Validate the release-manifest policy without third-party dependencies."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from urllib.parse import urlparse
+
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+HEX64 = re.compile(r"^[0-9a-f]{64}$")
+RELEASE_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
+FIRMWARE = re.compile(r"^[0-9]+\.[0-9]{2}$")
+BOOT_ROLES = {"kernel", "initramfs", "bootargs", "vram"}
+BOOT_NAMES = {
+    "kernel": "bzImage",
+    "initramfs": "initramfs.cpio.gz",
+    "bootargs": "bootargs.txt",
+    "vram": "vram.txt",
+}
+SENSITIVE_KEYS = {"password", "passphrase", "secret", "token", "private_key", "wifi", "credential"}
+PRIVATE_PARTITIONED_PROFILE = {
+    "name": "private-kernel-manager-partitioned",
+    "app_version": "0.32",
+    "release_eligible": False,
+}
+USB_PARTITIONS = [
+    {"number": 1, "role": "boot", "filesystem": "fat32", "label": "PS4BOOT",
+     "start_sector": 2048, "size_sectors": 8388608, "partition_type": "0c", "bootable": True},
+    {"number": 2, "role": "system", "filesystem": "ext4", "label": "OMARCHY-PS4",
+     "start_sector": 8390656, "size": "remaining", "partition_type": "83", "bootable": False},
+]
+
+
+class PolicyError(Exception):
+    pass
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise PolicyError(message)
+
+
+def exact_keys(value: object, keys: set[str], where: str) -> dict:
+    require(isinstance(value, dict), f"{where}: expected object")
+    actual = set(value)
+    require(actual == keys, f"{where}: keys differ (missing={sorted(keys-actual)}, extra={sorted(actual-keys)})")
+    return value
+
+
+def reject_secrets(value: object, path: str = "$") -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            lowered = key.lower()
+            if lowered == "default_password":
+                require(child is False, f"{path}.{key}: must be false")
+            else:
+                require(not any(term in lowered for term in SENSITIVE_KEYS), f"{path}.{key}: secret-bearing field is forbidden")
+            reject_secrets(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_secrets(child, f"{path}[{index}]")
+
+
+def validate(document: object, production: bool) -> list[str]:
+    partitioned = (isinstance(document, dict) and isinstance(document.get("target"), dict)
+                   and document["target"].get("root_layout") == "partitioned-usb")
+    root_keys = {"schema", "release", "target", "first_boot", "loader", "boot_set", "usb_image"}
+    if partitioned:
+        root_keys.add("private_profile")
+    root = exact_keys(document, root_keys, "manifest")
+    reject_secrets(root)
+    require(root["schema"] == 2, "schema: only version 2 is supported")
+
+    release = exact_keys(root["release"], {"id", "version", "channel", "sequence", "published_at"}, "release")
+    require(isinstance(release["id"], str) and RELEASE_ID.fullmatch(release["id"]), "release.id: invalid")
+    require(isinstance(release["version"], str) and 0 < len(release["version"]) <= 32, "release.version: invalid")
+    require(release["channel"] in {"edge", "stable"}, "release.channel: expected edge or stable")
+    require(type(release["sequence"]) is int and release["sequence"] > 0, "release.sequence: expected positive integer")
+    require(isinstance(release["published_at"], str) and release["published_at"].endswith("Z"), "release.published_at: expected UTC timestamp")
+
+    target = root["target"]
+    require(isinstance(target, dict), "target: expected object")
+    required_target_keys = {
+        "architecture",
+        "models",
+        "southbridges",
+        "root_transport",
+        "root_layout",
+        "root_filesystem",
+        "root_label",
+    }
+    allowed_target_keys = required_target_keys | {"firmwares"}
+    actual_target_keys = set(target)
+    require(
+        required_target_keys <= actual_target_keys
+        and actual_target_keys <= allowed_target_keys,
+        "target: keys differ "
+        f"(missing={sorted(required_target_keys-actual_target_keys)}, "
+        f"extra={sorted(actual_target_keys-allowed_target_keys)})",
+    )
+    require(target["architecture"] == "x86_64", "target.architecture: expected x86_64")
+    for name in ("models", "southbridges"):
+        values = target[name]
+        require(isinstance(values, list) and values and all(isinstance(x, str) and x for x in values), f"target.{name}: expected non-empty string list")
+        require(len(values) == len(set(values)), f"target.{name}: duplicate value")
+    if "firmwares" in target:
+        firmwares = target["firmwares"]
+        require(
+            isinstance(firmwares, list)
+            and firmwares
+            and all(isinstance(x, str) and FIRMWARE.fullmatch(x) for x in firmwares),
+            "target.firmwares: invalid firmware",
+        )
+        require(len(firmwares) == len(set(firmwares)), "target.firmwares: duplicate value")
+    require(target["root_transport"] == "usb", "target.root_transport: only usb is supported")
+    require(target["root_layout"] in {"whole-device-filesystem", "partitioned-usb"}, "target.root_layout: unsupported layout")
+    if partitioned:
+        private_profile = exact_keys(root["private_profile"], {"name", "app_version", "release_eligible"}, "private_profile")
+        require(private_profile == PRIVATE_PARTITIONED_PROFILE
+                and private_profile["release_eligible"] is False,
+                "private_profile: expected the ineligible private v0.32 partitioned profile")
+    require(target["root_filesystem"] == "ext4", "target.root_filesystem: expected ext4")
+    require(target["root_label"] == "OMARCHY-PS4", "target.root_label: expected OMARCHY-PS4")
+
+    first_boot = exact_keys(root["first_boot"], {"mode", "pending_marker", "service", "default_password"}, "first_boot")
+    require(first_boot == {
+        "mode": "deferred-owner",
+        "pending_marker": "/var/lib/omarchy-ps4/provisioning/pending",
+        "service": "omarchy-ps4-provision-owner.service",
+        "default_password": False,
+    }, "first_boot: unsafe or unknown provisioning contract")
+
+    loader = exact_keys(root["loader"], {"delivery", "app_path", "source_url", "source_commit", "version", "sha256", "license"}, "loader")
+    require(loader["delivery"] == "embedded", "loader.delivery: expected embedded")
+    require(loader["app_path"] == "/app0/assets/misc/ps4-linux-loader.elf", "loader.app_path: unexpected")
+    require(urlparse(loader["source_url"]).scheme == "https", "loader.source_url: HTTPS required")
+    require(isinstance(loader["source_commit"], str) and HEX40.fullmatch(loader["source_commit"]), "loader.source_commit: expected 40 lowercase hex characters")
+    require(isinstance(loader["version"], str) and loader["version"], "loader.version: required")
+    require(isinstance(loader["sha256"], str) and HEX64.fullmatch(loader["sha256"]), "loader.sha256: expected 64 lowercase hex characters")
+    require(isinstance(loader["license"], str) and loader["license"], "loader.license: required")
+
+    boot_set = exact_keys(
+        root["boot_set"],
+        {"storage", "active_path", "previous_suffix", "transaction_marker", "vram_mb", "artifacts"},
+        "boot_set",
+    )
+    require(boot_set["storage"] == "orbis-internal", "boot_set.storage: expected orbis-internal")
+    require(boot_set["active_path"] == "/data/linux/boot", "boot_set.active_path: unexpected")
+    require(boot_set["previous_suffix"] == ".omarchy-prev", "boot_set.previous_suffix: unexpected")
+    require(
+        boot_set["transaction_marker"] == "/data/linux/.omarchy-ps4-staging",
+        "boot_set.transaction_marker: unexpected",
+    )
+    require(boot_set["vram_mb"] == 1024, "boot_set.vram_mb: only the accepted 1024 MB profile is supported")
+
+    artifacts = boot_set["artifacts"]
+    require(isinstance(artifacts, list), "artifacts: expected array")
+    roles: set[str] = set()
+    names: set[str] = set()
+    warnings: list[str] = ["private partitioned development profile: release ineligible"] if partitioned else []
+    for index, item_value in enumerate(artifacts):
+        item = exact_keys(
+            item_value,
+            {"name", "role", "app_path", "active_name", "size", "sha256"},
+            f"boot_set.artifacts[{index}]",
+        )
+        require(item["role"] in BOOT_ROLES, f"boot_set.artifacts[{index}].role: invalid")
+        require(item["role"] not in roles, f"artifacts[{index}].role: duplicate")
+        roles.add(item["role"])
+        expected_name = BOOT_NAMES[item["role"]]
+        require(item["name"] == expected_name, f"boot_set.artifacts[{index}].name: expected {expected_name}")
+        require(item["active_name"] == expected_name, f"boot_set.artifacts[{index}].active_name: expected {expected_name}")
+        require(item["app_path"] == f"/app0/assets/misc/{expected_name}", f"boot_set.artifacts[{index}].app_path: unexpected")
+        require(item["name"] not in names, f"artifacts[{index}].name: duplicate")
+        names.add(item["name"])
+        require(type(item["size"]) is int and item["size"] > 0, f"artifacts[{index}].size: expected positive integer")
+        require(isinstance(item["sha256"], str) and HEX64.fullmatch(item["sha256"]), f"artifacts[{index}].sha256: invalid")
+        if item["sha256"] == "0" * 64:
+            warnings.append(f"{item['role']}: placeholder digest")
+    require(roles == BOOT_ROLES, f"boot_set.artifacts: require exactly {sorted(BOOT_ROLES)}")
+
+    usb_keys = {"name", "url", "compression", "compressed_size", "sha256", "uncompressed_size", "uncompressed_sha256", "layout", "filesystem", "label", "minimum_device_bytes", "auto_grow", "contains_boot_files"}
+    if partitioned:
+        usb_keys |= {"partition_table", "logical_sector_bytes", "partitions"}
+    usb_image = exact_keys(root["usb_image"], usb_keys, "usb_image")
+    require(isinstance(usb_image["name"], str) and usb_image["name"].endswith(".img.xz"), "usb_image.name: expected .img.xz")
+    image_url = urlparse(usb_image["url"])
+    require(image_url.scheme == "https" and image_url.netloc, "usb_image.url: HTTPS required")
+    require(usb_image["compression"] == "xz", "usb_image.compression: expected xz")
+    for size_name in ("compressed_size", "uncompressed_size"):
+        require(type(usb_image[size_name]) is int and usb_image[size_name] > 0, f"usb_image.{size_name}: expected positive integer")
+    for digest_name in ("sha256", "uncompressed_sha256"):
+        require(isinstance(usb_image[digest_name], str) and HEX64.fullmatch(usb_image[digest_name]), f"usb_image.{digest_name}: invalid")
+        if usb_image[digest_name] == "0" * 64:
+            warnings.append(f"usb_image.{digest_name}: placeholder digest")
+    require(usb_image["layout"] == target["root_layout"], "usb_image.layout: must match target.root_layout")
+    require(usb_image["filesystem"] == "ext4", "usb_image.filesystem: expected ext4")
+    require(usb_image["label"] == "OMARCHY-PS4", "usb_image.label: expected OMARCHY-PS4")
+    require(type(usb_image["minimum_device_bytes"]) is int and usb_image["minimum_device_bytes"] >= 32_000_000_000, "usb_image.minimum_device_bytes: expected at least 32 GB")
+    if partitioned:
+        require(usb_image["auto_grow"] is False, "usb_image.auto_grow: partitioned layout is sized on the host")
+        require(usb_image["contains_boot_files"] is True, "usb_image.contains_boot_files: partitioned layout requires FAT boot files")
+        require(usb_image["partition_table"] == "dos", "usb_image.partition_table: expected dos")
+        require(type(usb_image["logical_sector_bytes"]) is int and usb_image["logical_sector_bytes"] == 512,
+                "usb_image.logical_sector_bytes: expected 512")
+        require(usb_image["partitions"] == USB_PARTITIONS, "usb_image.partitions: expected the exact 4 GiB FAT32 + remaining ext4 contract")
+        for partition in usb_image["partitions"]:
+            for name in ("number", "start_sector", "size_sectors"):
+                if name in partition:
+                    require(type(partition[name]) is int, f"usb_image.partitions.{name}: expected integer")
+            require(type(partition["bootable"]) is bool, "usb_image.partitions.bootable: expected boolean")
+    else:
+        require(usb_image["auto_grow"] is True, "usb_image.auto_grow: must be true")
+        require(usb_image["contains_boot_files"] is False, "usb_image.contains_boot_files: must be false")
+    if image_url.hostname and image_url.hostname.endswith(".invalid"):
+        warnings.append("usb_image: placeholder URL")
+
+    if loader["license"] == "NOASSERTION":
+        warnings.append("loader: redistribution license unresolved")
+    if production:
+        require(not warnings, "production policy failed: " + "; ".join(warnings))
+    return warnings
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("manifest", type=Path)
+    parser.add_argument("--production", action="store_true")
+    args = parser.parse_args()
+    try:
+        document = json.loads(args.manifest.read_text(encoding="utf-8"))
+        warnings = validate(document, args.production)
+    except (OSError, json.JSONDecodeError, PolicyError) as error:
+        print(f"manifest: FAIL: {error}", file=sys.stderr)
+        return 1
+    print(f"manifest: OK ({'production' if args.production else 'draft'})")
+    for warning in warnings:
+        print(f"warning: {warning}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

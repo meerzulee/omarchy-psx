@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Fetch the pinned public historical PS4 seed into ignored local cache."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import tempfile
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def verify(path, record):
+    if path.is_symlink() or not path.is_file() or path.stat().st_size != record["bytes"]:
+        raise ValueError("Seed is not a regular file of the pinned size")
+    if hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
+        raise ValueError("Seed SHA256 differs; preserving the existing file")
+
+
+def fetch(record, destination, open_url=urllib.request.urlopen):
+    if destination.exists() or destination.is_symlink():
+        verify(destination, record)
+        return "Verified cached seed: " + str(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".ps4-seed-", dir=destination.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output, open_url(record["url"], timeout=60) as source:
+            total = 0
+            while chunk := source.read(128 * 1024):
+                total += len(chunk)
+                if total > record["bytes"]:
+                    raise ValueError("Download exceeds pinned seed size")
+                output.write(chunk)
+        verify(temporary, record)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, destination)  # Never overwrite an existing/racing destination.
+    finally:
+        temporary.unlink(missing_ok=True)
+    return "Fetched and verified seed: " + str(destination)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    try:
+        record = json.loads((ROOT / "manifests/ps4-initramfs-seed.json").read_text())
+        destination = args.output or ROOT / record["cache_path"]
+        print(fetch(record, destination.absolute()))
+        print("Historical firmware/BusyBox input only; this is not the accepted Omarchy base or a new boot result.")
+    except (OSError, ValueError, KeyError) as error:
+        parser.exit(1, f"Seed acquisition refused: {error}\n")

@@ -17,7 +17,7 @@ We're bringing [Omarchy](https://github.com/omacom/omarchy) to
 **PlayStation 4 and PlayStation 5**, with the long-term ambition of supporting
 upcoming PlayStation consoles.
 
-Omarchy psX will bring our existing PS4 port and future console ports into one
+Omarchy psX brings our existing PS4 port and future console ports into one
 distribution project: a shared desktop experience, with installation, boot and
 hardware integration tailored to each console.
 
@@ -41,41 +41,48 @@ Each console will use its own selected Linux psX kernel and matching modules.
 
 | Console | Project status |
 | --- | --- |
-| **PlayStation 4** | Existing PS4 port; source handoff and experimental integration scaffolding now live here. |
+| **PlayStation 4** | Existing distribution source, pending Ethernet/partitioned-USB work and curated research migrated under `platforms/ps4/`. New psX boot sets require validation. |
 | **PlayStation 5** | Planned port, using the Linux psX kernel foundation. |
 | **Future PlayStation consoles** | Long-term exploration as hardware access and public research become available. |
 
-## Road ahead
+## Start development
 
-1. Bring the existing PS4 distribution work into psX.
-2. Integrate and validate a PS5 kernel and boot path.
-3. Share distribution components while keeping console differences explicit.
-4. Publish reproducible builds, installation guides and hardware test results.
+With Git and Python 3.10+ installed:
 
-## Current stage
+```sh
+git clone https://github.com/meerzulee/omarchy-psx.git
+cd omarchy-psx
+./scripts/setup-workspace
+make check
+```
 
-**Integration scaffolding.** This repository now holds a pinned kernel-source
-handoff, host setup guidance, the existing Omarchy `/init` source and portable
-data-only initramfs repacker, an optional USB boot profile and a manually invoked
-experimental Ethernet adapter. Linux psX owns the kernel
-and its distribution-independent build/artifact contract; Omarchy-specific
-setup stays here.
+Setup obtains pinned sibling `linux-psx` and `ps4-uart` sources while preserving
+existing work. Read [development hosts](docs/DEVELOPMENT-HOSTS.md) for
+**macOS ARM64 with OrbStack** and **Linux x86-64 with native kernel builds**.
+Full distribution image wrappers currently use the Mac/OrbStack host.
 
-Read [Using Linux psX with Omarchy](docs/USING-LINUX-PSX.md) for Mac ARM64
-(OrbStack), Linux x86-64 native builds, whole matching modules and recovery.
-The [handoff manifest](manifests/kernel-source.json) pins the published kernel
-migration commit `b9bcf7234dff601ce41e141ca1403ea0a4525c1a`.
-The [initramfs guide](docs/INITRAMFS.md) identifies the exact BusyBox archive,
-external base requirement and Mac/Linux generation command. Its source import
-is recorded in [initramfs provenance](provenance/initramfs-import.json).
-[Integration provenance](provenance/integration-import.json) records the exact
-source paths, hashes, adaptations and preserved notices for imported helpers
-and the optional boot-profile example.
+## Source map
 
-This is not a turnkey OS installer or a complete migration of the existing
-[Omarchy PS4 implementation](https://github.com/meerzulee/omarchy-ps4).
-No new Linux psX binary release or hardware acceptance is implied. PS5 and
-future-console support remain planned.
+| Location | Contents |
+| --- | --- |
+| [`platforms/ps4/`](platforms/ps4/README.md) | Complete imported PS4 distribution source: packages, profiles, rootfs, launcher/FPKG, installers, recovery tools and tests. |
+| [`platforms/ps4/knowledge/`](platforms/ps4/knowledge/README.md) | Curated research and source references. |
+| [`platforms/ps4/experiments/`](platforms/ps4/experiments/README.md) | Historical experiment ledger, with private identifiers redacted and raw captures excluded. |
+| [`platforms/ps5/`](platforms/ps5/README.md) | Planned PS5 boundary and prerequisites. |
+| [`docs/USING-LINUX-PSX.md`](docs/USING-LINUX-PSX.md) | Whole matching kernel/modules, optional boot profile and manual Ethernet adapter. |
+| [`docs/INITRAMFS.md`](docs/INITRAMFS.md) | Existing BusyBox initramfs preservation and source reconstruction. |
+| [`docs/MIGRATION.md`](docs/MIGRATION.md) | What moved, historical compatibility interfaces and remaining qualification. |
+| [`manifests/`](manifests/development-sources.json) | Full source commit pins and external boot-input identities. |
+| [`provenance/ps4-worktree-import.json`](provenance/ps4-worktree-import.json) | Per-file source/destination hashes, pending source and deliberate exclusions. |
+
+The old `omarchy-ps4` checkout is preserved as history. Existing PS4 package
+names, services, labels and exact-hash boot profiles remain compatibility
+interfaces; a repository move does not change the installed system.
+
+This is a **source migration**, not a new turnkey image or release. Historical
+hardware results retain their original scope. New Linux psX boot sets and
+unattended Ethernet startup need separate validation. PS5 and future-console
+implementation remain planned.
 
 ## License
 

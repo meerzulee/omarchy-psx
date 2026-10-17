@@ -1,0 +1,324 @@
+#!/usr/bin/env bash
+# Private development profile. Never formats a console-internal disk.
+set -euo pipefail
+
+repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+stable_id='' serial='' archive='' boot_set='' launcher='' public_key=''
+apply=false resume=false expected_root_uuid='' expected_boot_uuid=''
+fail() { printf 'install-partitioned-usb-linux: %s\n' "$*" >&2; exit 2; }
+usage() {
+  printf '%s\n' \
+    'Usage: install-partitioned-usb-linux --device /dev/disk/by-id/usb-... --serial SERIAL' \
+    '       --rootfs FILE.tar.zst --boot-set DIRECTORY --launcher FILE.pkg' \
+    '       [--ssh-public-key FILE] [--apply]' \
+    '       [--resume --expect-root-uuid UUID --expect-boot-uuid UUID]' \
+    'Default: read-only preview. Apply requires root and an exact WIPE confirmation.'
+}
+while (( $# )); do
+  case $1 in
+    --device|--serial|--rootfs|--boot-set|--launcher|--ssh-public-key|--expect-root-uuid|--expect-boot-uuid)
+      (( $# >= 2 )) || fail "$1 requires a value"
+      case $1 in
+        --device) stable_id=$2 ;;
+        --serial) serial=$2 ;;
+        --rootfs) archive=$2 ;;
+        --boot-set) boot_set=$2 ;;
+        --launcher) launcher=$2 ;;
+        --ssh-public-key) public_key=$2 ;;
+        --expect-root-uuid) expected_root_uuid=$2 ;;
+        --expect-boot-uuid) expected_boot_uuid=$2 ;;
+      esac
+      shift 2 ;;
+    --apply) apply=true; shift ;;
+    --resume) resume=true; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) fail "unknown argument: $1" ;;
+  esac
+done
+[[ $(uname -s) == Linux ]] || fail 'run on the Linux host'
+[[ $stable_id == /dev/disk/by-id/usb-* && -L $stable_id && -n $serial ]] || \
+  fail 'an explicit stable USB by-id path and serial are required'
+[[ $serial =~ ^[A-Za-z0-9._-]+$ ]] || fail 'serial contains unsupported characters'
+if [[ $resume == true ]]; then
+  [[ $expected_root_uuid =~ ^[0-9a-fA-F-]+$ && $expected_boot_uuid =~ ^[0-9a-fA-F-]+$ ]] || \
+    fail 'resume requires the previously recorded root and boot filesystem UUIDs'
+else
+  [[ -z $expected_root_uuid && -z $expected_boot_uuid ]] || fail 'UUID expectations require --resume'
+fi
+[[ -r $archive && -r $archive.manifest ]] || fail 'rootfs and manifest are required'
+[[ -r $boot_set/release.json && -s $launcher ]] || fail 'boot set and launcher are required'
+for tool in awk blkid chmod cmp e2fsck find findmnt flock fsck.fat grep install lsblk mkfs.ext4 \
+  mkfs.vfat mktemp mount python3 readlink rm sed sfdisk sha256sum ssh-keygen stat swapon sync tar tr \
+  udevadm umount wipefs zstd; do
+  command -v "$tool" >/dev/null || fail "missing command: $tool"
+done
+device=$(readlink -f -- "$stable_id")
+[[ -b $device ]] || fail 'stable identity does not resolve to a block device'
+initial_identity=$(lsblk -dnro MAJ:MIN "$device")
+initial_sysfs=$(readlink -f "/sys/class/block/${device##*/}")
+
+check_device() {
+  [[ $(readlink -f -- "$stable_id") == "$device" ]] || fail 'USB identity changed'
+  [[ $(lsblk -dnro SERIAL "$device") == "$serial" ]] || fail 'USB serial mismatch'
+  [[ $(lsblk -dnro TYPE "$device") == disk && $(lsblk -dnro TRAN "$device") == usb ]] || \
+    fail 'target must be a whole USB disk'
+  [[ $(lsblk -dnro MAJ:MIN "$device") == "$initial_identity" &&
+     $(readlink -f "/sys/class/block/${device##*/}") == "$initial_sysfs" &&
+     $initial_sysfs == *'/usb'* ]] || fail 'USB block-device ancestry changed'
+  [[ $(lsblk -dnro LOG-SEC "$device") == 512 ]] || fail '512-byte logical sectors are required'
+  local running_root node swap_device input_path source
+  running_root=$(findmnt -nro SOURCE /)
+  running_root=${running_root%%\[*}
+  [[ -b $running_root ]] || fail 'cannot resolve host root ancestry safely'
+  ! lsblk -snrpo NAME "$running_root" | grep -Fxq "$device" || fail 'target backs the running host'
+  while IFS= read -r node; do
+    for holder in "/sys/class/block/${node##*/}/holders/"*; do
+      [[ ! -e $holder ]] || fail "$node has an active block-device holder"
+    done
+    while IFS= read -r swap_device; do
+      [[ $(readlink -f "$swap_device") != "$node" ]] || fail "$node is active swap"
+    done < <(swapon --noheadings --raw --show=NAME)
+  done < <(lsblk -nrpo NAME "$device")
+  for input_path in "$archive" "$boot_set" "$launcher" "$repo_dir" ${public_key:+"$public_key"}; do
+    source=$(findmnt -nro SOURCE --target "$input_path")
+    source=${source%%\[*}
+    if [[ -b $source ]] && lsblk -snrpo NAME "$source" | grep -Fxq "$device"; then
+      fail 'installation inputs must be stored outside the USB being erased'
+    fi
+  done
+}
+check_device
+device_bytes=$(lsblk -bdnro SIZE "$device")
+[[ $device_bytes =~ ^[0-9]+$ ]] || fail 'cannot read USB capacity'
+disk_sectors=$((device_bytes / 512))
+plan=$(python3 "$repo_dir/scripts/partitioned-usb-policy" plan --disk-sectors "$disk_sectors")
+expected_sha=$(sed -n 's/^archive_sha256=//p' "$archive.manifest")
+[[ $expected_sha =~ ^[0-9a-f]{64}$ ]] || fail 'rootfs digest is missing'
+grep -Fxq 'root_layout=partitioned-usb' "$archive.manifest" || fail 'rootfs was not built for partitioned USB'
+kernel_release=$(sed -n 's/^kernel_release=//p' "$archive.manifest")
+[[ $kernel_release =~ ^[0-9][0-9A-Za-z._+-]+$ ]] || fail 'rootfs kernel release is invalid'
+profile=$repo_dir/fpkg/boot-profiles/baikal-b1-partitioned-dev1.env
+[[ -r $profile ]] || fail 'partitioned boot profile is missing'
+[[ $kernel_release == "$(sed -n 's/^kernel_release=//p' "$profile")" ]] || \
+  fail 'rootfs kernel release differs from the fixed boot profile'
+expected_modules=$(sed -n 's/^modules_sha256=//p' "$profile")
+[[ $expected_modules =~ ^[0-9a-f]{64}$ ]] || fail 'boot profile module digest is invalid'
+grep -Fxq "modules_sha256=$expected_modules" "$archive.manifest" || \
+  fail 'rootfs modules differ from the fixed boot kernel'
+[[ $(sha256sum "$archive" | awk '{print $1}') == "$expected_sha" ]] || fail 'rootfs checksum mismatch'
+[[ $(stat -c %s "$archive") == "$(sed -n 's/^archive_size=//p' "$archive.manifest")" ]] || \
+  fail 'rootfs archive size mismatch'
+"$repo_dir/fpkg/tools/validate-manifest" "$boot_set/release.json"
+python3 - "$boot_set" "$profile" <<'PY'
+import hashlib,json,sys
+from pathlib import Path
+root=Path(sys.argv[1]); doc=json.loads((root/'release.json').read_text())
+profile=dict(line.split('=',1) for line in Path(sys.argv[2]).read_text().splitlines() if line)
+assert doc['release']['id']==profile['release'], 'wrong private boot release'
+assert doc['target']['root_layout']=='partitioned-usb', 'wrong launcher root layout'
+assert doc['usb_image']['auto_grow'] is False, 'partitioned USB must not auto-grow'
+for item in doc['boot_set']['artifacts']:
+    data=(root/item['name']).read_bytes()
+    assert len(data)==item['size'], f"boot file size mismatch: {item['name']}"
+    assert hashlib.sha256(data).hexdigest()==item['sha256'], f"boot file checksum mismatch: {item['name']}"
+    if item['role']=='kernel':
+        assert item['sha256']==profile['kernel_sha256'], 'kernel differs from the rootfs module pair'
+    elif item['role'] in ('initramfs','bootargs'):
+        assert item['sha256']==profile[item['role']+'_sha256'], 'boot file differs from fixed profile'
+args=(root/'bootargs.txt').read_text().split()
+assert 'omarchy.require_usb=1' in args and 'omarchy.root_layout=partitioned-usb' in args
+assert not any(x.startswith('omarchy.install=') for x in args), 'legacy installer must be disabled'
+PY
+if [[ -n $public_key ]]; then
+  [[ -s $public_key ]] || fail 'SSH public key is missing'
+  ssh-keygen -lf "$public_key" >/dev/null || fail 'invalid SSH public key'
+fi
+lsblk -o NAME,PATH,TRAN,SIZE,MODEL,SERIAL,FSTYPE,LABEL,MOUNTPOINTS "$device"
+printf '\nTarget: %s\nSerial: %s\nLayout: 4 GiB FAT32 PS4BOOT + remaining ext4 OMARCHY-PS4\n' "$stable_id" "$serial"
+printf 'Rootfs verified: %s\n' "$expected_sha"
+[[ $resume == false ]] || printf 'Resume: existing empty filesystems only; no partitioning or formatting.\n'
+[[ $apply == true ]] || { printf 'Preview complete; no disk writes performed.\n'; exit 0; }
+[[ $EUID == 0 ]] || fail 'apply requires root'
+exec 9>"/run/lock/omarchy-ps4-usb-${initial_identity//:/-}.lock"
+flock --exclusive --nonblock 9 || fail 'another installer holds this USB'
+confirmation_verb=WIPE
+[[ $resume == false ]] || confirmation_verb=RESUME
+read -r -p "Type $confirmation_verb $stable_id to continue: " confirmation
+[[ $confirmation == "$confirmation_verb $stable_id" ]] || fail 'aborted'
+check_device
+
+suffix=''
+[[ $device != *[0-9] ]] || suffix=p
+boot_device=${device}${suffix}1
+root_device=${device}${suffix}2
+mount_dir='' mounted=false udev_guard_file=''
+cleanup() {
+  if [[ $mounted == true ]]; then umount "$mount_dir" || true; fi
+  [[ -z $mount_dir ]] || rmdir "$mount_dir" 2>/dev/null || true
+  if [[ -n $udev_guard_file ]]; then
+    rm -f -- "$udev_guard_file"
+    # Do not trigger another change: the existing device stays ignored until
+    # unplugged, while later devices use the normal rules. Only this serial
+    # was affected; no desktop service or global automount setting is changed.
+    udevadm control --reload-rules || true
+  fi
+}
+trap cleanup EXIT
+
+inhibit_automount() {
+  local node
+  while IFS= read -r node; do
+    udevadm trigger --action=change "/sys/class/block/${node##*/}"
+  done < <(lsblk -nrpo NAME "$device")
+  udevadm settle
+  while IFS= read -r node; do
+    udevadm info --query=property --name "$node" | grep -Fxq 'UDISKS_IGNORE=1' || \
+      fail "automount exclusion did not apply to $node"
+  done < <(lsblk -nrpo NAME "$device")
+}
+
+unmount_target() {
+  local index
+  mapfile -t old_nodes < <(lsblk -nrpo NAME "$device")
+  for ((index=${#old_nodes[@]}-1; index>=0; index--)); do
+    while findmnt -rn -S "${old_nodes[index]}" >/dev/null; do
+      umount -- "${old_nodes[index]}"
+    done
+  done
+  check_device
+  [[ -z $(lsblk -nro MOUNTPOINTS "$device" | tr -d '[:space:]') ]] || fail 'target is still mounted'
+}
+
+verify_resume_identity() {
+  [[ -b $boot_device && -b $root_device ]] || fail 'resume partitions are missing'
+  sfdisk --json "$device" | python3 "$repo_dir/scripts/partitioned-usb-policy" verify \
+    --disk-sectors "$disk_sectors" --device "$device"
+  [[ $(blkid -p -s UUID -o value "$root_device") == "$expected_root_uuid" &&
+     $(blkid -p -s UUID -o value "$boot_device") == "$expected_boot_uuid" ]] || \
+    fail 'resume filesystem UUIDs differ from the recorded failed attempt'
+  [[ $(blkid -p -s TYPE -o value "$root_device") == ext4 &&
+     $(blkid -p -s LABEL -o value "$root_device") == OMARCHY-PS4 &&
+     $(blkid -p -s TYPE -o value "$boot_device") == vfat &&
+     $(blkid -p -s LABEL -o value "$boot_device") == PS4BOOT ]] || \
+    fail 'resume filesystem types or labels differ'
+}
+
+# Validate existing identities before changing even the host's automount rule.
+[[ $resume == false ]] || verify_resume_identity
+install -d -m 0755 /run/udev/rules.d
+guard_path=/run/udev/rules.d/99-omarchy-ps4-install-$serial.rules
+[[ ! -e $guard_path ]] || fail 'a prior automount guard exists; review it before retrying'
+(set -o noclobber; printf 'SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{ID_SERIAL_SHORT}=="%s", ENV{UDISKS_IGNORE}="1"\n' "$serial" > "$guard_path")
+udev_guard_file=$guard_path
+chmod 0644 "$udev_guard_file"
+udevadm control --reload-rules
+inhibit_automount
+unmount_target
+
+if [[ $resume == false ]]; then
+  wipefs --all "$device"
+  printf '%s\n' "$plan" | sfdisk --wipe always --wipe-partitions always "$device"
+  udevadm settle
+  sfdisk --json "$device" | python3 "$repo_dir/scripts/partitioned-usb-policy" verify \
+    --disk-sectors "$disk_sectors" --device "$device"
+  [[ -b $boot_device && -b $root_device ]] || fail 'partition devices did not appear'
+  check_device
+  inhibit_automount
+  mkfs.vfat -F 32 -n PS4BOOT "$boot_device"
+  mkfs.ext4 -F -L OMARCHY-PS4 "$root_device"
+  udevadm settle
+  unmount_target
+else
+  # Read-only checks must pass before copying. A populated or partially
+  # installed root is a different recovery case and is never overwritten.
+  e2fsck -f -n "$root_device"
+  fsck.fat -n "$boot_device"
+fi
+
+mount_dir=$(mktemp -d /mnt/omarchy-ps4-partitioned.XXXXXX)
+mount -o ro,noload "$root_device" "$mount_dir"
+mounted=true
+[[ -z $(find "$mount_dir" -mindepth 1 -maxdepth 1 ! -name lost+found -print -quit) ]] || \
+  fail 'root filesystem is not empty; automatic resume is refused'
+if [[ -e $mount_dir/lost+found ]]; then
+  [[ -d $mount_dir/lost+found && ! -L $mount_dir/lost+found &&
+     -z $(find "$mount_dir/lost+found" -mindepth 1 -print -quit) ]] || \
+    fail 'lost+found is not an empty directory'
+fi
+umount "$mount_dir"
+mounted=false
+mount -o ro "$boot_device" "$mount_dir"
+mounted=true
+[[ -z $(find "$mount_dir" -mindepth 1 -maxdepth 1 -print -quit) ]] || \
+  fail 'boot filesystem is not empty; automatic resume is refused'
+umount "$mount_dir"
+mounted=false
+
+mount "$root_device" "$mount_dir"
+mounted=true
+printf 'Extracting the verified Omarchy system; keep the USB connected.\n'
+zstd -dc "$archive" | tar --extract --preserve-permissions --same-owner --numeric-owner \
+  --acls --xattrs --xattrs-include='*' --file=- --directory="$mount_dir"
+install -d -m 0755 "$mount_dir/dev" "$mount_dir/run" "$mount_dir/boot"
+install -d -m 0555 "$mount_dir/proc" "$mount_dir/sys"
+grep -Fxq 'root_layout=partitioned-usb' "$mount_dir/var/lib/omarchy-ps4/release-state" || \
+  fail 'installed release layout mismatch'
+[[ -f $mount_dir/var/lib/omarchy-ps4/provisioning/pending ]] || fail 'owner setup is not armed'
+install -d -m 0700 "$mount_dir/var/lib/omarchy-ps4"
+printf '%s\n' 'schema=1' 'layout=partitioned-usb' 'filesystem=ext4' 'label=OMARCHY-PS4' \
+  'boot_bytes=4294967296' 'auto_grow=0' > "$mount_dir/var/lib/omarchy-ps4/image-layout"
+chmod 0600 "$mount_dir/var/lib/omarchy-ps4/image-layout"
+rm -f "$mount_dir/var/lib/omarchy-ps4/storage-expanded"
+if [[ -n $public_key ]]; then
+  install -m 0600 "$public_key" "$mount_dir/var/lib/omarchy-ps4/provisioning/authorized_keys"
+fi
+sync -f "$mount_dir"
+umount "$mount_dir"
+mounted=false
+fsck_status=0
+e2fsck -f -y "$root_device" || fsck_status=$?
+(( fsck_status <= 1 )) || fail "ext4 repair failed with status $fsck_status"
+e2fsck -f -n "$root_device"
+mount -o ro,noload "$root_device" "$mount_dir"
+mounted=true
+[[ ! -e $mount_dir/.dockerenv ]] || fail 'installed system contains a container marker'
+[[ -e $mount_dir/etc/os-release && -x $mount_dir/sbin/init ]] || fail 'installed system init is missing'
+[[ -f $mount_dir/var/lib/omarchy-ps4/provisioning/pending &&
+   ! -e $mount_dir/var/lib/omarchy-ps4/storage-expanded ]] || fail 'first-owner state is incorrect'
+[[ -d $mount_dir/usr/lib/modules/$kernel_release &&
+   -r $mount_dir/usr/lib/modules/$kernel_release/modules.dep ]] || fail 'matching kernel modules are missing'
+[[ -r $mount_dir/usr/local/share/wayland-sessions/omarchy.desktop ]] || fail 'Omarchy desktop session is missing'
+grep -Fxq "kernel_release=$kernel_release" "$mount_dir/var/lib/omarchy-ps4/release-state" || fail 'installed kernel release differs'
+grep -Fxq 'root_layout=partitioned-usb' "$mount_dir/var/lib/omarchy-ps4/release-state" || fail 'installed root layout differs'
+if [[ -n $public_key ]]; then
+  cmp -s "$public_key" "$mount_dir/var/lib/omarchy-ps4/provisioning/authorized_keys" || fail 'installed SSH public key differs'
+fi
+umount "$mount_dir"
+mounted=false
+
+mount "$boot_device" "$mount_dir"
+mounted=true
+for name in bzImage initramfs.cpio.gz bootargs.txt vram.txt release.json; do
+  install -m 0644 "$boot_set/$name" "$mount_dir/$name"
+done
+install -m 0644 "$launcher" "$mount_dir/omarchy-ps4-v0.32-partitioned-dev.pkg"
+sync -f "$mount_dir"
+umount "$mount_dir"
+mounted=false
+mount -o ro "$boot_device" "$mount_dir"
+mounted=true
+for name in bzImage initramfs.cpio.gz bootargs.txt vram.txt release.json; do
+  cmp -s "$boot_set/$name" "$mount_dir/$name" || fail "installed boot file differs: $name"
+done
+cmp -s "$launcher" "$mount_dir/omarchy-ps4-v0.32-partitioned-dev.pkg" || fail 'installed launcher differs'
+umount "$mount_dir"
+mounted=false
+fsck.fat -n "$boot_device"
+[[ $(blkid -s LABEL -o value "$root_device") == OMARCHY-PS4 &&
+   $(blkid -s TYPE -o value "$root_device") == ext4 &&
+   $(blkid -s LABEL -o value "$boot_device") == PS4BOOT &&
+   $(blkid -s TYPE -o value "$boot_device") == vfat ]] || fail 'installed filesystem identities differ'
+sfdisk --json "$device" | python3 "$repo_dir/scripts/partitioned-usb-policy" verify \
+  --disk-sectors "$disk_sectors" --device "$device"
+sync
+printf 'Installation complete; both USB partitions are unmounted. PS4 boot remains untested.\n'

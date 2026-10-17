@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Run PS4 source/fixture checks without containers, target disks or a console."""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+PLATFORM = Path(__file__).resolve().parents[1]
+PYTHON_TESTS = (
+    "development-setup-test", "baikal-ethernet-test", "initramfs-repack-test",
+    "partitioned-fpkg-test", "partitioned-usb-policy-test", "partitioned-usb-resume-test",
+    "storage-layout-test", "migration-guards-test",
+)
+SHELL_TESTS = (
+    "boot-profile-test", "chromium-software-rendering-test", "gift-rootfs-contract-test",
+    "usb-image-contract-test", "fpkg-draft-test",
+)
+GENERATED_INPUT_TESTS = {
+    "full-profile-test / network-panel-patch-test": "pinned upstream Omarchy checkout",
+    "package-content-test / prepare-for-owner-test": "built Arch project packages",
+    "package-snapshot-test": "verified built offline package snapshot",
+    "gift-dev-recovery-test": "OrbStack container, built gift bundle and explicit authorized test key",
+    "portable-bundle-test": "built portable bundle",
+    "initramfs-product-test": "locally assembled initramfs and Linux archive inspection tools",
+    "internal-boot-set-test / private-boot-transaction-test": "explicitly staged exact-hash historical binaries",
+    "fpkg-offline-bundle-test": "staged private historical offline bundle",
+    "usb-image-artifact-test": "generated image and OrbStack VM",
+    "probe-smoke-test": "explicit host evidence collection, omitted from the source-only suite",
+}
+
+
+def execute(*args):
+    print("RUN:", " ".join(map(str, args)), flush=True)
+    subprocess.run(list(map(str, args)), check=True, cwd=PLATFORM)
+
+
+def main():
+    if not shutil.which("bash") or not shutil.which("make") or not shutil.which(os.environ.get("CXX", "c++")):
+        raise RuntimeError("Source tests require Bash, Make and a C++17 compiler")
+    checked = 0
+    for path in sorted(PLATFORM.rglob("*")):
+        # Inspect source only; generated outputs can contain executable/archive data.
+        relative = path.relative_to(PLATFORM)
+        if any(part.endswith(".git") or part in {"output", "cache", "build", "vendor", "__pycache__"} for part in relative.parts):
+            continue
+        if not path.is_file():
+            continue
+        try:
+            source = path.read_text()
+        except UnicodeDecodeError:
+            continue
+        first = source.partition("\n")[0]
+        if first.startswith("#!") and ("bash" in first or first.endswith("/sh")):
+            subprocess.run(["bash" if "bash" in first else "sh", "-n", str(path)], check=True)
+            checked += 1
+        elif first.startswith("#!") and "python" in first:
+            compile(source, str(path), "exec")
+            checked += 1
+    print(f"PASS: syntax checked {checked} source programs", flush=True)
+    for name in PYTHON_TESTS:
+        execute(sys.executable, PLATFORM / "tests" / name)
+    for name in SHELL_TESTS:
+        execute("bash", PLATFORM / "tests" / name)
+    execute("make", "-C", PLATFORM / "fpkg/ui-prototype", "host-test")
+    for name, reason in GENERATED_INPUT_TESTS.items():
+        print(f"SKIP: {name}: requires {reason}")
+    print("PASS: PS4 source/fixture checks. No image build or hardware acceptance is claimed.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (RuntimeError, OSError, subprocess.SubprocessError, SyntaxError) as error:
+        print(f"Source checks failed: {error}", file=sys.stderr)
+        sys.exit(1)

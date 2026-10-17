@@ -1,0 +1,2851 @@
+{
+  "schema": 1,
+  "source": {
+    "repository": "https://github.com/meerzulee/omarchy-ps4.git",
+    "head": "e4d148c8c42bc4f8edc8b7d4f0b769bb8ec7d5d0",
+    "selection": "Current indexed and untracked nonignored regular files/symlinks; dirty/pending bytes are recorded rather than assumed to exist at HEAD.",
+    "worktree_dirty": true
+  },
+  "destination_prefix": "platforms/ps4",
+  "policy": "PS4 implementation and reviewed curated history. Historical hardware evidence remains scoped to the original artifacts; it does not qualify linux-psx or PS5. Generated/vendor binaries, firmware, images and raw captures are not imported.",
+  "files": [
+    {
+      "source": ".dockerignore",
+      "destination": "platforms/ps4/.dockerignore",
+      "source_sha256": "249fcd6e800ff3f560fc3eafc19dd18637d7b66894484d285085b1ea64149df6",
+      "destination_sha256": "249fcd6e800ff3f560fc3eafc19dd18637d7b66894484d285085b1ea64149df6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": ".gitignore",
+      "destination": "platforms/ps4/.gitignore",
+      "source_sha256": "8c34e2ef590f79ae199be01414b829180eb85532cc998a1fb2cf60eadb8cf506",
+      "destination_sha256": "8c34e2ef590f79ae199be01414b829180eb85532cc998a1fb2cf60eadb8cf506",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": "platforms/ps4/AGENTS.md",
+      "source_sha256": "ec32767bca90b387f5fd4b9780a942f417712c7f4d708d2334d9e72343e002d4",
+      "destination_sha256": "fa7b817bce5b307b3374754317dc0dae9148d8162677ab150c08408cd8710556",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Replace old flat-workspace infrastructure instructions with root psX authority and nested PS4 ownership; retain the original product/hardware policies."
+      ]
+    },
+    {
+      "source": "Containerfile.packages",
+      "destination": "platforms/ps4/Containerfile.packages",
+      "source_sha256": "3f123145f58b6ea188e8b0e6e42b3ede95bd6fb6322227726efe3ae27b56b964",
+      "destination_sha256": "3f123145f58b6ea188e8b0e6e42b3ede95bd6fb6322227726efe3ae27b56b964",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "Containerfile.rootfs",
+      "destination": "platforms/ps4/Containerfile.rootfs",
+      "source_sha256": "10af83139c22f4cf8e7055e8bb48c27a23cb8a767f1d28837c8363f501cdb908",
+      "destination_sha256": "10af83139c22f4cf8e7055e8bb48c27a23cb8a767f1d28837c8363f501cdb908",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "README.md",
+      "destination": "platforms/ps4/README.md",
+      "source_sha256": "ae7d5c36320e37b6fee74042b3374aa8ac4f09c668e17c112b7357ffa310baa4",
+      "destination_sha256": "082dfa641c1033b96c51175d911138351302e567ec1232a9fa610c9530ca9e38",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M README.md",
+      "adaptations": [
+        "Prepend current PS4 location, deployed-identifier and historical-evidence boundaries; preserve the original README below."
+      ]
+    },
+    {
+      "source": "bin/omarchy-ps4-compare",
+      "destination": "platforms/ps4/bin/omarchy-ps4-compare",
+      "source_sha256": "0f0d3381082e5a6e4046b1f34c33690ef316f333ab895f77478baa72df5d6848",
+      "destination_sha256": "0f0d3381082e5a6e4046b1f34c33690ef316f333ab895f77478baa72df5d6848",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "bin/omarchy-ps4-probe",
+      "destination": "platforms/ps4/bin/omarchy-ps4-probe",
+      "source_sha256": "f6638a914ee13b5a34803cc5b2727d7df27e0788694653f3c6f724f6298f7fa7",
+      "destination_sha256": "f6638a914ee13b5a34803cc5b2727d7df27e0788694653f3c6f724f6298f7fa7",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "docs/ARCHITECTURE-RESEARCH.md",
+      "destination": "platforms/ps4/docs/ARCHITECTURE-RESEARCH.md",
+      "source_sha256": "cf7cecbe79360b737041fab9cc9d2b03478f3ad44492470c637a9ebfab595d1a",
+      "destination_sha256": "f82f216428a2779d67db6950990ece701670d02f33ea9f20e8cbb88a7c6c3475",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Correct inherited relative links to migrated documentation."
+      ]
+    },
+    {
+      "source": "docs/BAIKAL-ETHERNET.md",
+      "destination": "platforms/ps4/docs/BAIKAL-ETHERNET.md",
+      "source_sha256": "f22bb7b8b3625bf145b273f68d655241dbe0c63e5506238ad7b247971b023e7c",
+      "destination_sha256": "2fc0ef1842dc623b2b18d475774eb27f4122a6d68264d47ba222423b55c42cce",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? docs/BAIKAL-ETHERNET.md",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Use pinned public kernel history instead of an old sibling checkout link.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "docs/BASELINE.md",
+      "destination": "platforms/ps4/docs/BASELINE.md",
+      "source_sha256": "7cb401372e2363f022f34d8332235e6a0c2fd99e83260a91144d96d90f81e8af",
+      "destination_sha256": "10c9ccd1f5486a013f3336d28c56bf12f325baee1efca48ecb68aa8f2833077e",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/BLOCKED-PACKAGE-RESTORATION.md",
+      "destination": "platforms/ps4/docs/BLOCKED-PACKAGE-RESTORATION.md",
+      "source_sha256": "095dc94b605368cd85c10843f750a71b6b2a74337c588f6728f3a1fe6143495f",
+      "destination_sha256": "b0dbd74e819edaf1d3fee519c317b843c8e191db211774e50474b1d686ae878b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/BUILDING.md",
+      "destination": "platforms/ps4/docs/BUILDING.md",
+      "source_sha256": "66247d36fb3eb512bba0cb823e8ff49283d4d1e6507f2ca792615c7424ee3e4d",
+      "destination_sha256": "d7a1f3dbc594b29504b1f7f1851589e264c851754a359fb8ae31a65bd7f2cb6b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/CHECKPOINT-2026-08-13.md",
+      "destination": "platforms/ps4/docs/CHECKPOINT-2026-08-13.md",
+      "source_sha256": "7c6f4593015654f62602eb5f3577a748db16e143cffdf2e7723dfea1c0285f62",
+      "destination_sha256": "73f7d609d4eca91494f1d8708089ba3bcddfdb91b054975739446a123365246d",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "docs/CHECKPOINT-2026-08-22.md",
+      "destination": "platforms/ps4/docs/CHECKPOINT-2026-08-22.md",
+      "source_sha256": "39e03be6d4aab55de2fe8011e170eab3ac1b14f7df1bf258c547b3b87a87e25f",
+      "destination_sha256": "3d671bdb8c416588193b3cfb534f682a51f7111096ae96fbb5be1ba3c56d7e32",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/CHROMIUM-GPU-COMPATIBILITY.md",
+      "destination": "platforms/ps4/docs/CHROMIUM-GPU-COMPATIBILITY.md",
+      "source_sha256": "f1fd06f86490c53ac0629672b9cf55a20c22058ef80599ab1c8a587d4e641cd9",
+      "destination_sha256": "d5f21a326262ebd04381fe0d9d3e5980d3d434d151804087a9cb4a4903b50564",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/COMPATIBILITY.md",
+      "destination": "platforms/ps4/docs/COMPATIBILITY.md",
+      "source_sha256": "56bc895a1d3f54fa7c8a2439c8324225ad4804033718e1acf81305572b0c55a5",
+      "destination_sha256": "de4ade9fef5cee0e8de6ead8925ae988a221c72fbb7b851365d851c088a85e31",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/DEVELOPMENT-HOSTS.md",
+      "destination": "platforms/ps4/docs/DEVELOPMENT-HOSTS.md",
+      "source_sha256": "8ffcef6c87f8a0505ae80b195be3488687556288fc580d88d993b5e38d42cae8",
+      "destination_sha256": "9f2a6caf827168249c777e15bd0b13b926178a8afdffcf1202d2cf4932fa74c4",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/DEVELOPMENT-MODE.md",
+      "destination": "platforms/ps4/docs/DEVELOPMENT-MODE.md",
+      "source_sha256": "c72257ebf081a662b8e4b40f04d242d60f4b5c5b2a0ebcbfcce513a707a61181",
+      "destination_sha256": "22c30093452b3694dbf8cdcf16aff76489f2d1a6794a4d65c934863a21d231f8",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/FIRST-BOOT-6.18-XFCE.md",
+      "destination": "platforms/ps4/docs/FIRST-BOOT-6.18-XFCE.md",
+      "source_sha256": "e1e6e335e156ede78bbd4a0f9c91f68c526b4df0e785505aab98b9dfa5486df2",
+      "destination_sha256": "f1cbbdf8a98b9b4257f419becb3960d828bb42063c605c60922e37b48d67e451",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "docs/GETTING-STARTED.md",
+      "destination": "platforms/ps4/docs/GETTING-STARTED.md",
+      "source_sha256": "bc2108c0e1335e0e87dee41ef5dbe74806bec2f09d13c743ac3540d0c48a0b3d",
+      "destination_sha256": "0e80678e8fe8249510d33ff54edf9321ff1aca6d4bc09e30e4e3d95194b926b5",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/GIFT-DEV-VM-TEST-2026-08-14.md",
+      "destination": "platforms/ps4/docs/GIFT-DEV-VM-TEST-2026-08-14.md",
+      "source_sha256": "d0b4ed3ecddcfa17ce7ab9af8b0ccf3ddb51c35662425fd126ab0cf6b8bda085",
+      "destination_sha256": "f3c56cce42591e6e44a999c3e5647868cf3bbbae06b8b88ec7e416af6cba4a69",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/LUKS-POST-INSTALL.md",
+      "destination": "platforms/ps4/docs/LUKS-POST-INSTALL.md",
+      "source_sha256": "0b522591de5a8845cdc674ea7dd9e17607a6ba6eb9aae77b64f63a69aff4c856",
+      "destination_sha256": "7a195dba3d718a7ecc6d62c417e50c098254280ed64eb8b9ff1190e79a12649f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/OMARCHY-BASE.md",
+      "destination": "platforms/ps4/docs/OMARCHY-BASE.md",
+      "source_sha256": "a2032f2f5029e69f47a7ca3a93256db0f2935f6c082e20f6ce2ad831f24dc10f",
+      "destination_sha256": "f8f2ba130d1350f19baa595bab9d2f8c75511726ffba3fb80cbee0e8c24e833a",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/OMARCHY-INVENTORY.md",
+      "destination": "platforms/ps4/docs/OMARCHY-INVENTORY.md",
+      "source_sha256": "c66b25d66639927db7a9f49d34113e1229def2f2c40013606680a5ce19c16d4d",
+      "destination_sha256": "1e88d7685a65dfdf0bde59dfa6fed726ee989aeaf551b351585a520be11b0499",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PACKAGE-REPOSITORY.md",
+      "destination": "platforms/ps4/docs/PACKAGE-REPOSITORY.md",
+      "source_sha256": "2d29e85f16e909b9f43f823bfe701a68fe3642e6df845138e6538233f3fd353b",
+      "destination_sha256": "4b50821d4e6bb11ab98be8d8d92033a72ac4e0af85aafdb2f16b1568251c30fa",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PACKAGE-SNAPSHOT.md",
+      "destination": "platforms/ps4/docs/PACKAGE-SNAPSHOT.md",
+      "source_sha256": "aedb162dd47bc92a7338459d8ca4e53ad870c10ad4292fbbcdd1da252b87add9",
+      "destination_sha256": "806101dfec7462c741fb41f5902bf07da501c337d711676fee4bddd1e6b9c972",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PLAN.md",
+      "destination": "platforms/ps4/docs/PLAN.md",
+      "source_sha256": "8e1afe8b3c217d243d6584fb563a2bd1f14bfe9c0d8b567475115d3b9ad63122",
+      "destination_sha256": "0aad5ccea770bc2d405b9c9aa636fb6b3f6a2ba5d28e5a2039df71052c61e748",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PORTABLE-PORTAL-IDEA.md",
+      "destination": "platforms/ps4/docs/PORTABLE-PORTAL-IDEA.md",
+      "source_sha256": "897591ee20126d18d5a2c2fa89be3ab758f3895fc27350a9bf7deb2fd2eab2f1",
+      "destination_sha256": "3a1e077453feef6a0bc25ef0f044652f92ced2e3b572089268201a19cfe3353b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PORTABLE.md",
+      "destination": "platforms/ps4/docs/PORTABLE.md",
+      "source_sha256": "fb4a61cdc8bf3e4a7b9cbce5407ffe81559de31b8c1cbf3c2020df3abf3a06ee",
+      "destination_sha256": "386760f9b37fc9b49f534c4c4f51448444d300a85c0373feefec0da1dcc626c6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/PS4-FIXES.md",
+      "destination": "platforms/ps4/docs/PS4-FIXES.md",
+      "source_sha256": "385d28f1145c80b5cebc25d61d8d61a2b61db476b5994d8c131bf99baf1cfcfa",
+      "destination_sha256": "0e54abaa93b33ea03d6516f3674b7ef9c66cf68f3f90b397ffaa89f8adf64af3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/QUATTRO-4.0.md",
+      "destination": "platforms/ps4/docs/QUATTRO-4.0.md",
+      "source_sha256": "b223fbfdaad5686b88d14c5b1bbd7ba19bae189e7e139bd35720a4513b6898d9",
+      "destination_sha256": "b315f097bfdaa3057271dab4879b01f25cddc6838f575264459389179700a14f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/QUATTRO-RC3.md",
+      "destination": "platforms/ps4/docs/QUATTRO-RC3.md",
+      "source_sha256": "7d1434b219f1cccf878d66cc5974b41701c50cb36f7eacbb0ecfa2b596cb8799",
+      "destination_sha256": "547a73888bfd8b84b323c0bc5b1d46deaf660a315e7eb29ae9443baa2064f003",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/USB-PARTITIONED-DEVELOPMENT.md",
+      "destination": "platforms/ps4/docs/USB-PARTITIONED-DEVELOPMENT.md",
+      "source_sha256": "db28c11398259d904759ad172adc4cdd211c1afd44e7864e03035fe718d1f348",
+      "destination_sha256": "832a418c77d09b157636254e063b45d0bb1a1bacfca06572e910c457e957f988",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? docs/USB-PARTITIONED-DEVELOPMENT.md",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/assets/demo-thumbnail.jpg",
+      "destination": "platforms/ps4/docs/assets/demo-thumbnail.jpg",
+      "source_sha256": "3d1f87ae88bbb7d63bc42125db151a72eb9d762c47471c676dd30866bff894c0",
+      "destination_sha256": "3d1f87ae88bbb7d63bc42125db151a72eb9d762c47471c676dd30866bff894c0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "docs/assets/omarchy-ps4-quattro.png",
+      "destination": "platforms/ps4/docs/assets/omarchy-ps4-quattro.png",
+      "source_sha256": "3741d35ec332506bf621eec1ea9700d3b78217312fbf0958e1dec71bbee0d9cf",
+      "destination_sha256": "3741d35ec332506bf621eec1ea9700d3b78217312fbf0958e1dec71bbee0d9cf",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "docs/releases/v0.28-beta.md",
+      "destination": "platforms/ps4/docs/releases/v0.28-beta.md",
+      "source_sha256": "859e8b5723232327923438d9f52bd8e7461dff37d756badc7cc58b84959cd32d",
+      "destination_sha256": "588e70a5835ea46454c6717511315963c0149645d297ec5c3f0455ddccef7106",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/releases/v0.30-1080-control-dev.md",
+      "destination": "platforms/ps4/docs/releases/v0.30-1080-control-dev.md",
+      "source_sha256": "e2c741591535cc3d3bed88eb9f657748a8f4c5e1ba888c224f91897d54f7330e",
+      "destination_sha256": "eea188a2448410a6d8cbfd6586009b97a3cbca2e00f416d249b9626f4f10359d",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "docs/releases/v0.31-baikal-beta.md",
+      "destination": "platforms/ps4/docs/releases/v0.31-baikal-beta.md",
+      "source_sha256": "0fd91d58e229e12c28015d92eb18da006861c9adc01914ce04d6fca69696e498",
+      "destination_sha256": "0af76839a18a32e5bc00c6cb3918c5a520df7b2fd334a9c098d1780c553a54fe",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "experiments/README.md",
+      "destination": "platforms/ps4/experiments/README.md",
+      "source_sha256": "7504f2c06201f4885a4cf5b94b7796ae9ccd57f74c8095ad8da2f1628c80f6c4",
+      "destination_sha256": "fa5e00d2a3fb68a82c690e19dcedbb566c62477915a0580b17866f275c538063",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "experiments/SESSIONS.md",
+      "destination": "platforms/ps4/experiments/SESSIONS.md",
+      "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
+      "destination_sha256": "296922bc0169e6fa0d659df9e2d216b4703522dfbff72266d54fdafdde56bca0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M experiments/SESSIONS.md",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Replace the personal build-host hostname with build-host; preserve peer/console roles.",
+        "Replace unavailable private raw/generated links with explicit private-evidence annotations; use pinned URLs for public references.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "experiments/TEMPLATE.md",
+      "destination": "platforms/ps4/experiments/TEMPLATE.md",
+      "source_sha256": "069cb017a8ea90b53fac3fc73520f29bd81843a0e7b7c87305b07a077f848cab",
+      "destination_sha256": "8f28b09f7a8a1a90d0dcfbfb09db592d066c1035871b3e3378d2f078071a7197",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "fpkg/.gitignore",
+      "destination": "platforms/ps4/fpkg/.gitignore",
+      "source_sha256": "151af6a25389403161ef7e11b655f5eaa9430fd452fa734c2bb54bae6c4566ef",
+      "destination_sha256": "151af6a25389403161ef7e11b655f5eaa9430fd452fa734c2bb54bae6c4566ef",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/CREDITS.md",
+      "destination": "platforms/ps4/fpkg/CREDITS.md",
+      "source_sha256": "ab924c96c21237933b72ffbe0bfd4a2d9c87551cd62e64e6bbf7b16d41c240e3",
+      "destination_sha256": "ab924c96c21237933b72ffbe0bfd4a2d9c87551cd62e64e6bbf7b16d41c240e3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/README.md",
+      "destination": "platforms/ps4/fpkg/README.md",
+      "source_sha256": "1d455eadaac31f7e80d6161e4f33ab40d4483d3c19680d97b6439cf24c706a85",
+      "destination_sha256": "1d455eadaac31f7e80d6161e4f33ab40d4483d3c19680d97b6439cf24c706a85",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/THIRD_PARTY.md",
+      "destination": "platforms/ps4/fpkg/THIRD_PARTY.md",
+      "source_sha256": "e8a97769af8fe96929ccf6218e8d93fe5f8284af07473604dd49f6a7f28001ae",
+      "destination_sha256": "e8a97769af8fe96929ccf6218e8d93fe5f8284af07473604dd49f6a7f28001ae",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/Makefile",
+      "destination": "platforms/ps4/fpkg/app/Makefile",
+      "source_sha256": "474501a1a4d276edcc50a28700a438ab39db259b43c95361c8b2ac2ef9556d0a",
+      "destination_sha256": "474501a1a4d276edcc50a28700a438ab39db259b43c95361c8b2ac2ef9556d0a",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/README.md",
+      "destination": "platforms/ps4/fpkg/app/README.md",
+      "source_sha256": "01a45cb68bce4e2f0f2ee896a046e9a9fcc2fc139423e891772277b3dfd11b5f",
+      "destination_sha256": "01a45cb68bce4e2f0f2ee896a046e9a9fcc2fc139423e891772277b3dfd11b5f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/host_preview.cpp",
+      "destination": "platforms/ps4/fpkg/app/host_preview.cpp",
+      "source_sha256": "6b1bd67651171a3a3a6ac355c0297a0770d27d9860cb3a11d4a6e6c52f7403a5",
+      "destination_sha256": "6b1bd67651171a3a3a6ac355c0297a0770d27d9860cb3a11d4a6e6c52f7403a5",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/manager_state.cpp",
+      "destination": "platforms/ps4/fpkg/app/manager_state.cpp",
+      "source_sha256": "4d0d922ec4baac43fa089551cc84c01297b613badd2b0b0dbe193e2d61142d5b",
+      "destination_sha256": "4d0d922ec4baac43fa089551cc84c01297b613badd2b0b0dbe193e2d61142d5b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/manager_state.hpp",
+      "destination": "platforms/ps4/fpkg/app/manager_state.hpp",
+      "source_sha256": "df776710f11bc45cb56146e1cf2b606015687c972d0d80d8201ff191476dbc6f",
+      "destination_sha256": "df776710f11bc45cb56146e1cf2b606015687c972d0d80d8201ff191476dbc6f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/payload_transport.cpp",
+      "destination": "platforms/ps4/fpkg/app/payload_transport.cpp",
+      "source_sha256": "365cbe2b2c6485dba1fa74ae193abf2c5e4eef9266826d86be7c2028ff5222d6",
+      "destination_sha256": "365cbe2b2c6485dba1fa74ae193abf2c5e4eef9266826d86be7c2028ff5222d6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/app/payload_transport.hpp",
+      "destination": "platforms/ps4/fpkg/app/payload_transport.hpp",
+      "source_sha256": "2653fc91636d9c11c632c33933ce3bbb2f77d7e5d54921919e73108f81dcf9c0",
+      "destination_sha256": "2653fc91636d9c11c632c33933ce3bbb2f77d7e5d54921919e73108f81dcf9c0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/boot-profiles/baikal-b1-beta1.env",
+      "destination": "platforms/ps4/fpkg/boot-profiles/baikal-b1-beta1.env",
+      "source_sha256": "f3281ef981b95f3daff2fae95f1fe946568d23d6789a631404dcd53be2d5499b",
+      "destination_sha256": "f3281ef981b95f3daff2fae95f1fe946568d23d6789a631404dcd53be2d5499b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/boot-profiles/baikal-b1-partitioned-dev1.env",
+      "destination": "platforms/ps4/fpkg/boot-profiles/baikal-b1-partitioned-dev1.env",
+      "source_sha256": "8ec23d8aaa237b71619984416e1973ea701e16e40062a3d2703bfcc12baba3a7",
+      "destination_sha256": "8ec23d8aaa237b71619984416e1973ea701e16e40062a3d2703bfcc12baba3a7",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? fpkg/boot-profiles/baikal-b1-partitioned-dev1.env",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-debug-uart.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-debug-uart.txt",
+      "source_sha256": "853c72a260dcc6d35108954639fbfc9b8e1db57e1bb9e1f302160e0124b0bf43",
+      "destination_sha256": "853c72a260dcc6d35108954639fbfc9b8e1db57e1bb9e1f302160e0124b0bf43",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-install-usb-lab.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-install-usb-lab.txt",
+      "source_sha256": "f00a74ce959e3d6cb91d8c84398408f26c129fc598e7f4d1156ff5563d658099",
+      "destination_sha256": "f00a74ce959e3d6cb91d8c84398408f26c129fc598e7f4d1156ff5563d658099",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-install-usb.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-install-usb.txt",
+      "source_sha256": "5beac7c5e19b1429315c745ccaf2ebc8f3ea710ef5391660911c5b91d2f215a9",
+      "destination_sha256": "5beac7c5e19b1429315c745ccaf2ebc8f3ea710ef5391660911c5b91d2f215a9",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-internal-root.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-internal-root.txt",
+      "source_sha256": "8064d91f286d4275dac08e2fae29e43fbf745ea7be15f797edbbd0e5036a4930",
+      "destination_sha256": "8064d91f286d4275dac08e2fae29e43fbf745ea7be15f797edbbd0e5036a4930",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-partitioned-usb.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-partitioned-usb.txt",
+      "source_sha256": "dabd2779ac7f172ac3f534a93883694155d8b0c51d6fe2247597cc7fb111bb84",
+      "destination_sha256": "dabd2779ac7f172ac3f534a93883694155d8b0c51d6fe2247597cc7fb111bb84",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? fpkg/bootargs/6.18-baikal-partitioned-usb.txt",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-product-splash.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-product-splash.txt",
+      "source_sha256": "cdbc53544f800f93df5c2f1d8049fb7395eb3c9106580f2bed6d73060dc415a6",
+      "destination_sha256": "cdbc53544f800f93df5c2f1d8049fb7395eb3c9106580f2bed6d73060dc415a6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/6.18-baikal-ultrawide-3440x1440.txt",
+      "destination": "platforms/ps4/fpkg/bootargs/6.18-baikal-ultrawide-3440x1440.txt",
+      "source_sha256": "445b9584db9815c793576193d1f7afc33e99e02115938396ee19c5ea23c5292f",
+      "destination_sha256": "445b9584db9815c793576193d1f7afc33e99e02115938396ee19c5ea23c5292f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/bootargs/README.md",
+      "destination": "platforms/ps4/fpkg/bootargs/README.md",
+      "source_sha256": "6c4e23079c23b6ae3861c8cd42eca23a148befd012617cf6323d6b68a1b1245a",
+      "destination_sha256": "6c4e23079c23b6ae3861c8cd42eca23a148befd012617cf6323d6b68a1b1245a",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/docs/ARCHITECTURE.md",
+      "destination": "platforms/ps4/fpkg/docs/ARCHITECTURE.md",
+      "source_sha256": "c4f2508aba0b3d12fcd615863c34d96e4e5f03c6ca0f7eb638c9ae13d4194658",
+      "destination_sha256": "c4f2508aba0b3d12fcd615863c34d96e4e5f03c6ca0f7eb638c9ae13d4194658",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/docs/PRIVATE-BOOT.md",
+      "destination": "platforms/ps4/fpkg/docs/PRIVATE-BOOT.md",
+      "source_sha256": "5fdc7bdca4f36239b27da830a55937bce9fad8fba24deb89ff69cc6622cccdd7",
+      "destination_sha256": "5fdc7bdca4f36239b27da830a55937bce9fad8fba24deb89ff69cc6622cccdd7",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/docs/REQUIREMENTS.md",
+      "destination": "platforms/ps4/fpkg/docs/REQUIREMENTS.md",
+      "source_sha256": "0f267e5cd884e2c4f474f0f038c07d5c46099100d97aaf6dca54048bc3a84e5f",
+      "destination_sha256": "0f267e5cd884e2c4f474f0f038c07d5c46099100d97aaf6dca54048bc3a84e5f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/docs/UI-PROTOTYPE.md",
+      "destination": "platforms/ps4/fpkg/docs/UI-PROTOTYPE.md",
+      "source_sha256": "36a3d7903fc1f58322bc566bd3c1720c93a6ddd18dcef7ce7aec9fac7166589b",
+      "destination_sha256": "36a3d7903fc1f58322bc566bd3c1720c93a6ddd18dcef7ce7aec9fac7166589b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/manifest/release-manifest.example.json",
+      "destination": "platforms/ps4/fpkg/manifest/release-manifest.example.json",
+      "source_sha256": "e2db175f4222c6959c30f5fd5609046310c7704815b2e6076e8a5860a504fc6b",
+      "destination_sha256": "e2db175f4222c6959c30f5fd5609046310c7704815b2e6076e8a5860a504fc6b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/manifest/release-manifest.partitioned-dev.json",
+      "destination": "platforms/ps4/fpkg/manifest/release-manifest.partitioned-dev.json",
+      "source_sha256": "3f2bac9755c1abce9daa03cabf47a60d96fe25235634eb1dae5974290fd6958c",
+      "destination_sha256": "3f2bac9755c1abce9daa03cabf47a60d96fe25235634eb1dae5974290fd6958c",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? fpkg/manifest/release-manifest.partitioned-dev.json",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/manifest/release-manifest.schema.json",
+      "destination": "platforms/ps4/fpkg/manifest/release-manifest.schema.json",
+      "source_sha256": "6f40908f4659c07fda5a309e5cd5e01a99992f9535bb286342c27b29940b0724",
+      "destination_sha256": "6f40908f4659c07fda5a309e5cd5e01a99992f9535bb286342c27b29940b0724",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M fpkg/manifest/release-manifest.schema.json",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/manifest/release-manifest.ultrawide-dev.json",
+      "destination": "platforms/ps4/fpkg/manifest/release-manifest.ultrawide-dev.json",
+      "source_sha256": "765c81de73214a09dee32542d83aa2275658d9bbaf529c9509d3d7cab6b61211",
+      "destination_sha256": "765c81de73214a09dee32542d83aa2275658d9bbaf529c9509d3d7cab6b61211",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/preview/claude-fable5.html",
+      "destination": "platforms/ps4/fpkg/preview/claude-fable5.html",
+      "source_sha256": "5a6712734c55a2f543f29e6afc6919be28b55d66e339828eda4fe7628f760796",
+      "destination_sha256": "5a6712734c55a2f543f29e6afc6919be28b55d66e339828eda4fe7628f760796",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/preview/fable5.html",
+      "destination": "platforms/ps4/fpkg/preview/fable5.html",
+      "source_sha256": "e732f8701ff0475f8722cf04d4751297057f36958cd9648bcb26a137347c4f7c",
+      "destination_sha256": "e732f8701ff0475f8722cf04d4751297057f36958cd9648bcb26a137347c4f7c",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/preview/index.html",
+      "destination": "platforms/ps4/fpkg/preview/index.html",
+      "source_sha256": "f94989f863e74bd18352ca138519c719184d662f0070725fafeb1807b57edefa",
+      "destination_sha256": "f94989f863e74bd18352ca138519c719184d662f0070725fafeb1807b57edefa",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/tools/build-ui-prototype",
+      "destination": "platforms/ps4/fpkg/tools/build-ui-prototype",
+      "source_sha256": "c65bff45fadf15a861b46738f993ef52b29512f64f99f5f2b52f06f48c7489fe",
+      "destination_sha256": "c65bff45fadf15a861b46738f993ef52b29512f64f99f5f2b52f06f48c7489fe",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M fpkg/tools/build-ui-prototype",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/tools/repack-initramfs-init",
+      "destination": "platforms/ps4/fpkg/tools/repack-initramfs-init",
+      "source_sha256": "1dad6062683b8bd13d62c1c911ff0535637ab6585ab8060f299df9ffbf18dbcb",
+      "destination_sha256": "1dad6062683b8bd13d62c1c911ff0535637ab6585ab8060f299df9ffbf18dbcb",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? fpkg/tools/repack-initramfs-init",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/tools/send-loader-once.c",
+      "destination": "platforms/ps4/fpkg/tools/send-loader-once.c",
+      "source_sha256": "98aee4dd66ef1a594142a3dbe1ef0f531cba4ff0ca40b1981733521e29f14665",
+      "destination_sha256": "98aee4dd66ef1a594142a3dbe1ef0f531cba4ff0ca40b1981733521e29f14665",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/tools/stage-internal-boot-set",
+      "destination": "platforms/ps4/fpkg/tools/stage-internal-boot-set",
+      "source_sha256": "dd3c244d4d196665107ce19b74903898bfdf92c977086aa411415f97469a4aa2",
+      "destination_sha256": "0462f2c3c2f1a2e027bbae5b8f22ec5be988c538b87e1792f2d87f5ac8eab4c3",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M fpkg/tools/stage-internal-boot-set",
+      "adaptations": [
+        "Require explicit historical kernel and optional original initramfs; preserve every frozen profile size/hash."
+      ]
+    },
+    {
+      "source": "fpkg/tools/stage-offline-bundle",
+      "destination": "platforms/ps4/fpkg/tools/stage-offline-bundle",
+      "source_sha256": "72e4649cf6e08c5f99a7ffc6dfc60e6463c7ee383c5009322faa593f8ee5bc17",
+      "destination_sha256": "f26c559605c6df2f1eb82daecefda843ae0bce9bfe269712b579cae7e2a92654",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Resolve nested workspace and require explicit original historical kernel before loader staging; preserve all frozen artifact hashes."
+      ]
+    },
+    {
+      "source": "fpkg/tools/validate-manifest",
+      "destination": "platforms/ps4/fpkg/tools/validate-manifest",
+      "source_sha256": "a62609db5f64c2930344acdae29b9e347f9625f4b4355bf06993a3243f438532",
+      "destination_sha256": "a62609db5f64c2930344acdae29b9e347f9625f4b4355bf06993a3243f438532",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M fpkg/tools/validate-manifest",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/tools/vendor-loader",
+      "destination": "platforms/ps4/fpkg/tools/vendor-loader",
+      "source_sha256": "0492bfa8acb5399309dceb094cf5810fe09303a82b4e6992980882a96b084a4f",
+      "destination_sha256": "2874701b23a7f72a4067cb68cafeac73106d5cf4cab5920e9deb871c76ff41ff",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Resolve workspace above nested platforms/ps4 while retaining pinned loader/provenance/redistribution gates."
+      ]
+    },
+    {
+      "source": "fpkg/ui-prototype/.gitignore",
+      "destination": "platforms/ps4/fpkg/ui-prototype/.gitignore",
+      "source_sha256": "020c2606e8ed484089c2083e0be438b9d0736bee1558a6b76af0d58bd23f69cf",
+      "destination_sha256": "020c2606e8ed484089c2083e0be438b9d0736bee1558a6b76af0d58bd23f69cf",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/Makefile",
+      "destination": "platforms/ps4/fpkg/ui-prototype/Makefile",
+      "source_sha256": "139d3d9f15bb1996def919b8f6b639eb642760dd9cc8220faa0efe7a40c17241",
+      "destination_sha256": "139d3d9f15bb1996def919b8f6b639eb642760dd9cc8220faa0efe7a40c17241",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M fpkg/ui-prototype/Makefile",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/WALLPAPER-SOURCES.md",
+      "destination": "platforms/ps4/fpkg/ui-prototype/WALLPAPER-SOURCES.md",
+      "source_sha256": "6552826cc5186fd5fb958cc48202d232e840da3f666dbbf4d97111f6d350a271",
+      "destination_sha256": "6552826cc5186fd5fb958cc48202d232e840da3f666dbbf4d97111f6d350a271",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/main.cpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/main.cpp",
+      "source_sha256": "c6dfd5d0290c58053a51d46bd177b8501f330ec2a27c560848cf2bf63e4eb9a5",
+      "destination_sha256": "c6dfd5d0290c58053a51d46bd177b8501f330ec2a27c560848cf2bf63e4eb9a5",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M fpkg/ui-prototype/main.cpp",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/private_boot.cpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/private_boot.cpp",
+      "source_sha256": "a5175535d04a1e63e973461098aff41854e04133a943de3ae2f05eda461fb38f",
+      "destination_sha256": "a5175535d04a1e63e973461098aff41854e04133a943de3ae2f05eda461fb38f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M fpkg/ui-prototype/private_boot.cpp",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/private_boot.hpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/private_boot.hpp",
+      "source_sha256": "defcc4ccd72ea7626057c1546a52c53ce497b05750bc8015a211d041c313e442",
+      "destination_sha256": "defcc4ccd72ea7626057c1546a52c53ce497b05750bc8015a211d041c313e442",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/private_boot_transaction_test.cpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/private_boot_transaction_test.cpp",
+      "source_sha256": "7c37922a832e03fa124038fb7515075dd1a884bb2217c4039b9a3c48a7c004a0",
+      "destination_sha256": "7c37922a832e03fa124038fb7515075dd1a884bb2217c4039b9a3c48a7c004a0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/sha256.cpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/sha256.cpp",
+      "source_sha256": "a3c86a4cb480f8e7aec84684e507414d9372c5fb9eb2e6ead9aeae2747853e07",
+      "destination_sha256": "a3c86a4cb480f8e7aec84684e507414d9372c5fb9eb2e6ead9aeae2747853e07",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/sha256.hpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/sha256.hpp",
+      "source_sha256": "7178808f1b50f381d2e9eaa64adbb75e2419ccbe8bd836b52461ae174d85b223",
+      "destination_sha256": "7178808f1b50f381d2e9eaa64adbb75e2419ccbe8bd836b52461ae174d85b223",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "fpkg/ui-prototype/sha256_test.cpp",
+      "destination": "platforms/ps4/fpkg/ui-prototype/sha256_test.cpp",
+      "source_sha256": "4b241f178a85a6fb94998d8162324ed966c8f12b13ee955085632e2444c910a7",
+      "destination_sha256": "4b241f178a85a6fb94998d8162324ed966c8f12b13ee955085632e2444c910a7",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "gift-dev/README.md",
+      "destination": "platforms/ps4/gift-dev/README.md",
+      "source_sha256": "3331fd7d47ab972488509d62b60776fb871dd27d99eb5590fd0c03ad271e33f8",
+      "destination_sha256": "dd5eab15ddb1ffdc2bc678a10701c3641be12a4f4f131964a819fce257fe0555",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Add historical bundle scope and explicit intended public-key fingerprint/sudo handoff instructions."
+      ]
+    },
+    {
+      "source": "gift-dev/arm-recovery",
+      "destination": "platforms/ps4/gift-dev/arm-recovery",
+      "source_sha256": "be87846ec96ccb60d277892bd0047566e85b7ca7679cc95d40d481b34fc09915",
+      "destination_sha256": "b5973629cfcb770953cdf563fd6a72602ad172fbfca4ab9e968ca2f6418c6d02",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Require explicit intended SSH public-key fingerprint in OMARCHY_RECOVERY_KEY_FINGERPRINT instead of a hardcoded owner identity."
+      ]
+    },
+    {
+      "source": "gift-dev/check",
+      "destination": "platforms/ps4/gift-dev/check",
+      "source_sha256": "ded68dfb1d109c6b422eb2941aee94bf0da1e600c1a5b48d4e75e8fd74624c7e",
+      "destination_sha256": "ded68dfb1d109c6b422eb2941aee94bf0da1e600c1a5b48d4e75e8fd74624c7e",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "gift-dev/dev-recovery",
+      "destination": "platforms/ps4/gift-dev/dev-recovery",
+      "source_sha256": "a7fe6b08e6ec7c866e1647aaf72818e962822a1bc1b2c4d27e46b1d8986e5b75",
+      "destination_sha256": "a7fe6b08e6ec7c866e1647aaf72818e962822a1bc1b2c4d27e46b1d8986e5b75",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "gift-dev/install-foundation",
+      "destination": "platforms/ps4/gift-dev/install-foundation",
+      "source_sha256": "2110fcc098574fe47deb69e75cfd3e2a72cc6bfb891661a38cb3cc02356df5cd",
+      "destination_sha256": "2110fcc098574fe47deb69e75cfd3e2a72cc6bfb891661a38cb3cc02356df5cd",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "gift-dev/owner-rehearsal",
+      "destination": "platforms/ps4/gift-dev/owner-rehearsal",
+      "source_sha256": "053de22e0187d4df62e5db60f163eb9fd7bd281096b1ef2f88828045dde581fa",
+      "destination_sha256": "053de22e0187d4df62e5db60f163eb9fd7bd281096b1ef2f88828045dde581fa",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "gift-dev/owner-rehearsal.service",
+      "destination": "platforms/ps4/gift-dev/owner-rehearsal.service",
+      "source_sha256": "827e3697acbde2e4d5e815797137d53867e6f1bcbb96bdf75ee679626509b253",
+      "destination_sha256": "827e3697acbde2e4d5e815797137d53867e6f1bcbb96bdf75ee679626509b253",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "inventory/quattro-components.toml",
+      "destination": "platforms/ps4/inventory/quattro-components.toml",
+      "source_sha256": "a3fc8eba87a2fdc2817ff6d30db753aabedfe9a5876f569ea932167a451a0820",
+      "destination_sha256": "a3fc8eba87a2fdc2817ff6d30db753aabedfe9a5876f569ea932167a451a0820",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "knowledge/2026-08-10/FW-12.02-PAYLOAD-CHAIN.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/FW-12.02-PAYLOAD-CHAIN.md",
+      "source_sha256": "32372ccb52402c01d3700b9bcf22a66afe8af4f5d37678df2ab39bb20d79bddb",
+      "destination_sha256": "b3e719d23afcd3b9973aaf70b7284c1ee9a746a676f7671d98a2ead0dfb83d05",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-10/GAPS.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/GAPS.md",
+      "source_sha256": "c20d3bf9aba006ae0d46209bbbbfdd0469c5fd09ec7e13a37a576f3459a1a1a8",
+      "destination_sha256": "414a07647f4a885b9cf00d94e074d26cf7bccb4bc12aea663e68223bc61b9453",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-10/HARDWARE.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/HARDWARE.md",
+      "source_sha256": "e0c6931e0973b06a24fdaaf52733035a4b4016e0ab42f1cf672da8e2f4e9076b",
+      "destination_sha256": "2a9aa8dbafd1e9fbd232dd11cac182584cdda0a4cdd4ba95669c09b8b4d17b36",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-10/PROJECTS.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/PROJECTS.md",
+      "source_sha256": "4c2621e20b48173519cc31e7efb60d8371f129c0bde9fd29f018332c8fe17430",
+      "destination_sha256": "18852704396c8ac68a755d71dd751c7466164718e96bb187ae574bf4b4bf5f1e",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-10/SOURCES.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/SOURCES.md",
+      "source_sha256": "90846fd24606632e26d41c17744cef6b5e197e6f8561d2c9e4d6491a2d9d1d81",
+      "destination_sha256": "c765f6b8c9edb52727b8d1dd16bb01562bb6552334d604dffec9678410af7867",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-10/WORLD-STATE.md",
+      "destination": "platforms/ps4/knowledge/2026-08-10/WORLD-STATE.md",
+      "source_sha256": "02a58025fc03794e1f817a89680787173d244750a5757721962a94988dd3f6aa",
+      "destination_sha256": "44258d28bc618ede27233086fe0ac53baeb88260e2b3bdabee39901dc6a87bd3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/2026-08-11/VUE-AFTER-2-RECOVERY.md",
+      "destination": "platforms/ps4/knowledge/2026-08-11/VUE-AFTER-2-RECOVERY.md",
+      "source_sha256": "23b9ae509a2b7f0eb7db86f74a85795f4a8ab0cb51d331111633e76f7df46434",
+      "destination_sha256": "b4a103260b826dffeeecd120c27687c967247a455bbc914be9e2e60f45139891",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/README.md",
+      "destination": "platforms/ps4/knowledge/README.md",
+      "source_sha256": "855e194c8776d1208a53ff41c885c4fabda37a16183204d67e99a759d5cba9a6",
+      "destination_sha256": "4aad73d5e2764cfc7959a60032872c88b422c9142731dd05b5b267d15da59f94",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+      ]
+    },
+    {
+      "source": "knowledge/repos.tsv",
+      "destination": "platforms/ps4/knowledge/repos.tsv",
+      "source_sha256": "7d76cfae7cc5830df92dd04f8e8fa6ee6afc54b8da96c5253b7579bf481b7559",
+      "destination_sha256": "7d76cfae7cc5830df92dd04f8e8fa6ee6afc54b8da96c5253b7579bf481b7559",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "manifests/development-sources.json",
+      "destination": "platforms/ps4/manifests/development-sources.json",
+      "source_sha256": "7ee9ba21276c6433561e2a18516fd2cbd89a0d0cc9791ec9b37eab7b08b57f45",
+      "destination_sha256": "495bdc9ac4566aab2d36fe1b407b2a8b3f6d4b16b2c1ff8cbf32cbc7fd074d0d",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Mark original source pins as historical; root manifest now owns acquisition."
+      ]
+    },
+    {
+      "source": "manifests/xfce-baikal-baseline.toml",
+      "destination": "platforms/ps4/manifests/xfce-baikal-baseline.toml",
+      "source_sha256": "7219590be48116ef9fe8e94b72f4c89d12431fc29cf9ce9febc641a4952f1f74",
+      "destination_sha256": "7219590be48116ef9fe8e94b72f4c89d12431fc29cf9ce9febc641a4952f1f74",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "manifests/xfce-baseline-build-20260810.toml",
+      "destination": "platforms/ps4/manifests/xfce-baseline-build-20260810.toml",
+      "source_sha256": "26c7786d30e39c687e49f3711cfffbe09f41fba5329c2f9860ba17f0861210b8",
+      "destination_sha256": "26c7786d30e39c687e49f3711cfffbe09f41fba5329c2f9860ba17f0861210b8",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/LICENSE",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/LICENSE",
+      "source_sha256": "2022df5284611fcca47f5c26d1ba43cdfede177822cfc05660537d59775b0a59",
+      "destination_sha256": "2022df5284611fcca47f5c26d1ba43cdfede177822cfc05660537d59775b0a59",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? packages/omarchy-ps4-ethernet/LICENSE",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/PKGBUILD",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PKGBUILD",
+      "source_sha256": "fd8d67d4a8845bec76ddb3eaf682665dc97b1dc48a624659ca20ea2a907ae078",
+      "destination_sha256": "fd8d67d4a8845bec76ddb3eaf682665dc97b1dc48a624659ca20ea2a907ae078",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? packages/omarchy-ps4-ethernet/PKGBUILD",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
+      "source_sha256": "21182fcf0f181fd21ef20b80c10a8059d57eff7b5c24ea7c85027a4e703252de",
+      "destination_sha256": "21182fcf0f181fd21ef20b80c10a8059d57eff7b5c24ea7c85027a4e703252de",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/README.md",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/README.md",
+      "source_sha256": "a41c8b8e272a142a09b929b3ef46c1da015e32d4ad14e78d5dca27d954687391",
+      "destination_sha256": "a41c8b8e272a142a09b929b3ef46c1da015e32d4ad14e78d5dca27d954687391",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? packages/omarchy-ps4-ethernet/README.md",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
+      "source_sha256": "ba1f2afe5f9b413ae16520e8ae9f965ff154201edc88ec807007e0b3d0a16aac",
+      "destination_sha256": "ba1f2afe5f9b413ae16520e8ae9f965ff154201edc88ec807007e0b3d0a16aac",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
+      "source_sha256": "855fc802c126dc4c55272c9d153a8cd5b801177b91f61fee235c331cadfb89ca",
+      "destination_sha256": "855fc802c126dc4c55272c9d153a8cd5b801177b91f61fee235c331cadfb89ca",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "?? packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/10-omarchy-ps4-wheel",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/10-omarchy-ps4-wheel",
+      "source_sha256": "65ae53cdc6fd4d323e8bab7796c0f743744d181897a349bccdc2e4259cf60cfc",
+      "destination_sha256": "65ae53cdc6fd4d323e8bab7796c0f743744d181897a349bccdc2e4259cf60cfc",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/20-omarchy-ps4-owner-gate.conf",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/20-omarchy-ps4-owner-gate.conf",
+      "source_sha256": "488e8eb05273a9fbeaec36b09fb85ea1f77a3dbf3f2a29a2807caeef44eeaba2",
+      "destination_sha256": "488e8eb05273a9fbeaec36b09fb85ea1f77a3dbf3f2a29a2807caeef44eeaba2",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/20-omarchy-ps4-sshd.conf",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/20-omarchy-ps4-sshd.conf",
+      "source_sha256": "707ade3a8e8c3543a603248afb58da57552ff51891c752b9b502516f62205511",
+      "destination_sha256": "707ade3a8e8c3543a603248afb58da57552ff51891c752b9b502516f62205511",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/PKGBUILD",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/PKGBUILD",
+      "source_sha256": "587a70b46f1054ec5867c61009f3f7eec2b4bdfe96c6197b0bb71b02c54ff7b3",
+      "destination_sha256": "587a70b46f1054ec5867c61009f3f7eec2b4bdfe96c6197b0bb71b02c54ff7b3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M packages/omarchy-ps4-provisioning/PKGBUILD",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/README.md",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/README.md",
+      "source_sha256": "fc1526d2a4a000bccb14e91518eb5a9aa3d6e1bed3c8ff9c05f310d9919e7802",
+      "destination_sha256": "fc1526d2a4a000bccb14e91518eb5a9aa3d6e1bed3c8ff9c05f310d9919e7802",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M packages/omarchy-ps4-provisioning/README.md",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-autologin",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-autologin",
+      "source_sha256": "a9a961dc37981b6727c881a822f78ad9d256f247d03d4d27ec088a2b91687dd0",
+      "destination_sha256": "a9a961dc37981b6727c881a822f78ad9d256f247d03d4d27ec088a2b91687dd0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-finalize-owner",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-finalize-owner",
+      "source_sha256": "6897efd828b217193d4a6c577b6f328ba4a6bb4b6dd2b927f7d1bc23ea5cbbf9",
+      "destination_sha256": "6897efd828b217193d4a6c577b6f328ba4a6bb4b6dd2b927f7d1bc23ea5cbbf9",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
+      "source_sha256": "2056909a239a32992e6ac8e48988d143a152e9f8daf2269d36004fd38e60062a",
+      "destination_sha256": "2056909a239a32992e6ac8e48988d143a152e9f8daf2269d36004fd38e60062a",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root.service",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root.service",
+      "source_sha256": "ef93c9e865c1a8b3ff06c04a08d382480dd65ca2abc6fa01a79ec22ca619168e",
+      "destination_sha256": "ef93c9e865c1a8b3ff06c04a08d382480dd65ca2abc6fa01a79ec22ca619168e",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-prepare-for-owner",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-prepare-for-owner",
+      "source_sha256": "7b498b28492229bd0afe3b149db032572073ca335202601d2713a16d1fc7bcba",
+      "destination_sha256": "7b498b28492229bd0afe3b149db032572073ca335202601d2713a16d1fc7bcba",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
+      "source_sha256": "b3ed1360096ea10cd2d0e5054f6fac8eb2215ce55e1de3efb9ddac1914d8cfc6",
+      "destination_sha256": "b3ed1360096ea10cd2d0e5054f6fac8eb2215ce55e1de3efb9ddac1914d8cfc6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner.service",
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner.service",
+      "source_sha256": "b22f4c56b00417c9230c48288fa0563fa9023444e130b9390b3cc57c03cd17ad",
+      "destination_sha256": "b22f4c56b00417c9230c48288fa0563fa9023444e130b9390b3cc57c03cd17ad",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/10-omarchy-ps4",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/10-omarchy-ps4",
+      "source_sha256": "5ef8215f03636e72f8d5b1d59e923270fcdb96c1dc73a15e344b6d22222d1399",
+      "destination_sha256": "5ef8215f03636e72f8d5b1d59e923270fcdb96c1dc73a15e344b6d22222d1399",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/20-omarchy-ps4-lightdm.conf",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/20-omarchy-ps4-lightdm.conf",
+      "source_sha256": "eebbc8cb148ba136b996227f1b9ddc582785721560c22136f722878f9072a711",
+      "destination_sha256": "eebbc8cb148ba136b996227f1b9ddc582785721560c22136f722878f9072a711",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/PKGBUILD",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/PKGBUILD",
+      "source_sha256": "22a67f3a357b9b4baa90e3d84231dad0dfa9d63745180c6130363bd93d108616",
+      "destination_sha256": "22a67f3a357b9b4baa90e3d84231dad0dfa9d63745180c6130363bd93d108616",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-autostart.lua",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-autostart.lua",
+      "source_sha256": "2181f8acfd8a3853e8e3e287a61eb226aabcc66366902085d96b788f7b38bf39",
+      "destination_sha256": "2181f8acfd8a3853e8e3e287a61eb226aabcc66366902085d96b788f7b38bf39",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-fastfetch.jsonc",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-fastfetch.jsonc",
+      "source_sha256": "87b48e4ac5f87b7924c0700dc30017c88d45c05d777b17f13f2a43ab832c2f93",
+      "destination_sha256": "87b48e4ac5f87b7924c0700dc30017c88d45c05d777b17f13f2a43ab832c2f93",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-hyprland.lua",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-hyprland.lua",
+      "source_sha256": "ad14354d524a24c74ac590a6143b0f53b88792474dbb5dce5badb5fdc0176fc6",
+      "destination_sha256": "ad14354d524a24c74ac590a6143b0f53b88792474dbb5dce5badb5fdc0176fc6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-looknfeel.lua",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-looknfeel.lua",
+      "source_sha256": "123b08c43dc89040f91d231d1d9d44891c5ff2d8f642965d3637a15fdca44532",
+      "destination_sha256": "123b08c43dc89040f91d231d1d9d44891c5ff2d8f642965d3637a15fdca44532",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-menu.jsonc",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-menu.jsonc",
+      "source_sha256": "65e6d05b426eb29e46f53d907afaacb5d8e6d55ea64e29f1d9ffc653b98b71ac",
+      "destination_sha256": "65e6d05b426eb29e46f53d907afaacb5d8e6d55ea64e29f1d9ffc653b98b71ac",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-monitors.lua",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-monitors.lua",
+      "source_sha256": "bc920ce9ef2602cf186a1f3ef9f1a29e0ee5adbd2caaf4322a54a3c6accb6f6b",
+      "destination_sha256": "bc920ce9ef2602cf186a1f3ef9f1a29e0ee5adbd2caaf4322a54a3c6accb6f6b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-shell.json",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-shell.json",
+      "source_sha256": "16ba16d951108165777c3ad533a395612956c5c45b301d2d6e0ba661f6570264",
+      "destination_sha256": "16ba16d951108165777c3ad533a395612956c5c45b301d2d6e0ba661f6570264",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4-settings/ps4-shell.toml",
+      "destination": "platforms/ps4/packages/omarchy-ps4-settings/ps4-shell.toml",
+      "source_sha256": "29d13a5b2cf835a975dbf498567771f061efb0439365e7d12426a16b1272cf65",
+      "destination_sha256": "29d13a5b2cf835a975dbf498567771f061efb0439365e7d12426a16b1272cf65",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/PKGBUILD",
+      "destination": "platforms/ps4/packages/omarchy-ps4/PKGBUILD",
+      "source_sha256": "a215ce97633c751ec7aed281989a6710dea43b09a5b589b3b8513b42bf2716b3",
+      "destination_sha256": "a215ce97633c751ec7aed281989a6710dea43b09a5b589b3b8513b42bf2716b3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "M packages/omarchy-ps4/PKGBUILD",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/omarchy-launch-nautilus",
+      "destination": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus",
+      "source_sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393",
+      "destination_sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/omarchy-launch-nautilus-cwd",
+      "destination": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus-cwd",
+      "source_sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf",
+      "destination_sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/omarchy-ps4-chromium-software-rendering",
+      "destination": "platforms/ps4/packages/omarchy-ps4/omarchy-ps4-chromium-software-rendering",
+      "source_sha256": "622c372b581119f4346ad19e2615e343f437506d5b65eadc7a9f6c5b8530dc58",
+      "destination_sha256": "622c372b581119f4346ad19e2615e343f437506d5b65eadc7a9f6c5b8530dc58",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/omarchy-ps4-status",
+      "destination": "platforms/ps4/packages/omarchy-ps4/omarchy-ps4-status",
+      "source_sha256": "3a6a387d9826498a87f53fea8ecb1966a49bb5a366f54d5b0d2227854012f28a",
+      "destination_sha256": "3a6a387d9826498a87f53fea8ecb1966a49bb5a366f54d5b0d2227854012f28a",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/omarchy-ps4-unsupported",
+      "destination": "platforms/ps4/packages/omarchy-ps4/omarchy-ps4-unsupported",
+      "source_sha256": "20997056023e8830f4e3fa3aa743590c52adda7b23375939a3ac3e42a3e31d59",
+      "destination_sha256": "20997056023e8830f4e3fa3aa743590c52adda7b23375939a3ac3e42a3e31d59",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/ps4-disabled-commands.txt",
+      "destination": "platforms/ps4/packages/omarchy-ps4/ps4-disabled-commands.txt",
+      "source_sha256": "cb054b293c5a74c4c8eae54cfe786f01369a45023d10b8389e65aa4ce848dc0c",
+      "destination_sha256": "cb054b293c5a74c4c8eae54cfe786f01369a45023d10b8389e65aa4ce848dc0c",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/ps4-network-panel.patch",
+      "destination": "platforms/ps4/packages/omarchy-ps4/ps4-network-panel.patch",
+      "source_sha256": "482a0698be408e38376ae50f1a555ff538546241eb6d7b0dd35862e10d42f46f",
+      "destination_sha256": "482a0698be408e38376ae50f1a555ff538546241eb6d7b0dd35862e10d42f46f",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/ps4-replaced-commands.txt",
+      "destination": "platforms/ps4/packages/omarchy-ps4/ps4-replaced-commands.txt",
+      "source_sha256": "a448d5e7c6013c6f029f4eb118f71f84125e3c4b37fe6b69686fdb3850c3cae9",
+      "destination_sha256": "a448d5e7c6013c6f029f4eb118f71f84125e3c4b37fe6b69686fdb3850c3cae9",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "packages/omarchy-ps4/ps4-sshd-firewall.patch",
+      "destination": "platforms/ps4/packages/omarchy-ps4/ps4-sshd-firewall.patch",
+      "source_sha256": "a0dd0aca3a39203085ee4af6f2727b47b6c53966f99a1feb8de6d0c8c3b24fd6",
+      "destination_sha256": "a0dd0aca3a39203085ee4af6f2727b47b6c53966f99a1feb8de6d0c8c3b24fd6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "portable/10-omarchy-ps4-portable",
+      "destination": "platforms/ps4/portable/10-omarchy-ps4-portable",
+      "source_sha256": "9514700eb7f5eb23eda72074a2012ca7f5f3e7290bf1e53fb6b0a78cb1ee411d",
+      "destination_sha256": "9514700eb7f5eb23eda72074a2012ca7f5f3e7290bf1e53fb6b0a78cb1ee411d",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "portable/check",
+      "destination": "platforms/ps4/portable/check",
+      "source_sha256": "16695adf040b4a34b3e9c19597a17e22072ea845c17dbc8ed2f7f452ef73f4a6",
+      "destination_sha256": "16695adf040b4a34b3e9c19597a17e22072ea845c17dbc8ed2f7f452ef73f4a6",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "portable/install",
+      "destination": "platforms/ps4/portable/install",
+      "source_sha256": "4435e9e429cf0d601fce96bedc0ef204070330a7f4f5eaa672485260278bb78d",
+      "destination_sha256": "4435e9e429cf0d601fce96bedc0ef204070330a7f4f5eaa672485260278bb78d",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/hyprland-bare/hyprland.conf",
+      "destination": "platforms/ps4/profiles/hyprland-bare/hyprland.conf",
+      "source_sha256": "063dc079fc1dc467c2c66d375ca6ee398f2e9caa2bc669da72fa08145ce8f072",
+      "destination_sha256": "063dc079fc1dc467c2c66d375ca6ee398f2e9caa2bc669da72fa08145ce8f072",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/hyprland-bare/packages.txt",
+      "destination": "platforms/ps4/profiles/hyprland-bare/packages.txt",
+      "source_sha256": "f3465d873fe0be951d53a1a8b8241f8a17decd7180d8075620c6f108cd3cf2cb",
+      "destination_sha256": "f3465d873fe0be951d53a1a8b8241f8a17decd7180d8075620c6f108cd3cf2cb",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/hyprland-bare/xprofile.amd-notiling",
+      "destination": "platforms/ps4/profiles/hyprland-bare/xprofile.amd-notiling",
+      "source_sha256": "1b33a6c126871f0534f3a676c09b44e1117732a73a11cb03ac7765541ca1a8cc",
+      "destination_sha256": "1b33a6c126871f0534f3a676c09b44e1117732a73a11cb03ac7765541ca1a8cc",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/README.md",
+      "destination": "platforms/ps4/profiles/omarchy-full/README.md",
+      "source_sha256": "e7d14e24d764091a52759dd6172759679e94680a0726a4615ad1c05f59db1669",
+      "destination_sha256": "e7d14e24d764091a52759dd6172759679e94680a0726a4615ad1c05f59db1669",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/additional-packages.txt",
+      "destination": "platforms/ps4/profiles/omarchy-full/additional-packages.txt",
+      "source_sha256": "54de3e2f36213e05f6bde52303172fb4cc2c017065a9caf477a30f73e60a9518",
+      "destination_sha256": "54de3e2f36213e05f6bde52303172fb4cc2c017065a9caf477a30f73e60a9518",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/blocked-packages.txt",
+      "destination": "platforms/ps4/profiles/omarchy-full/blocked-packages.txt",
+      "source_sha256": "3993bc6ee24a426e2cbe77cce99499e3483323f0b144bd6b8b5988d4cbe29579",
+      "destination_sha256": "3993bc6ee24a426e2cbe77cce99499e3483323f0b144bd6b8b5988d4cbe29579",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/forbidden-closure-packages.txt",
+      "destination": "platforms/ps4/profiles/omarchy-full/forbidden-closure-packages.txt",
+      "source_sha256": "6233a7ece1e52b88cec69a811fc747cd179d2009d90393a82708e66c3bf62a55",
+      "destination_sha256": "6233a7ece1e52b88cec69a811fc747cd179d2009d90393a82708e66c3bf62a55",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/package-replacements.txt",
+      "destination": "platforms/ps4/profiles/omarchy-full/package-replacements.txt",
+      "source_sha256": "f608bbec1087989f900d0bf6d05b2414ffb070a16e22bf37311a7276d45b5ee0",
+      "destination_sha256": "f608bbec1087989f900d0bf6d05b2414ffb070a16e22bf37311a7276d45b5ee0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/omarchy-full/packages.txt",
+      "destination": "platforms/ps4/profiles/omarchy-full/packages.txt",
+      "source_sha256": "e74d45ed89a68636175362d783d4d51b8ba8edb2edd944cb91e6080ecacb27bf",
+      "destination_sha256": "e74d45ed89a68636175362d783d4d51b8ba8edb2edd944cb91e6080ecacb27bf",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/autostart.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/autostart.lua",
+      "source_sha256": "1cc3ebfcb6b96f3d91ffd2be62a3ec2b965fb28ccb5e98dc08df120e40b4ed9b",
+      "destination_sha256": "1cc3ebfcb6b96f3d91ffd2be62a3ec2b965fb28ccb5e98dc08df120e40b4ed9b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/bindings.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/bindings.lua",
+      "source_sha256": "97c918cc414d72ef7e00a5c06e8c765e5880b86c7edaccdc2a48cf16b7ef85fa",
+      "destination_sha256": "97c918cc414d72ef7e00a5c06e8c765e5880b86c7edaccdc2a48cf16b7ef85fa",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/hyprland.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/hyprland.lua",
+      "source_sha256": "8eb76ea582d93b890deea7748cf924fbc045b26fa9e33f138dcf3a3ff5f88cc2",
+      "destination_sha256": "8eb76ea582d93b890deea7748cf924fbc045b26fa9e33f138dcf3a3ff5f88cc2",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/input.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/input.lua",
+      "source_sha256": "f233e3b07e565cdd6b95ee2d4853eabe20866bd1f2648138c0785edeab038b7c",
+      "destination_sha256": "f233e3b07e565cdd6b95ee2d4853eabe20866bd1f2648138c0785edeab038b7c",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/looknfeel.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/looknfeel.lua",
+      "source_sha256": "97dc4b7a2e4b5c47df053ea8bc1f2161d0a5e3a9609a79b310f33ea8ec43cf17",
+      "destination_sha256": "97dc4b7a2e4b5c47df053ea8bc1f2161d0a5e3a9609a79b310f33ea8ec43cf17",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/hypr/monitors.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/hypr/monitors.lua",
+      "source_sha256": "e7135ba2e175ca0f232ef490edd9731e25d96b347d4242a520d5298ccffdce7b",
+      "destination_sha256": "e7135ba2e175ca0f232ef490edd9731e25d96b347d4242a520d5298ccffdce7b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/omarchy/shell.json",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/omarchy/shell.json",
+      "source_sha256": "d0af869b182b6b304ffbf0eeb69f659e2e48458639c2ffcf1a048e625c4138e3",
+      "destination_sha256": "d0af869b182b6b304ffbf0eeb69f659e2e48458639c2ffcf1a048e625c4138e3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/config/uwsm/env.d/10-omarchy-ps4",
+      "destination": "platforms/ps4/profiles/quattro-beta/config/uwsm/env.d/10-omarchy-ps4",
+      "source_sha256": "6b8463efff761dba72d7aa56b02bf52eb4bc2b2d03b7de8c30f27200510307ec",
+      "destination_sha256": "6b8463efff761dba72d7aa56b02bf52eb4bc2b2d03b7de8c30f27200510307ec",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/packages.txt",
+      "destination": "platforms/ps4/profiles/quattro-beta/packages.txt",
+      "source_sha256": "5feecc9686171b65a0e38676cfd6c300a622ac92b920af67cdaa2fd8d5cf6445",
+      "destination_sha256": "5feecc9686171b65a0e38676cfd6c300a622ac92b920af67cdaa2fd8d5cf6445",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/quattro-beta/source-overrides/default/hypr/autostart.lua",
+      "destination": "platforms/ps4/profiles/quattro-beta/source-overrides/default/hypr/autostart.lua",
+      "source_sha256": "3716826c549761943202c91fbe94053faffb9b30b9f6e173027a873c98c5a098",
+      "destination_sha256": "3716826c549761943202c91fbe94053faffb9b30b9f6e173027a873c98c5a098",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/wayland-minimal/packages.txt",
+      "destination": "platforms/ps4/profiles/wayland-minimal/packages.txt",
+      "source_sha256": "54ffa60353c0765c8ea52082359509e4b56bb4aff21f7ade103f310780bbb8fa",
+      "destination_sha256": "54ffa60353c0765c8ea52082359509e4b56bb4aff21f7ade103f310780bbb8fa",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "profiles/xfce/packages.txt",
+      "destination": "platforms/ps4/profiles/xfce/packages.txt",
+      "source_sha256": "ea316ea27a708f16ac40aa4abb200e999b4b917dc91143b32cb302ddc0ddcf87",
+      "destination_sha256": "ea316ea27a708f16ac40aa4abb200e999b4b917dc91143b32cb302ddc0ddcf87",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/debug/20-omarchy-ps4.conf",
+      "destination": "platforms/ps4/rootfs/debug/20-omarchy-ps4.conf",
+      "source_sha256": "2d447e39d3456a6fb55359c6cec09790dd1bae363558a816c393828d637059be",
+      "destination_sha256": "f270aa6fb96e8597cf33a82d3a3c5a6af4f0f653e69cf51bacb308b84fc061d5",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Disable remote SSH password authentication for private debug provisioning."
+      ]
+    },
+    {
+      "source": "rootfs/debug/90-omarchy-ps4-debug",
+      "destination": "platforms/ps4/rootfs/debug/90-omarchy-ps4-debug",
+      "source_sha256": "8b1f30a670947cb57a8b179b1971a64c33e237a5368aaf7325886cc8894fc60b",
+      "destination_sha256": "8b1f30a670947cb57a8b179b1971a64c33e237a5368aaf7325886cc8894fc60b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/initramfs/init",
+      "destination": "platforms/ps4/rootfs/initramfs/init",
+      "source_sha256": "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894",
+      "destination_sha256": "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M rootfs/initramfs/init",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/initramfs/install-rootfs",
+      "destination": "platforms/ps4/rootfs/initramfs/install-rootfs",
+      "source_sha256": "9f52c1ed61ce199ba13a8606c148ae01c5ab07b648a3909361fddda9b8838f85",
+      "destination_sha256": "9f52c1ed61ce199ba13a8606c148ae01c5ab07b648a3909361fddda9b8838f85",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/initramfs/omarchy-splash.c",
+      "destination": "platforms/ps4/rootfs/initramfs/omarchy-splash.c",
+      "source_sha256": "82884b36104c51cab6e0e4c647ae3e8d3cceb89b647566f6a167b1ba75e18c81",
+      "destination_sha256": "82884b36104c51cab6e0e4c647ae3e8d3cceb89b647566f6a167b1ba75e18c81",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/configure",
+      "destination": "platforms/ps4/rootfs/xfce/configure",
+      "source_sha256": "9e3b9e9a202b63ccc6f3c4d9e7529673f6ae7fcbcff4f6dcf2dcab9f4cc19169",
+      "destination_sha256": "9e3b9e9a202b63ccc6f3c4d9e7529673f6ae7fcbcff4f6dcf2dcab9f4cc19169",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/X11/xorg.conf.d/20-omarchy-ps4-modesetting.conf",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/X11/xorg.conf.d/20-omarchy-ps4-modesetting.conf",
+      "source_sha256": "0a95a7e7e60013d5e3b5f87e589d5f17b807c1efc20a8308680bd94c48e21983",
+      "destination_sha256": "0a95a7e7e60013d5e3b5f87e589d5f17b807c1efc20a8308680bd94c48e21983",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/fstab",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/fstab",
+      "source_sha256": "8a5249f012eecbb9f7c6e8b6e2ffa35e84df0c1d097c4bc72bca59f15a0d375e",
+      "destination_sha256": "8a5249f012eecbb9f7c6e8b6e2ffa35e84df0c1d097c4bc72bca59f15a0d375e",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/hostname",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/hostname",
+      "source_sha256": "d764609bc2e664bbe40f376fa6eeb4f2a3f6970b18595d3919d37182578f0db3",
+      "destination_sha256": "d764609bc2e664bbe40f376fa6eeb4f2a3f6970b18595d3919d37182578f0db3",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/lightdm/lightdm.conf.d/20-omarchy-ps4.conf",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/lightdm/lightdm.conf.d/20-omarchy-ps4.conf",
+      "source_sha256": "04f5e8cf9cf76d09a9adc5841123f497eba8268813635a846733bf96f9118ea0",
+      "destination_sha256": "04f5e8cf9cf76d09a9adc5841123f497eba8268813635a846733bf96f9118ea0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/locale.conf",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/locale.conf",
+      "source_sha256": "033252d5100cbb0028d7c15e075f63e4eb5ff7f1a923cd5cb547bcfd6b024f5b",
+      "destination_sha256": "033252d5100cbb0028d7c15e075f63e4eb5ff7f1a923cd5cb547bcfd6b024f5b",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/locale.gen",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/locale.gen",
+      "source_sha256": "7f3a0f6684adaec0b4f4cd6fb563509eb872edc8a656fe6ab43bffd65bc637f2",
+      "destination_sha256": "7f3a0f6684adaec0b4f4cd6fb563509eb872edc8a656fe6ab43bffd65bc637f2",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/overlay/etc/vconsole.conf",
+      "destination": "platforms/ps4/rootfs/xfce/overlay/etc/vconsole.conf",
+      "source_sha256": "2c09b43e51de87a82ff5eeb1c599ce25800b8d34810f14044bf73644e9f7b742",
+      "destination_sha256": "2c09b43e51de87a82ff5eeb1c599ce25800b8d34810f14044bf73644e9f7b742",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "rootfs/xfce/validate",
+      "destination": "platforms/ps4/rootfs/xfce/validate",
+      "source_sha256": "241d01229db0062426626c3ff47ba7610b2e706c2bdb7e7e35659459fa1219e2",
+      "destination_sha256": "241d01229db0062426626c3ff47ba7610b2e706c2bdb7e7e35659459fa1219e2",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/apply-usb-boot-profile-linux",
+      "destination": "platforms/ps4/scripts/apply-usb-boot-profile-linux",
+      "source_sha256": "5d6110cf54b4ff75a6cd935a430d340feb90b355239fb071f23b0fb8e5c00c3b",
+      "destination_sha256": "fd5e580e93ee6e79cad89c47fe62d8cb63aee0b3845de04db68fc96f6162bb35",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Resolve nested workspace and require explicit historical module archive without changing old release/hash gates.",
+        "Disable the archived whole-device writer before device probes until stable USB identity and typed confirmation are ported."
+      ]
+    },
+    {
+      "source": "scripts/build-baikal-beta-release",
+      "destination": "platforms/ps4/scripts/build-baikal-beta-release",
+      "source_sha256": "e94630290d73931d055296b9debad90c0ad9d955cf3289650341b0d10e08fb2d",
+      "destination_sha256": "ecb45a311dcb200f3b7a082d07ae9ffe9435ed31469b61a1410c94e4e39eb3e5",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Prevent frozen beta release from consuming new default kernel modules: require/verify full historical output and pass it explicitly."
+      ]
+    },
+    {
+      "source": "scripts/build-gift-dev-bundle",
+      "destination": "platforms/ps4/scripts/build-gift-dev-bundle",
+      "source_sha256": "d574f9ee8ae8ffb50fa624ace8c9b885ec58e24a50c3564a507c52f23e9f5242",
+      "destination_sha256": "d574f9ee8ae8ffb50fa624ace8c9b885ec58e24a50c3564a507c52f23e9f5242",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-gift-rootfs",
+      "destination": "platforms/ps4/scripts/build-gift-rootfs",
+      "source_sha256": "f8b96920e672f1c0820ac428213014d87db336b80f12ccb4325035a0d55d48c6",
+      "destination_sha256": "c968f2b89d7c67338447633b44a77a62d2019366995e4645f8f661946e8a9615",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M scripts/build-gift-rootfs",
+      "adaptations": [
+        "Resolve nested workspace correctly and default to sibling linux-psx/output/6.18-ps4-baikal; existing explicit --kernel-output retained.",
+        "Validate actual kernel/version/module/config checksums and matching build metadata before container creation."
+      ]
+    },
+    {
+      "source": "scripts/build-initramfs-tools",
+      "destination": "platforms/ps4/scripts/build-initramfs-tools",
+      "source_sha256": "215b9be828cfe1d80e2c83670e3928ab830bc9836afc8a11727d3a9e671e07ab",
+      "destination_sha256": "215b9be828cfe1d80e2c83670e3928ab830bc9836afc8a11727d3a9e671e07ab",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-omarchy-packages",
+      "destination": "platforms/ps4/scripts/build-omarchy-packages",
+      "source_sha256": "ae7c72b3d39bf42a1bcb5a7882e3031fbbaa9629fec8aa08681a1fd7cf541144",
+      "destination_sha256": "ae7c72b3d39bf42a1bcb5a7882e3031fbbaa9629fec8aa08681a1fd7cf541144",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-omarchy-portable",
+      "destination": "platforms/ps4/scripts/build-omarchy-portable",
+      "source_sha256": "7676e95ff81853e6a27a73652122b6224d50f9cbd1250b0e64b5308d118d08dd",
+      "destination_sha256": "7676e95ff81853e6a27a73652122b6224d50f9cbd1250b0e64b5308d118d08dd",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-package-snapshot",
+      "destination": "platforms/ps4/scripts/build-package-snapshot",
+      "source_sha256": "6c76d402a9972ef57d8c4c3110b53ed03bd2d123b93e905105ede29a4c67dbcc",
+      "destination_sha256": "6c76d402a9972ef57d8c4c3110b53ed03bd2d123b93e905105ede29a4c67dbcc",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-usb-image",
+      "destination": "platforms/ps4/scripts/build-usb-image",
+      "source_sha256": "308599f55468cf424546f5929135f04f6f6b4653cf63596a9d5edfc9154c17cd",
+      "destination_sha256": "308599f55468cf424546f5929135f04f6f6b4653cf63596a9d5edfc9154c17cd",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/build-xfce-initramfs",
+      "destination": "platforms/ps4/scripts/build-xfce-initramfs",
+      "source_sha256": "f9542a99ab586204d0e078a8d69a84380556520c0f94bcb7afa5a6d6ccd88149",
+      "destination_sha256": "5266367ffcdbcd0329dcd57cd1d526b14f48d1212c73d17ed19199c32a7f2d06",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Consume root cached or explicitly supplied public v26 seed and verify pinned SHA-256; no old checkout required."
+      ]
+    },
+    {
+      "source": "scripts/build-xfce-rootfs",
+      "destination": "platforms/ps4/scripts/build-xfce-rootfs",
+      "source_sha256": "f415b9e3fe827027c8b2b33cb898aae8301ebe4427e81a32a5ef7bc8cc5acd94",
+      "destination_sha256": "f415b9e3fe827027c8b2b33cb898aae8301ebe4427e81a32a5ef7bc8cc5acd94",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/capture-uart-macos",
+      "destination": "platforms/ps4/scripts/capture-uart-macos",
+      "source_sha256": "599866f1503c68fe65ec244f7a262e550687f14060ecdafe8d6e028ba7122a4f",
+      "destination_sha256": "599866f1503c68fe65ec244f7a262e550687f14060ecdafe8d6e028ba7122a4f",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/check-knowledge-sources",
+      "destination": "platforms/ps4/scripts/check-knowledge-sources",
+      "source_sha256": "82a9ef5ecf1095e4f369065e8169ef12bb66e10c9654d1bd58f2477251cb0c19",
+      "destination_sha256": "82a9ef5ecf1095e4f369065e8169ef12bb66e10c9654d1bd58f2477251cb0c19",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/compose-omarchy-full-profile",
+      "destination": "platforms/ps4/scripts/compose-omarchy-full-profile",
+      "source_sha256": "b5e4ae3555b6a7e3e3fde71849bc4e51555848f3da29049c1fc5300e0675bfca",
+      "destination_sha256": "b5e4ae3555b6a7e3e3fde71849bc4e51555848f3da29049c1fc5300e0675bfca",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/configure-gift-rootfs-container",
+      "destination": "platforms/ps4/scripts/configure-gift-rootfs-container",
+      "source_sha256": "3ac80f6ed289a609ac4bf811a2c222789f3aa6dfe7f36df4f7fb5e4a8633ff13",
+      "destination_sha256": "3ac80f6ed289a609ac4bf811a2c222789f3aa6dfe7f36df4f7fb5e4a8633ff13",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M scripts/configure-gift-rootfs-container",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/fetch-ps4-loader",
+      "destination": "platforms/ps4/scripts/fetch-ps4-loader",
+      "source_sha256": "5a4e6d11a402eacbd57d07b103415463be3aacca381cc20162a9542167543cc4",
+      "destination_sha256": "5dd7fdebc98be8785e9cb117b48562b50fefca53032a1ded1644a7425b9735d8",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Read root immutable source manifest and resolve workspace above the root project."
+      ]
+    },
+    {
+      "source": "scripts/flash-usb-image-macos",
+      "destination": "platforms/ps4/scripts/flash-usb-image-macos",
+      "source_sha256": "95dbf1497d7927a8544df91a7f2063ca4fd1349e0978773d4cffab9cfbb30046",
+      "destination_sha256": "95dbf1497d7927a8544df91a7f2063ca4fd1349e0978773d4cffab9cfbb30046",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-gift-rootfs-to-usb-linux",
+      "destination": "platforms/ps4/scripts/install-gift-rootfs-to-usb-linux",
+      "source_sha256": "22b74570dfd929f4caf3dcafe7a75a594c3ab75e7e7faafd0e02aabfaa7fa6ea",
+      "destination_sha256": "22b74570dfd929f4caf3dcafe7a75a594c3ab75e7e7faafd0e02aabfaa7fa6ea",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M scripts/install-gift-rootfs-to-usb-linux",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-live-hyprland-test-config",
+      "destination": "platforms/ps4/scripts/install-live-hyprland-test-config",
+      "source_sha256": "d431f960d26ae6701cc182e0e85568a57e4d1cbef7efa9686187cf4d3bad088d",
+      "destination_sha256": "d431f960d26ae6701cc182e0e85568a57e4d1cbef7efa9686187cf4d3bad088d",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-live-package-gate",
+      "destination": "platforms/ps4/scripts/install-live-package-gate",
+      "source_sha256": "4daa50b8105e1d56c8eba8a1ec687d53ecf12db5e7ab290110ab5a4f8a1af60f",
+      "destination_sha256": "4daa50b8105e1d56c8eba8a1ec687d53ecf12db5e7ab290110ab5a4f8a1af60f",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-live-package-profile",
+      "destination": "platforms/ps4/scripts/install-live-package-profile",
+      "source_sha256": "b37e5ec18f149b7ecdc80fcfc19584ea86ddfc93811a73d729d3bab7d773cc37",
+      "destination_sha256": "b37e5ec18f149b7ecdc80fcfc19584ea86ddfc93811a73d729d3bab7d773cc37",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-live-wayland-minimal",
+      "destination": "platforms/ps4/scripts/install-live-wayland-minimal",
+      "source_sha256": "a59ea0b0db600a8ccb1e03bc8880057b77e1649aff654c494fd58b596d6c7aef",
+      "destination_sha256": "a59ea0b0db600a8ccb1e03bc8880057b77e1649aff654c494fd58b596d6c7aef",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/install-partitioned-usb-linux",
+      "destination": "platforms/ps4/scripts/install-partitioned-usb-linux",
+      "source_sha256": "7a861c4d964e1f83c11f073883917c06edf8c6250fec73e947019dfb9712f75e",
+      "destination_sha256": "7a861c4d964e1f83c11f073883917c06edf8c6250fec73e947019dfb9712f75e",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? scripts/install-partitioned-usb-linux",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/package-snapshot-container",
+      "destination": "platforms/ps4/scripts/package-snapshot-container",
+      "source_sha256": "96a5a7a1391d48fe3c53b5ba1d0a2ff376c9d9ca02889de065a4c12ef282d8d2",
+      "destination_sha256": "96a5a7a1391d48fe3c53b5ba1d0a2ff376c9d9ca02889de065a4c12ef282d8d2",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M scripts/package-snapshot-container",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/partitioned-usb-policy",
+      "destination": "platforms/ps4/scripts/partitioned-usb-policy",
+      "source_sha256": "0f779d9b5e106e3228a3cf7e316ad18027a00da9f269f9986bef0114d205ddee",
+      "destination_sha256": "0f779d9b5e106e3228a3cf7e316ad18027a00da9f269f9986bef0114d205ddee",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? scripts/partitioned-usb-policy",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/prepare-usb-linux",
+      "destination": "platforms/ps4/scripts/prepare-usb-linux",
+      "source_sha256": "bb06d8f01fead7647fc96ba285672b5ad49443138cfe4a0897d13951d2d851d0",
+      "destination_sha256": "bb06d8f01fead7647fc96ba285672b5ad49443138cfe4a0897d13951d2d851d0",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/provision-debug-rootfs",
+      "destination": "platforms/ps4/scripts/provision-debug-rootfs",
+      "source_sha256": "6fe09941cbc778e6f09f2b5472bc8945988f271c6d3c959bf8adc757d476a954",
+      "destination_sha256": "eb9e139812b3ee693d6b3cef96616abbfc92aca95b1f97b14da0532024731225",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Remove default credential; require explicit root-owned 0600 non-symlink one-line SHA-512 crypt config parsed as data; keep SSH key-only."
+      ]
+    },
+    {
+      "source": "scripts/remove-live-udiskie",
+      "destination": "platforms/ps4/scripts/remove-live-udiskie",
+      "source_sha256": "9d1d49d0031ba71c6bd2e2f0173aa711b5b45a3431f782b97d3d6ea1bc6abb43",
+      "destination_sha256": "9d1d49d0031ba71c6bd2e2f0173aa711b5b45a3431f782b97d3d6ea1bc6abb43",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/set-live-lightdm-session",
+      "destination": "platforms/ps4/scripts/set-live-lightdm-session",
+      "source_sha256": "b2c085d9eda25a81b4ff669f2b5ae36d03fd8e3fa7aca92e4b19e8548b36fde9",
+      "destination_sha256": "b2c085d9eda25a81b4ff669f2b5ae36d03fd8e3fa7aca92e4b19e8548b36fde9",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/setup-workspace",
+      "destination": "platforms/ps4/scripts/setup-workspace",
+      "source_sha256": "27e64305883e6b4a0ea770a244ccf6e61c01d4db7e68bd143a825a393a6e5d5c",
+      "destination_sha256": "4f2e24562c8e5edb6c6b3da88d67d378078f092a3d930f910b6d8131560a8aa9",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Delegate to root multi-console setup without assuming the checkout name."
+      ]
+    },
+    {
+      "source": "scripts/stage-fpkg-bundle-to-fat",
+      "destination": "platforms/ps4/scripts/stage-fpkg-bundle-to-fat",
+      "source_sha256": "d2842249ff4fd8a4df7a4bf8dcf938ba1b77f702ba57b509297ef1c078e70e49",
+      "destination_sha256": "d2842249ff4fd8a4df7a4bf8dcf938ba1b77f702ba57b509297ef1c078e70e49",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/stage-live-quattro",
+      "destination": "platforms/ps4/scripts/stage-live-quattro",
+      "source_sha256": "44a8193f58d813fd971d10e891c056b1b133686503e203a3fe6dbc49000e7934",
+      "destination_sha256": "44a8193f58d813fd971d10e891c056b1b133686503e203a3fe6dbc49000e7934",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/start-live-quattro-preview",
+      "destination": "platforms/ps4/scripts/start-live-quattro-preview",
+      "source_sha256": "fd8c6167651517de5942ed65daae073338b893625e4b3b86e705bb5015aeee96",
+      "destination_sha256": "fd8c6167651517de5942ed65daae073338b893625e4b3b86e705bb5015aeee96",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/sync-omarchy-upstream",
+      "destination": "platforms/ps4/scripts/sync-omarchy-upstream",
+      "source_sha256": "036f3268398cf3016717f246021dcb0a25bd43ac094427413a942b9706836f6b",
+      "destination_sha256": "036f3268398cf3016717f246021dcb0a25bd43ac094427413a942b9706836f6b",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/validate-gift-rootfs-container",
+      "destination": "platforms/ps4/scripts/validate-gift-rootfs-container",
+      "source_sha256": "edb49b8a43c35e065bbe947ade96ad48b344e068d2f508d9adb7e898b1b8c895",
+      "destination_sha256": "edb49b8a43c35e065bbe947ade96ad48b344e068d2f508d9adb7e898b1b8c895",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M scripts/validate-gift-rootfs-container",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/verify-package-snapshot-container",
+      "destination": "platforms/ps4/scripts/verify-package-snapshot-container",
+      "source_sha256": "4e7beeb5aff96bbad430a67bb5d901ff03835f1b9cb8e6f650ae8488c9eaa330",
+      "destination_sha256": "4e7beeb5aff96bbad430a67bb5d901ff03835f1b9cb8e6f650ae8488c9eaa330",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "scripts/verify-package-snapshot-install-container",
+      "destination": "platforms/ps4/scripts/verify-package-snapshot-install-container",
+      "source_sha256": "583f6678c3d912e2bdd6ea2fb57ffabd2fe11d5e232e3e90662221ecfb5ec378",
+      "destination_sha256": "583f6678c3d912e2bdd6ea2fb57ffabd2fe11d5e232e3e90662221ecfb5ec378",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/baikal-ethernet-test",
+      "destination": "platforms/ps4/tests/baikal-ethernet-test",
+      "source_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
+      "destination_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/baikal-ethernet-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/boot-profile-test",
+      "destination": "platforms/ps4/tests/boot-profile-test",
+      "source_sha256": "a04bb075fe3ce16f53be11c8cde9004c99c0e8777ed73e8d4c88cbccee034552",
+      "destination_sha256": "a04bb075fe3ce16f53be11c8cde9004c99c0e8777ed73e8d4c88cbccee034552",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/chromium-software-rendering-test",
+      "destination": "platforms/ps4/tests/chromium-software-rendering-test",
+      "source_sha256": "b2e2ab6427612b28fe6fd26e6fff42868da6b361e4e1254fcf02bc6d757796b1",
+      "destination_sha256": "b2e2ab6427612b28fe6fd26e6fff42868da6b361e4e1254fcf02bc6d757796b1",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/development-setup-test",
+      "destination": "platforms/ps4/tests/development-setup-test",
+      "source_sha256": "d3cbc4d499f5379260cc7d153f852494ad80e29c6584f675a86a1fade639a412",
+      "destination_sha256": "7330610ccfd8609db26b7313c045ed182d0c8dfad168dfb8ad59f9c8c787596d",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Adapt Git/ZIP fixture workspaces to nested PS4 source, root setup and root manifest while preserving source/no-reset/hash verification coverage."
+      ]
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/PKGBUILD",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/PKGBUILD",
+      "source_sha256": "b0f6496dc94be742e7c963bd7078134a6e2573906d15c78a7232d752494a1ee6",
+      "destination_sha256": "b0f6496dc94be742e7c963bd7078134a6e2573906d15c78a7232d752494a1ee6",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/blkid",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/blkid",
+      "source_sha256": "a3de9c7b43100a2ebfc743d0b516f02d0821a6975be386d10056516c78a86cc9",
+      "destination_sha256": "a3de9c7b43100a2ebfc743d0b516f02d0821a6975be386d10056516c78a86cc9",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/findmnt",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/findmnt",
+      "source_sha256": "df7713e73c0e1ce0de6cec4c789f5d9efa5d8985799bfdbdb846cfe354f80d01",
+      "destination_sha256": "df7713e73c0e1ce0de6cec4c789f5d9efa5d8985799bfdbdb846cfe354f80d01",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/lsblk",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/lsblk",
+      "source_sha256": "9ef483b60663764fc81a4c310f9eebbd78bf78ebf201f7ee93be3f5c1942c670",
+      "destination_sha256": "9ef483b60663764fc81a4c310f9eebbd78bf78ebf201f7ee93be3f5c1942c670",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/omarchy-display-test.service",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/omarchy-display-test.service",
+      "source_sha256": "c3f7143f0256c15abc97bb5437ea3f60c7d7152454adff7314bc6b44de732135",
+      "destination_sha256": "c3f7143f0256c15abc97bb5437ea3f60c7d7152454adff7314bc6b44de732135",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/omarchy-gift-test.conf",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/omarchy-gift-test.conf",
+      "source_sha256": "b9dedfe03087f3bf28d86ca882056355549241c987e01d6ef739ee12fcd1f7ee",
+      "destination_sha256": "b9dedfe03087f3bf28d86ca882056355549241c987e01d6ef739ee12fcd1f7ee",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fixtures/orbstack-vm/readlink",
+      "destination": "platforms/ps4/tests/fixtures/orbstack-vm/readlink",
+      "source_sha256": "5807819c1044b4c045d8239ee71b517213d627d6aa7cad06f211b586a0a5f616",
+      "destination_sha256": "5807819c1044b4c045d8239ee71b517213d627d6aa7cad06f211b586a0a5f616",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fpkg-draft-test",
+      "destination": "platforms/ps4/tests/fpkg-draft-test",
+      "source_sha256": "fbabedf468ccdc67b2516cf45111f343fbe3809e5aaf8449181bbd905406caca",
+      "destination_sha256": "fbabedf468ccdc67b2516cf45111f343fbe3809e5aaf8449181bbd905406caca",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/fpkg-offline-bundle-test",
+      "destination": "platforms/ps4/tests/fpkg-offline-bundle-test",
+      "source_sha256": "55539909a435d829b32583a93ba293584ed586e05838d1f3ca1b05dca364db05",
+      "destination_sha256": "55539909a435d829b32583a93ba293584ed586e05838d1f3ca1b05dca364db05",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/full-profile-test",
+      "destination": "platforms/ps4/tests/full-profile-test",
+      "source_sha256": "7f1767fce80644b95f05fcde4e19f9852d06a185d3f5d9d21ce77f58d5d4de8f",
+      "destination_sha256": "7f1767fce80644b95f05fcde4e19f9852d06a185d3f5d9d21ce77f58d5d4de8f",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/gift-dev-recovery-test",
+      "destination": "platforms/ps4/tests/gift-dev-recovery-test",
+      "source_sha256": "d3bd3ac95c335875528f1f0d7d356f82c7777878dce4cb931f74f719b92af92d",
+      "destination_sha256": "1354840c8a5f1345156da0673a99a3e7c78cf0d5c05b246054424abef86772bd",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Use the caller-supplied test public key fingerprint rather than the original owner fingerprint."
+      ]
+    },
+    {
+      "source": "tests/gift-rootfs-contract-test",
+      "destination": "platforms/ps4/tests/gift-rootfs-contract-test",
+      "source_sha256": "61bb29d22c21669a2507b281f91953067e1dd1bedf9e1112a8a52d013c55c8cd",
+      "destination_sha256": "61bb29d22c21669a2507b281f91953067e1dd1bedf9e1112a8a52d013c55c8cd",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/initramfs-product-test",
+      "destination": "platforms/ps4/tests/initramfs-product-test",
+      "source_sha256": "78a3182988b26390a0c26e33fbe7c0baef146e9843a61abe123364eaa6649566",
+      "destination_sha256": "78a3182988b26390a0c26e33fbe7c0baef146e9843a61abe123364eaa6649566",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/initramfs-repack-test",
+      "destination": "platforms/ps4/tests/initramfs-repack-test",
+      "source_sha256": "472bd7b9670e6cb53345bc2ceb30123e86f2ba26f8084686f837a235305a5a7e",
+      "destination_sha256": "472bd7b9670e6cb53345bc2ceb30123e86f2ba26f8084686f837a235305a5a7e",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/initramfs-repack-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/internal-boot-set-test",
+      "destination": "platforms/ps4/tests/internal-boot-set-test",
+      "source_sha256": "77fda81e07a4db9d7d46c524d5c364fb852a88920e62cf3ad91e29e0f64e6dd7",
+      "destination_sha256": "77fda81e07a4db9d7d46c524d5c364fb852a88920e62cf3ad91e29e0f64e6dd7",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M tests/internal-boot-set-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/network-panel-patch-test",
+      "destination": "platforms/ps4/tests/network-panel-patch-test",
+      "source_sha256": "0eaf90e563d3fea863e24e15e16e83c2d3ab2816d781ab3dfad6731740360aa8",
+      "destination_sha256": "0eaf90e563d3fea863e24e15e16e83c2d3ab2816d781ab3dfad6731740360aa8",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/package-content-test",
+      "destination": "platforms/ps4/tests/package-content-test",
+      "source_sha256": "68b0c4a6c8fb3bd2b18486324fa15e864ebc3c2be67d93df49c88cb8effe0f11",
+      "destination_sha256": "68b0c4a6c8fb3bd2b18486324fa15e864ebc3c2be67d93df49c88cb8effe0f11",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M tests/package-content-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/package-snapshot-test",
+      "destination": "platforms/ps4/tests/package-snapshot-test",
+      "source_sha256": "469acac2a06eca5ee900fa63c450546f9cab38a9e66065d5fa0e148cb55653f6",
+      "destination_sha256": "469acac2a06eca5ee900fa63c450546f9cab38a9e66065d5fa0e148cb55653f6",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/partitioned-fpkg-test",
+      "destination": "platforms/ps4/tests/partitioned-fpkg-test",
+      "source_sha256": "1fb154b6704203063aa2a8d31c6e877fd0f0c6c00febc25d9623dbcb2b8dbb13",
+      "destination_sha256": "1fb154b6704203063aa2a8d31c6e877fd0f0c6c00febc25d9623dbcb2b8dbb13",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/partitioned-fpkg-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/partitioned-usb-policy-test",
+      "destination": "platforms/ps4/tests/partitioned-usb-policy-test",
+      "source_sha256": "d8eb863773b28814119ad95b316c8f20ff66c617af32aaf49fb4327a202cb17b",
+      "destination_sha256": "d8eb863773b28814119ad95b316c8f20ff66c617af32aaf49fb4327a202cb17b",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/partitioned-usb-policy-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/partitioned-usb-resume-test",
+      "destination": "platforms/ps4/tests/partitioned-usb-resume-test",
+      "source_sha256": "ef6f7ea4cfe1dedf5a0bef782faf272822d8978367f71e972fa17a9a19b83a6b",
+      "destination_sha256": "ef6f7ea4cfe1dedf5a0bef782faf272822d8978367f71e972fa17a9a19b83a6b",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/partitioned-usb-resume-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/portable-bundle-test",
+      "destination": "platforms/ps4/tests/portable-bundle-test",
+      "source_sha256": "66d3a6b4d00d92f9e72a1a4c3b034fea900dd6faf33ddc0d85d71f29595a492c",
+      "destination_sha256": "66d3a6b4d00d92f9e72a1a4c3b034fea900dd6faf33ddc0d85d71f29595a492c",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/prepare-for-owner-test",
+      "destination": "platforms/ps4/tests/prepare-for-owner-test",
+      "source_sha256": "97a6889a6a25a80bb0846a30018e63aed9f5ba8952df1e4d20728c29d7e43923",
+      "destination_sha256": "97a6889a6a25a80bb0846a30018e63aed9f5ba8952df1e4d20728c29d7e43923",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/private-boot-transaction-test",
+      "destination": "platforms/ps4/tests/private-boot-transaction-test",
+      "source_sha256": "166f0521788a8077f35ac2961583b3644b8350f0618be94ec048bad497baec17",
+      "destination_sha256": "166f0521788a8077f35ac2961583b3644b8350f0618be94ec048bad497baec17",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "M tests/private-boot-transaction-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/probe-smoke-test",
+      "destination": "platforms/ps4/tests/probe-smoke-test",
+      "source_sha256": "164c5d306754c3ee90d5443d307fe97d22cec9c1d19231b419d724d565600308",
+      "destination_sha256": "164c5d306754c3ee90d5443d307fe97d22cec9c1d19231b419d724d565600308",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/storage-layout-test",
+      "destination": "platforms/ps4/tests/storage-layout-test",
+      "source_sha256": "efba3de4482d3072fa63b6461baeaffec5b5d53656b74cfd09769149e2934363",
+      "destination_sha256": "efba3de4482d3072fa63b6461baeaffec5b5d53656b74cfd09769149e2934363",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "?? tests/storage-layout-test",
+      "adaptations": []
+    },
+    {
+      "source": "tests/usb-image-artifact-test",
+      "destination": "platforms/ps4/tests/usb-image-artifact-test",
+      "source_sha256": "f877890efe892527c352bd11de31d92692a57e191909a4fd4d1665fecb5b7dc7",
+      "destination_sha256": "f877890efe892527c352bd11de31d92692a57e191909a4fd4d1665fecb5b7dc7",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "tests/usb-image-contract-test",
+      "destination": "platforms/ps4/tests/usb-image-contract-test",
+      "source_sha256": "6c4cd229603ad575e1bb6cc7c859c0dec70f52006e899d1975e8ce7e9ad0b023",
+      "destination_sha256": "6c4cd229603ad575e1bb6cc7c859c0dec70f52006e899d1975e8ce7e9ad0b023",
+      "source_mode": "0o755",
+      "destination_mode": "0o755",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "upstream/omarchy.lock",
+      "destination": "platforms/ps4/upstream/omarchy.lock",
+      "source_sha256": "d01ae2c40a4b201baae653eba7f8bb92174e1e191ec6eaa5d7ca13c6fb4d39b0",
+      "destination_sha256": "d01ae2c40a4b201baae653eba7f8bb92174e1e191ec6eaa5d7ca13c6fb4d39b0",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": []
+    },
+    {
+      "source": "workspace/AGENTS.md",
+      "destination": "platforms/ps4/workspace/AGENTS.md",
+      "source_sha256": "3cbf8a9aef2b8a26370ad8e4172d000a6ad2e35e1e24e56ae4d91a30db49b06b",
+      "destination_sha256": "1aec15bc5d42a3eb0704a32b024919f6c3048998a553fbfe6f05b812c589ee07",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    },
+    {
+      "source": "workspace/README.md",
+      "destination": "platforms/ps4/workspace/README.md",
+      "source_sha256": "23eb2805cc23cf5e305048010e89e4099e1f30ad33f9c2cf3495655ea3944360",
+      "destination_sha256": "372f7d5c0166a3b55f9a87a49289dcfa9cb57ef34b1ca08015f3d1b10b897da2",
+      "source_mode": "0o644",
+      "destination_mode": "0o644",
+      "source_state": "tracked-clean",
+      "adaptations": [
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "source": "experiments/uart/20260810T162959Z-linux-6.18.44-xfce-cold-boot.log",
+      "reason": "Raw UART capture: retain privately; curated SESSIONS.md contains scoped conclusions."
+    },
+    {
+      "source": "experiments/uart/20260810T163222Z-linux-6.18.44-xfce-cold-boot.log",
+      "reason": "Raw UART capture: retain privately; curated SESSIONS.md contains scoped conclusions."
+    },
+    {
+      "source": "fpkg/vendor/bundle/.gitkeep",
+      "reason": "Generated/vendor staging placeholder; create output directories only when a reviewed tool runs."
+    },
+    {
+      "source": "fpkg/vendor/keys/.gitkeep",
+      "reason": "Generated/vendor staging placeholder; create output directories only when a reviewed tool runs."
+    },
+    {
+      "source": "fpkg/vendor/payloads/.gitkeep",
+      "reason": "Generated/vendor staging placeholder; create output directories only when a reviewed tool runs."
+    },
+    {
+      "source": "fpkg/vendor/provenance/.gitkeep",
+      "reason": "Generated/vendor staging placeholder; create output directories only when a reviewed tool runs."
+    }
+  ],
+  "added_files": [
+    {
+      "destination": "platforms/ps4/docs/IMPORT-NOTES.md",
+      "sha256": "2be55cb694c93d93de5d1749ce4b4e60eb2646eede9fba5b4580881e8ff027d1",
+      "mode": "0o644",
+      "purpose": "Current import, acquisition, frozen-profile, credential and hardware-scope instructions."
+    },
+    {
+      "destination": "platforms/ps4/scripts/check-source",
+      "sha256": "5b5c1bd1ed94ca167f94c2a4b43db4c5320dcb8353f87ba38c62a632d7be0659",
+      "mode": "0o755",
+      "purpose": "Container-free source/fixture test runner with explicit prerequisite skips."
+    },
+    {
+      "destination": "platforms/ps4/tests/migration-guards-test",
+      "sha256": "c045c7fdc252073834ae09db011f96a52728dbd2ea860912c76d3f86f1a2cc73",
+      "mode": "0o755",
+      "purpose": "Synthetic missing-input fail-closed coverage for debug credentials, recovery key and frozen boot sets."
+    },
+    {
+      "destination": "platforms/ps4/scripts/verify-kernel-output",
+      "sha256": "ea461ab81756dac7aee11696ccdbd7482a2b856f7d52a4a361c0fd4186fa317f",
+      "mode": "0o755",
+      "purpose": "Read-only kernel/version/whole-module checksum and build-manifest validation, including frozen beta identity pins."
+    }
+  ],
+  "validation": {
+    "source_syntax_programs": 97,
+    "source_fixture_runner": "platforms/ps4/scripts/check-source",
+    "result": "passed on macOS ARM64; no containers or console operations",
+    "python_test_counts": {
+      "development_setup": 5,
+      "ethernet_activation": 11,
+      "initramfs_repack": 4,
+      "partitioned_manifest": 4,
+      "partitioned_usb_policy": 5,
+      "partitioned_usb_resume": 2,
+      "storage_layout": 3,
+      "migration_input_guards": 4
+    },
+    "python_skips": {
+      "real_initramfs_base": 1,
+      "jsonschema_dependency": 1,
+      "linux_root_fixtures": 5
+    },
+    "shell_suites_passed": [
+      "boot-profile-test",
+      "chromium-software-rendering-test",
+      "gift-rootfs-contract-test",
+      "usb-image-contract-test",
+      "fpkg-draft-test"
+    ],
+    "cpp_host_checks": [
+      "manager state self-test",
+      "SHA-256 vectors"
+    ],
+    "not_claimed": [
+      "New image/PKG build",
+      "Hardware acceptance of the new kernel/initramfs pairing",
+      "PS5 support",
+      "OrbStack/container, generated artifact or console tests"
+    ],
+    "independent_review": "Reviewed nested paths, source bootstrap, all four package recipe checksums and matching module layout. Corrected frozen beta kernel/module selection and module digest verification; archived unported whole-device writer is disabled. No hardware or containers used."
+  },
+  "summary": {
+    "source_files_imported": 260,
+    "source_files_adapted": 60,
+    "source_files_byte_identical": 200,
+    "source_files_excluded": 6,
+    "new_platform_files": 4
+  }
+}

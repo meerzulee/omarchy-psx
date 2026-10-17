@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd -- "$script_dir/.." && pwd)
+lock_file="$project_dir/upstream/omarchy.lock"
+checkout="$project_dir/cache/omarchy-quattro"
+
+[[ -r $lock_file ]] || {
+  printf 'error: cannot read upstream lock: %s\n' "$lock_file" >&2
+  exit 2
+}
+
+# This repository-owned file contains only fixed scalar assignments.
+# shellcheck disable=SC1090,SC1091
+source "$lock_file"
+
+new_checkout=false
+if [[ ! -d $checkout/.git ]]; then
+  mkdir -p -- "${checkout%/*}"
+  git clone --filter=blob:none --no-checkout "$OMARCHY_URL" "$checkout"
+  new_checkout=true
+fi
+
+actual_remote=$(git -C "$checkout" remote get-url origin)
+[[ $actual_remote == "$OMARCHY_URL" ]] || {
+  printf 'error: unexpected Omarchy remote: %s\n' "$actual_remote" >&2
+  exit 2
+}
+
+# --no-checkout intentionally leaves a new clone without an index/worktree.
+# A cached diff against HEAD would report the entire tree as deleted. Check
+# for operator edits only in a checkout that existed before this invocation.
+if [[ $new_checkout == false ]]; then
+  if ! git -C "$checkout" diff --quiet || ! git -C "$checkout" diff --cached --quiet; then
+    printf 'error: cached Omarchy checkout has tracked local changes: %s\n' "$checkout" >&2
+    exit 2
+  fi
+fi
+
+git -C "$checkout" fetch --depth 1 origin "$OMARCHY_COMMIT"
+git -C "$checkout" checkout --detach "$OMARCHY_COMMIT"
+
+actual_commit=$(git -C "$checkout" rev-parse HEAD)
+actual_version=$(<"$checkout/version")
+
+[[ $actual_commit == "$OMARCHY_COMMIT" ]] || {
+  printf 'error: expected commit %s, got %s\n' "$OMARCHY_COMMIT" "$actual_commit" >&2
+  exit 1
+}
+
+[[ $actual_version == "$OMARCHY_SOURCE_VERSION" ]] || {
+  printf 'error: expected source version %s, got %s\n' "$OMARCHY_SOURCE_VERSION" "$actual_version" >&2
+  exit 1
+}
+
+printf 'Omarchy %s (source reports %s) is pinned at %s\n' \
+  "$OMARCHY_RELEASE_VERSION" "$actual_version" "$actual_commit"
+printf 'Checkout: %s\n' "$checkout"

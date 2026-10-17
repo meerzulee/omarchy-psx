@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Reject unsafe partition layouts before formatting filesystems."""
+
+import copy
+import importlib.machinery
+import importlib.util
+import sys
+import unittest
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+source = Path(__file__).resolve().parents[1] / "scripts/partitioned-usb-policy"
+loader = importlib.machinery.SourceFileLoader("policy", str(source))
+spec = importlib.util.spec_from_loader(loader.name, loader)
+policy = importlib.util.module_from_spec(spec)
+loader.exec_module(policy)
+
+
+class Geometry(unittest.TestCase):
+    def setUp(self):
+        self.sectors = 242221056
+        self.table = {"partitiontable": {"label": "dos", "device": "/dev/sda",
+            "unit": "sectors", "sectorsize": 512, "partitions": [
+                {"node": "/dev/sda1", "start": 2048, "size": 8388608, "type": "c", "bootable": True},
+                {"node": "/dev/sda2", "start": 8390656, "size": self.sectors - 8390656, "type": "83"},
+            ]}}
+
+    def test_valid(self):
+        policy.verify(self.table, self.sectors, "/dev/sda")
+
+    def test_reject_altered_geometry(self):
+        for key, value in [("label", "gpt"), ("sectorsize", 4096), ("device", "/dev/sdb")]:
+            with self.subTest(key=key):
+                invalid = copy.deepcopy(self.table)
+                invalid["partitiontable"][key] = value
+                with self.assertRaises(ValueError):
+                    policy.verify(invalid, self.sectors, "/dev/sda")
+
+    def test_reject_partition_changes(self):
+        changes = [(0, "size", 8388607), (0, "start", 0), (0, "type", "83"),
+                   (0, "bootable", False), (1, "start", 8388608),
+                   (1, "size", 1), (1, "type", "c"), (1, "node", "/dev/sdb2")]
+        for number, key, value in changes:
+            with self.subTest(number=number, key=key):
+                invalid = copy.deepcopy(self.table)
+                invalid["partitiontable"]["partitions"][number][key] = value
+                with self.assertRaises(ValueError):
+                    policy.verify(invalid, self.sectors, "/dev/sda")
+
+    def test_reject_extra_partition(self):
+        self.table["partitiontable"]["partitions"].append({})
+        with self.assertRaises(ValueError):
+            policy.verify(self.table, self.sectors, "/dev/sda")
+
+    def test_reject_too_small(self):
+        with self.assertRaises(ValueError):
+            policy.verify(self.table, 10000, "/dev/sda")
+
+
+if __name__ == "__main__":
+    unittest.main()

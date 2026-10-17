@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Create pinned sibling source checkouts; preserve every existing checkout."""
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def git(*args):
+    return subprocess.check_output(["git", *map(str, args)], text=True,
+                                   stderr=subprocess.STDOUT, timeout=300).strip()
+
+
+def canonical(url):
+    return url.replace("git@github.com:", "https://github.com/").rstrip("/").removesuffix(".git")
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def inspect(checkout, source, invoke=git):
+    require(not checkout.is_symlink() and (checkout / ".git").exists(),
+            f"Preserving existing non-checkout or symlink: {checkout}")
+    require(canonical(invoke("-C", checkout, "remote", "get-url", "origin")) ==
+            canonical(source["url"]), f"Different origin; preserving {checkout}")
+    try:
+        invoke("-C", checkout, "merge-base", "--is-ancestor", source["commit"], "HEAD")
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"{checkout} does not contain pinned {source['commit']}; "
+                           "fetch deliberately or choose another workspace. No reset performed.") from error
+    require((checkout / source["expected_path"]).is_file(), f"Missing expected source in {checkout}")
+    dirty = bool(invoke("-C", checkout, "status", "--porcelain"))
+    print(f"Verified {checkout.name}" + (" (local work preserved)" if dirty else ""), flush=True)
+
+
+def setup(project, workspace, check=False, invoke=git):
+    require(workspace.is_dir() and not workspace.is_symlink(), "Workspace must be an existing directory")
+    manifest = json.loads((project / "manifests/development-sources.json").read_text())
+    require(manifest["schema"] == 1, "Unsupported development manifest")
+    sources = manifest["repositories"]
+    require(len(sources) == 2 and {s["directory"] for s in sources} == {"linux-psx", "ps4-uart"},
+            "Expected the kernel and UART source repositories")
+    for source in sources:
+        require(re.fullmatch(r"[0-9a-f]{40}", source["commit"]), "A full immutable commit is required")
+        expected = Path(source["expected_path"])
+        require(not expected.is_absolute() and ".." not in expected.parts, "Invalid source path")
+    missing = []
+    # Inspect every existing checkout before creating anything.
+    for source in sources:
+        destination = workspace / source["directory"]
+        if destination.exists() or destination.is_symlink():
+            inspect(destination, source, invoke)
+        else:
+            missing.append(source)
+    templates = [(project / "workspace" / name, workspace / name) for name in ("README.md", "AGENTS.md")]
+    require(all(p.is_file() for p, _ in templates), "Missing portable workspace templates")
+    if check:
+        absent = [s["directory"] for s in missing]
+        absent += [p.name for _, p in templates if not p.exists() and not p.is_symlink()]
+        require(not absent, "Missing setup paths: " + ", ".join(absent))
+        print(f"Source workspace verified without writes or network: {workspace}")
+        return
+    for source in missing:
+        destination = workspace / source["directory"]
+        temporary = Path(tempfile.mkdtemp(prefix=".psx-source-", dir=workspace))
+        try:
+            invoke("clone", "--no-checkout", "--filter=blob:none", source["url"], temporary)
+            invoke("-C", temporary, "fetch", "--depth=1", "origin", source["commit"])
+            invoke("-C", temporary, "checkout", "--detach", source["commit"])
+            require(invoke("-C", temporary, "rev-parse", "HEAD") == source["commit"], "Fetched commit differs")
+            inspect(temporary, source, invoke)
+            require(not destination.exists() and not destination.is_symlink(), "Destination appeared; preserving it")
+            os.rename(temporary, destination)
+        finally:
+            if temporary.exists():
+                shutil.rmtree(temporary)  # Only the temporary clone created by this invocation.
+        print(f"Created {destination} at {source['commit']}", flush=True)
+    for source, destination in templates:
+        if destination.exists() or destination.is_symlink():
+            print(f"Keeping existing workspace file: {destination}", flush=True)
+        else:
+            with destination.open("xb") as output:
+                output.write(source.read_bytes())
+    print(f"Workspace ready: {workspace}")
+    print("Read omarchy-psx/docs/DEVELOPMENT-HOSTS.md and each repository's AGENTS.md.")
+    print("Recreate ps4-uart/.venv; raw logs, keys, firmware and build outputs are not source dependencies.")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="offline, read-only inspection")
+    parser.add_argument("--workspace", type=Path, default=ROOT.parent)
+    args = parser.parse_args()
+    try:
+        setup(ROOT, args.workspace.absolute(), args.check)
+    except (RuntimeError, OSError, KeyError, ValueError, subprocess.SubprocessError) as error:
+        parser.exit(1, f"Source setup refused: {error}\n")
