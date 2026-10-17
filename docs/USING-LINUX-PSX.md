@@ -123,7 +123,10 @@ BusyBox identity, source/repacker, base hash and Mac/Linux generation command.
 Check its compatibility and required
 firmware before reuse. A kernel configured without embedded firmware may
 need display EDID and built-in Wi-Fi firmware inside the initramfs, before
-the root filesystem is available. Firmware licensing remains separate.
+the root filesystem is available. Firmware licensing remains separate;
+Omarchy psX hosts none.
+[INITRAMFS.md](INITRAMFS.md#add-wi-fi-and-bluetooth-firmware) downloads the
+MT7668 Wi-Fi/Bluetooth firmware from its public sources and adds it.
 
 Place the matching `bzImage`, compatible `initramfs.cpio.gz` and your selected
 `bootargs.txt`/`vram.txt` on external boot media using the reviewed existing

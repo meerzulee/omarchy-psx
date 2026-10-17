@@ -69,6 +69,55 @@ a new candidate with a new identity and require their own validation.
 Compression-library differences can also change gzip bytes; compare the
 reported digest rather than assuming identical output on every host.
 
+## Add Wi-Fi and Bluetooth firmware
+
+Linux psX kernels embed no firmware, and the Omarchy initramfs above has none
+for the MediaTek MT7668 Wi-Fi/Bluetooth chip. Drivers built into the kernel
+can ask for it before the real root is mounted, so it belongs in the
+initramfs.
+
+Omarchy psX does **not** host or redistribute these files. Two scripts
+download them from their public sources and add them to an initramfs on your
+own machine:
+
+| Files | Public source | License |
+| --- | --- | --- |
+| `mediatek/mt7668pr2h.bin` (Bluetooth) | Upstream [linux-firmware](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git), tag `20260810` | Redistributable; see `WHENCE` and `LICENCE.mediatek` there |
+| `WIFI_RAM_CODE_MT7668.bin`, `WIFI_RAM_CODE2_SDIO_MT7668.bin`, `WIFI_RAM_CODE2_USB_MT7668.bin`, `mt7668_patch_e1_hdr.bin`, `mt7668_patch_e2_hdr.bin`, `EEPROM_MT7668.bin`, `EEPROM_MT7668_e1.bin`, `TxPwrLimit_MT76x8.dat`, `wifi.cfg` (Wi-Fi) | `extra_firmware/` in the Linux 5.4 PS4 kernel, [feeRnt/ps4-linux-12xx](https://github.com/feeRnt/ps4-linux-12xx/tree/3070025bad397ad499f3c4919f35e8abd547af2b/extra_firmware), branch `5.4.247-baikal-dfaus` | None recorded; MediaTek vendor driver firmware. Keep it local |
+
+[`manifests/ps4-firmware.json`](../manifests/ps4-firmware.json) pins both
+sources to full commits and records each file's size, SHA-256 and Git blob.
+
+```sh
+python3 scripts/fetch-ps4-firmware
+python3 scripts/add-ps4-initramfs-firmware \
+  --base output/initramfs/ps4-baikal-partitioned/initramfs.cpio.gz
+```
+
+`fetch-ps4-firmware` saves the ten files under the ignored
+`cache/ps4-firmware/` and refuses any file that differs from its pin. GitHub
+may rate-limit anonymous downloads; then run it as
+`GITHUB_TOKEN=$(gh auth token) python3 scripts/fetch-ps4-firmware`.
+
+`add-ps4-initramfs-firmware` accepts any gzip `newc` initramfs that has an
+`/init`: the repacker output above, or the existing partitioned initramfs
+(`31e793…`) from the USB FAT partition. It checks every file against the
+manifest again, adds the Bluetooth file under `lib/firmware/mediatek/` and
+the Wi-Fi files under `lib/firmware/`, keeps every existing entry
+byte-for-byte and writes
+`output/initramfs/ps4-baikal-partitioned-firmware/initramfs.cpio.gz`. An
+existing output is refused; `--output` selects another path.
+
+From the `31e793…` base it reproduces exactly the initramfs that
+EXP-20261017-018 booted
+(`089d62daaef9b4ab7a61486d193533deef5f79c7782ecd8ddc10030477b0f460`), and it
+says so when the uncompressed archive matches; gzip bytes can differ between
+compression libraries. That boot ran display, Wi-Fi and Bluetooth once on one
+console with the firmware-free psX kernel. Orbis initializes the MT7668
+before every launch, so whether Linux actually loaded these files was not
+witnessed. Not acceptance. The result contains vendor firmware: keep it local
+and never commit it.
+
 ## Reconstruct from the public historical seed
 
 The complete assembler and its source are now under `platforms/ps4/`. A fresh
@@ -106,9 +155,9 @@ loads `psx_mts_net` from there after the switch to the real root.
 The inspected archive contains ten Liverpool AMDGPU firmware files and the
 1080p EDID. It contains **no MT7668 Wi-Fi firmware**. The historical private
 kernel embedded MT7668 payloads; the new Linux psX target deliberately embeds
-none. Early Wi-Fi with that new kernel therefore needs a separate firmware
-integration check. This repacker adds no firmware and does not establish a
-compatible fallback Wi-Fi path.
+none. The repacker adds no firmware;
+[Add Wi-Fi and Bluetooth firmware](#add-wi-fi-and-bluetooth-firmware) adds
+the MT7668 set that one boot used with the psX kernel.
 
 No BusyBox binary, firmware blob, seed/initramfs archive or PKG is committed
 or published by this source migration. Those components retain their own

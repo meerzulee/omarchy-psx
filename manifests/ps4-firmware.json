@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "purpose": "Early MediaTek MT7668 Wi-Fi and Bluetooth firmware for firmware-free Linux psX PS4 Baikal kernels. Omarchy psX does not host or redistribute these files: scripts/fetch-ps4-firmware downloads them from the pinned public sources below into the ignored cache.",
+  "cache_path": "cache/ps4-firmware",
+  "initramfs_directory": "lib/firmware",
+  "entry_mtime": 1792195200,
+  "sources": {
+    "linux-firmware": {
+      "repository": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git",
+      "tag": "20260810",
+      "commit": "2135b2f7714a3a514c989b9728f51f36144cab6f",
+      "url": "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/{path}?id={commit}",
+      "license": "linux-firmware WHENCE, driver btmtk: Redistributable. See LICENCE.mediatek for details."
+    },
+    "ps4-linux-5.4": {
+      "repository": "https://github.com/feeRnt/ps4-linux-12xx",
+      "branch": "5.4.247-baikal-dfaus",
+      "commit": "3070025bad397ad499f3c4919f35e8abd547af2b",
+      "note": "Linux 5.4.247 PS4 Baikal kernel (fork of codedwrench/ps4-linux) whose extra_firmware/ directory the historical 5.4.247-DFAUS kernel embedded through CONFIG_EXTRA_FIRMWARE.",
+      "url": "https://raw.githubusercontent.com/feeRnt/ps4-linux-12xx/{commit}/{path}",
+      "api_url": "https://api.github.com/repos/feeRnt/ps4-linux-12xx/contents/{path}?ref={commit}",
+      "license": "None recorded. MediaTek vendor Wi-Fi driver firmware; keep it local and do not redistribute it."
+    }
+  },
+  "files": [
+    {
+      "name": "mediatek/mt7668pr2h.bin",
+      "source": "linux-firmware",
+      "path": "mediatek/mt7668pr2h.bin",
+      "bytes": 170990,
+      "sha256": "465ed634c61b46b34bb21240736f33d3d347fefec7cbfbd1cb6e63334aec4cc9",
+      "git_blob": "223c0f92f685226b52870ecf89b3f5162e3a4810"
+    },
+    {
+      "name": "EEPROM_MT7668.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/EEPROM_MT7668.bin",
+      "bytes": 1024,
+      "sha256": "d3ecac0fde5b66fab282cd97f43c04d77bf4fd6abdbd9c35c5d3d40e2f1f035a",
+      "git_blob": "b4404eff01abe274abe94c680a02fa3cec0feaab"
+    },
+    {
+      "name": "EEPROM_MT7668_e1.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/EEPROM_MT7668_e1.bin",
+      "bytes": 1024,
+      "sha256": "a042c6ceb77ae4a0c367e5e5522cbf21f767936b8799a781096e1e72684d957c",
+      "git_blob": "64e3459296c699ef5dbcf399b3f49239f5c72d3a"
+    },
+    {
+      "name": "mt7668_patch_e1_hdr.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/mt7668_patch_e1_hdr.bin",
+      "bytes": 152302,
+      "sha256": "519083ebb8318d9cfc8eaaaa7470d1a266c8f32275df3c62e3619d6c07f97389",
+      "git_blob": "9d7eb2b57eaf9f48a39959f711d869da94e4c0fa"
+    },
+    {
+      "name": "mt7668_patch_e2_hdr.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/mt7668_patch_e2_hdr.bin",
+      "bytes": 178782,
+      "sha256": "05a619651517ee481ccfa3ed2cd11bd33f497967802233e6f81085036e0ec9d5",
+      "git_blob": "284cd3c2014f6e6c9bce6b503df4c0935bcd3254"
+    },
+    {
+      "name": "TxPwrLimit_MT76x8.dat",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/TxPwrLimit_MT76x8.dat",
+      "bytes": 19064,
+      "sha256": "49fa3e52b26fe49b837187c91765550e32cd6540ea2e09343274245d6630062a",
+      "git_blob": "aa70849194487b8859fcd348686681f40e01156d"
+    },
+    {
+      "name": "wifi.cfg",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/wifi.cfg",
+      "bytes": 889,
+      "sha256": "828d7d18607c78513a71719f919340a7c91ee8ef68080ad7270a65dd661abbbd",
+      "git_blob": "9f92328d0fe83729ed7dbe55c85aae5700285c7f"
+    },
+    {
+      "name": "WIFI_RAM_CODE2_SDIO_MT7668.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/WIFI_RAM_CODE2_SDIO_MT7668.bin",
+      "bytes": 51816,
+      "sha256": "35faff6a613fefcbe33a6f6d8df885be76c546f9e78ba8ab93056a816ad87254",
+      "git_blob": "d72114f933f76a6c26fb9f16230686e91a71def4"
+    },
+    {
+      "name": "WIFI_RAM_CODE2_USB_MT7668.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/WIFI_RAM_CODE2_USB_MT7668.bin",
+      "bytes": 55880,
+      "sha256": "b6c6b63f021168a327a0600119a416c4f5f5198820a3267b54a1259c19da0baf",
+      "git_blob": "b9482645e908a5746ab6000aa9e1f79f3b693cdd"
+    },
+    {
+      "name": "WIFI_RAM_CODE_MT7668.bin",
+      "source": "ps4-linux-5.4",
+      "path": "extra_firmware/WIFI_RAM_CODE_MT7668.bin",
+      "bytes": 463080,
+      "sha256": "977724f3eef0e6f27567a6684bf616b884b82fe948bde0a436ea546a1f9c83ee",
+      "git_blob": "6d6558d1caf6716b008ae0d9cce5206c3d44732e"
+    }
+  ],
+  "tested": {
+    "experiment": "EXP-20261017-018",
+    "base_sha256": "31e793671aca8b595e130fa9d1ba5a93f0d777ee45843eb1aa3925294b0dc353",
+    "cpio_sha256": "6aa7859905dc65db1524eb1368e535b9d9d1572260ccf5472e94919ccc5dff6e",
+    "output_sha256": "089d62daaef9b4ab7a61486d193533deef5f79c7782ecd8ddc10030477b0f460",
+    "result": "One fresh boot of the firmware-free 6.18.44-psx-ps4-baikal1 kernel ran display, Wi-Fi and Bluetooth on one Baikal console. Orbis initializes the MT7668 before every launch, so whether Linux loaded these files was not witnessed. Not acceptance."
+  }
+}

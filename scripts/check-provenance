@@ -58,7 +58,16 @@ def main():
     seed = json.loads((ROOT / "manifests/ps4-initramfs-seed.json").read_text())
     if not re.fullmatch(r"[0-9a-f]{40}", seed["commit"]) or seed["commit"] not in seed["url"]:
         raise ValueError("seed acquisition must use an immutable URL")
-    print(f"PASS: {count} integration + {len(seen)} PS4 source hashes/modes, init identity and pinned source handoff")
+    firmware = json.loads((ROOT / "manifests/ps4-firmware.json").read_text())
+    names = [item["name"] for item in firmware["files"]]
+    if (firmware["schema"] != 1 or len(names) != len(set(names)) or not firmware["cache_path"].startswith("cache/")
+            or any(not re.fullmatch(r"[0-9a-f]{40}", s["commit"]) or "{commit}" not in s["url"]
+                   for s in firmware["sources"].values())
+            or any(item["source"] not in firmware["sources"] or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
+                   or not re.fullmatch(r"[0-9a-f]{40}", item["git_blob"]) for item in firmware["files"])):
+        raise ValueError("firmware acquisition must pin full commits and every file hash")
+    print(f"PASS: {count} integration + {len(seen)} PS4 source hashes/modes, init identity, pinned source handoff "
+          f"and {len(names)} pinned firmware downloads")
 
 
 if __name__ == "__main__":

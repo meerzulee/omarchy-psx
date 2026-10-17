@@ -44,6 +44,9 @@
   external base and refuses existing outputs. Keep generated archives, seeds,
   BusyBox binaries and firmware out of Git; source provenance must distinguish
   the old checkout HEAD from its pending/untracked source bytes.
+- Never commit or upload firmware. `scripts/fetch-ps4-firmware` downloads the
+  pinned MT7668 files from their public sources into the ignored `cache/`;
+  initramfs outputs that contain them stay local.
 - `scripts/fetch-ps4-initramfs-seed` acquires the original public seed into
   ignored cache with full size/hash checks. It differs from the generated base
   required by the exact repacker. The migrated full assembler creates a new

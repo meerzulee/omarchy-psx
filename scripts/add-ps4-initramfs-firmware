@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Add the pinned MT7668 firmware to a gzip newc initramfs, keeping every existing entry byte-for-byte.
+
+Run scripts/fetch-ps4-firmware first. Each firmware file is checked against
+manifests/ps4-firmware.json, inserted under lib/firmware/ before the archive
+trailer and verified again in the result. The output is local; never commit it.
+"""
+import argparse
+import gzip
+import hashlib
+import io
+import json
+import os
+from pathlib import Path, PurePosixPath
+import sys
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "manifests/ps4-firmware.json"
+TRAILER = "TRAILER!!!"
+MAX_BASE = 16 * 1024 * 1024
+MAX_ARCHIVE = 128 * 1024 * 1024
+
+
+class ArchiveError(ValueError):
+    pass
+
+
+def git_blob(data):
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def pad4(size):
+    return (4 - size % 4) % 4
+
+
+def normalize(name):
+    return name[2:] if name.startswith("./") else name
+
+
+def parse(data):
+    """Return (entries, trailer offset) for one newc archive; refuse data after its trailer."""
+    entries, offset = [], 0
+    while True:
+        header = data[offset:offset + 110]
+        if len(header) < 110 or header[:6] not in (b"070701", b"070702"):
+            raise ArchiveError(f"invalid newc header at offset {offset}")
+        try:
+            fields = [int(header[6 + 8 * i:14 + 8 * i], 16) for i in range(13)]
+        except ValueError:
+            raise ArchiveError(f"invalid newc header at offset {offset}") from None
+        size, namesize = fields[6], fields[11]
+        name_end = offset + 110 + namesize
+        if namesize < 1 or name_end > len(data) or data[name_end - 1] != 0:
+            raise ArchiveError(f"invalid entry name at offset {offset}")
+        name = data[offset + 110:name_end - 1].decode("utf-8", "surrogateescape")
+        start = name_end + pad4(name_end)
+        end = start + size
+        if end > len(data):
+            raise ArchiveError(f"truncated entry {name!r}")
+        entries.append({"name": name, "ino": fields[0], "data": (start, end)})
+        if name == TRAILER:
+            if any(data[end + pad4(end):]):
+                raise ArchiveError("data follows the first archive trailer; concatenated archives are not supported")
+            return entries, offset
+        offset = end + pad4(end)
+
+
+def entry(ino, mode, nlink, mtime, name, payload=b""):
+    encoded = name.encode() + b"\0"
+    fields = [ino, mode, 0, 0, nlink, mtime, len(payload), 0, 0, 0, 0, len(encoded), 0]
+    header = b"070701" + b"".join(b"%08X" % value for value in fields)
+    out = header + encoded + b"\0" * pad4(110 + len(encoded)) + payload
+    return out + b"\0" * pad4(len(payload))
+
+
+def load_firmware(manifest, directory):
+    firmware = []
+    for record in manifest["files"]:
+        path = PurePosixPath(record["name"])
+        if path.is_absolute() or any(part in ("", ".", "..") for part in path.parts):
+            raise ArchiveError(f"unsafe firmware name: {record['name']}")
+        source = directory / path
+        if source.is_symlink() or not source.is_file():
+            raise ArchiveError(f"missing firmware file {source}; run scripts/fetch-ps4-firmware")
+        data = source.read_bytes()
+        if (len(data) != record["bytes"] or hashlib.sha256(data).hexdigest() != record["sha256"]
+                or git_blob(data) != record["git_blob"]):
+            raise ArchiveError(f"{record['name']} differs from its pin")
+        firmware.append((f"{manifest['initramfs_directory']}/{path}", data))
+    return firmware
+
+
+def add_firmware(base, firmware, mtime):
+    """Return the new uncompressed archive and the records of what was added."""
+    entries, trailer = parse(base)
+    present = {normalize(e["name"]) for e in entries}
+    if "init" not in present:
+        raise ArchiveError("base archive has no /init; is it an initramfs?")
+    clashes = sorted(name for name, _ in firmware if name in present)
+    if clashes:
+        raise ArchiveError(f"base archive already contains {', '.join(clashes)}")
+    ino = max(e["ino"] for e in entries) + 1
+    added, records = b"", []
+    for name, data in firmware:
+        parents = list(PurePosixPath(name).parents)[:-1]
+        for parent in reversed(parents):
+            if str(parent) not in present:
+                added += entry(ino, 0o040755, 2, mtime, str(parent))
+                ino += 1
+                present.add(str(parent))
+                records.append({"path": str(parent), "type": "directory"})
+        added += entry(ino, 0o100644, 1, mtime, name, data)
+        ino += 1
+        present.add(name)
+        records.append({"path": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+    body = base[:trailer] + added + entry(0, 0, 1, mtime, TRAILER)
+    body += b"\0" * ((512 - len(body) % 512) % 512)
+    check, _ = parse(body)
+    by_name = {e["name"]: e for e in check}
+    if body[:trailer] != base[:trailer]:
+        raise ArchiveError("existing entries changed")
+    for name, data in firmware:
+        start, end = by_name[name]["data"]
+        if body[start:end] != data:
+            raise ArchiveError(f"{name} did not survive verification")
+    return body, records
+
+
+def read_base(path):
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_BASE:
+        raise ArchiveError(f"base must be a regular file up to {MAX_BASE} bytes: {path}")
+    packed = path.read_bytes()
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+            raw = stream.read(MAX_ARCHIVE + 1)
+    except (OSError, EOFError) as error:
+        raise ArchiveError(f"base is not a gzip archive: {error}") from None
+    if len(raw) > MAX_ARCHIVE:
+        raise ArchiveError("base archive expands beyond the size limit")
+    return packed, raw
+
+
+def create_output(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".initramfs-", dir=path.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output:
+            output.write(data)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, path)  # Never replace an existing or racing output.
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def main(argv=None):
+    manifest = json.loads(MANIFEST.read_text())
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--base", type=Path, required=True, help="existing gzip newc initramfs.cpio.gz")
+    parser.add_argument("--firmware", type=Path, default=ROOT / manifest["cache_path"],
+                        help="directory filled by scripts/fetch-ps4-firmware")
+    parser.add_argument("--output", type=Path,
+                        default=ROOT / "output/initramfs/ps4-baikal-partitioned-firmware/initramfs.cpio.gz")
+    args = parser.parse_args(argv)
+    try:
+        if args.output.exists() or args.output.is_symlink():
+            raise ArchiveError(f"output already exists; choose another path: {args.output}")
+        if args.output.resolve() == args.base.resolve():
+            raise ArchiveError("output must differ from the base archive")
+        packed, raw = read_base(args.base)
+        body, records = add_firmware(raw, load_firmware(manifest, args.firmware), manifest["entry_mtime"])
+        result = gzip.compress(body, compresslevel=9, mtime=0)
+        if gzip.decompress(result) != body:
+            raise ArchiveError("compressed output does not round-trip")
+        create_output(args.output, result)
+    except (OSError, ArchiveError) as error:
+        print(f"initramfs-firmware: FAIL: {error}", file=sys.stderr)
+        return 1
+    tested = manifest["tested"]
+    summary = {
+        "base_sha256": hashlib.sha256(packed).hexdigest(),
+        "added": len(records),
+        "cpio_sha256": hashlib.sha256(body).hexdigest(),
+        "size": len(result),
+        "sha256": hashlib.sha256(result).hexdigest(),
+        "output": str(args.output),
+    }
+    print(json.dumps(summary, indent=2))
+    if summary["base_sha256"] == tested["base_sha256"] and summary["cpio_sha256"] == tested["cpio_sha256"]:
+        print(f"Archive contents match the initramfs tested in {tested['experiment']}.")
+    print("Contains vendor firmware: keep it local; do not commit or redistribute it.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Download the pinned PS4 Baikal MT7668 Wi-Fi/Bluetooth firmware into ignored local cache.
+
+Omarchy psX does not host or redistribute these files. Each one comes from its
+recorded public source at a pinned commit and must match the size, SHA-256 and
+Git blob in manifests/ps4-firmware.json before it is saved.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "manifests/ps4-firmware.json"
+RETRY_STATUS = {429, 500, 502, 503, 504}
+
+
+def git_blob(data):
+    return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+
+def check(data, record):
+    if (len(data) != record["bytes"] or hashlib.sha256(data).hexdigest() != record["sha256"]
+            or git_blob(data) != record["git_blob"]):
+        raise ValueError(f"{record['name']}: size, SHA-256 or Git blob differs from the pin")
+
+
+def safe_name(name):
+    path = PurePosixPath(name)
+    if path.is_absolute() or not path.parts or any(part in ("", ".", "..") for part in path.parts):
+        raise ValueError(f"unsafe firmware name: {name}")
+    return path
+
+
+def candidates(manifest, record, token):
+    source = manifest["sources"][record["source"]]
+    fields = {"commit": source["commit"], "path": record["path"]}
+    urls = [(source["url"].format(**fields), {})]
+    if "api_url" in source:
+        headers = {"Accept": "application/vnd.github.raw"}
+        if token:
+            headers["Authorization"] = "Bearer " + token
+        urls.append((source["api_url"].format(**fields), headers))
+    return urls
+
+
+def download(url, headers, limit, open_url):
+    request = urllib.request.Request(url, headers={"User-Agent": "omarchy-psx-firmware-fetch", **headers})
+    with open_url(request, timeout=60) as response:
+        data = response.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("download exceeds the pinned size")
+    return data
+
+
+def publish(destination, data):
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".ps4-firmware-", dir=destination.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output:
+            output.write(data)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, destination)  # Never replace an existing or racing file.
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def fetch_one(manifest, record, destination, token=None, open_url=urllib.request.urlopen, sleep=time.sleep):
+    if destination.exists() or destination.is_symlink():
+        if destination.is_symlink() or not destination.is_file():
+            raise ValueError(f"{record['name']}: existing path is not a regular file; preserving it")
+        check(destination.read_bytes(), record)
+        return "verified"
+    errors = []
+    for url, headers in candidates(manifest, record, token):
+        for attempt in range(3):
+            try:
+                data = download(url, headers, record["bytes"], open_url)
+                check(data, record)
+            except urllib.error.HTTPError as error:
+                errors.append(f"HTTP {error.code} from {url}")
+                if error.code not in RETRY_STATUS:
+                    break
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+                errors.append(f"{error} from {url}")
+            except ValueError as error:
+                errors.append(f"{error} from {url}")
+                break
+            else:
+                publish(destination, data)
+                return "fetched"
+            if attempt < 2:
+                sleep(2 * (attempt + 1))
+    raise ValueError(f"{record['name']}: no pinned source succeeded ({'; '.join(errors)})")
+
+
+def fetch(manifest, output, token=None, open_url=urllib.request.urlopen, sleep=time.sleep, log=print):
+    results = {}
+    for record in manifest["files"]:
+        destination = output / safe_name(record["name"])
+        results[record["name"]] = fetch_one(manifest, record, destination, token, open_url, sleep)
+        log(f"{results[record['name']]}: {record['name']}")
+    return results
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--output", type=Path, help="firmware directory (default: the manifest cache path)")
+    args = parser.parse_args(argv)
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    try:
+        manifest = json.loads(MANIFEST.read_text())
+        output = (args.output or ROOT / manifest["cache_path"]).absolute()
+        fetch(manifest, output, token)
+    except (OSError, ValueError, KeyError) as error:
+        print(f"Firmware fetch refused: {error}", file=sys.stderr)
+        if not token and ("HTTP 429" in str(error) or "HTTP 403" in str(error)):
+            print("GitHub limits anonymous downloads. Retry with a token, for example:\n"
+                  "  GITHUB_TOKEN=$(gh auth token) ./scripts/fetch-ps4-firmware", file=sys.stderr)
+        return 1
+    print(f"All {len(manifest['files'])} files match their pins: {output}")
+    for name, source in manifest["sources"].items():
+        print(f"{name}: {source['repository']} @ {source['commit'][:12]} - {source['license']}")
+    print("Downloaded for local use only; do not commit or redistribute them.")
+    print("Next: python3 scripts/add-ps4-initramfs-firmware --base /path/to/initramfs.cpio.gz")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

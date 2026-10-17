@@ -70,7 +70,7 @@ Full distribution image wrappers currently use the Mac/OrbStack host.
 | [`platforms/ps4/experiments/`](platforms/ps4/experiments/README.md) | Historical experiment ledger, with private identifiers redacted and raw captures excluded. |
 | [`platforms/ps5/`](platforms/ps5/README.md) | Planned PS5 boundary and prerequisites. |
 | [`docs/USING-LINUX-PSX.md`](docs/USING-LINUX-PSX.md) | Whole matching kernel/modules, optional boot profile and native Ethernet. |
-| [`docs/INITRAMFS.md`](docs/INITRAMFS.md) | Existing BusyBox initramfs preservation and source reconstruction. |
+| [`docs/INITRAMFS.md`](docs/INITRAMFS.md) | Existing BusyBox initramfs preservation, source reconstruction and Wi-Fi/Bluetooth firmware download. |
 | [`docs/MIGRATION.md`](docs/MIGRATION.md) | What moved, historical compatibility interfaces and remaining qualification. |
 | [`manifests/`](manifests/development-sources.json) | Full source commit pins and external boot-input identities. |
 | [`provenance/ps4-worktree-import.json`](provenance/ps4-worktree-import.json) | Per-file source/destination hashes, pending source and deliberate exclusions. |
