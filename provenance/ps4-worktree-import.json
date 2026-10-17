@@ -476,7 +476,7 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "025c8b5fde2c217bff18ad459f0be82970dbe6bec1def6781352152b0adcdfe1",
+      "destination_sha256": "299751393d1621980edc83371ca86aa3d2920e41d33787e26dfee1183274b872",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
@@ -488,7 +488,8 @@
         "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable.",
         "2026-10-17: update current resume point and append independently observed EXP-20261017-017 standalone service adoption/traffic evidence; original source hash and historical verdicts unchanged.",
         "2026-10-17: update current resume point and append EXP-20261017-018 (psX 6.18 firmware-free boot) and EXP-20261017-019 (native Ethernet autoload) records with the private host name replaced by its build-host role; original source hash and historical verdicts unchanged.",
-        "2026-10-17: update current resume point and append EXP-20261017-020 (native cable-absent launch and hot-plug); original source hash and historical verdicts unchanged."
+        "2026-10-17: update current resume point and append EXP-20261017-020 (native cable-absent launch and hot-plug); original source hash and historical verdicts unchanged.",
+        "2026-10-18: update current resume point and append the aborted EXP-20261017-021 with the owner's two-boot native Ethernet promotion and the adapter removal; original source hash and historical verdicts unchanged."
       ]
     },
     {

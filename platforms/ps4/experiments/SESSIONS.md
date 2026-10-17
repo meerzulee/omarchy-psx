@@ -2,24 +2,25 @@
 
 # Current resume point — Ethernet integration, 2026-10-17
 
-The latest hardware entry is **EXP-20261017-020, PASS for a native
-`psx_mts_net` boot launched without the Ethernet cable and then hot-plugged**
-on the psX 6.18 kernel (`6.18.44-psx-ps4-baikal-native-dev1`, linux-psx
-development target `6.18-ps4-baikal-native-dev`). The first open published
-with no link; carrier, NetworkManager's default wired profile, DHCP and
-traffic followed the plug with no user network action and no adapter.
-EXP-20261017-019 passed with the cable connected at boot plus one replug. The
-MTS2-only adapter and old private kernels were removed from the USB root after
-a verified backup; the public `6.18.44-psx-ps4-baikal1` kernel stays in the FAT
-recovery directory.
+Native Baikal Ethernet is promoted. linux-psx master `1bf12af` adds the
+`psx_mts_net` autoload patch to the active target as `6.18.44-psx-ps4-baikal2`;
+its ordered patch set equals the local `6.18.44-psx-ps4-baikal-native-dev1`
+build that passed **EXP-20261017-019** (cable at boot plus one replug, beyond
+900 s) and **EXP-20261017-020** (launched without the cable, then plugged).
+The owner set the promotion count at those two boots, aborted
+EXP-20261017-021 before any action and declined further hardware checks. The
+`ps4-ethernet` tool, the `omarchy-ps4-ethernet` package and the manual adapter
+are removed from source. The CI-built baikal2 kernel has not been booted. The
+USB root keeps the tested native-dev1 boot set; its old private kernels were
+removed after a verified backup, and the public `6.18.44-psx-ps4-baikal1`
+kernel stays in the FAT recovery directory.
 
 EXP-20261017-018 booted the firmware-free `6.18.44-psx-ps4-baikal1` once
 (display, Wi-Fi, Bluetooth); a later Aeolia xHCI death in that boot made its
 stability DEGRADED. Historical EXP016 remains DEGRADED. No single boot here is
 acceptance. Never unload, reset, unbind or rearm a published or uncertain
-instance. The next hardware question is EXP-20261017-021: a third fresh boot
-with the cable connected, NetworkManager profile down/up cycles with the same
-DMA generation, operation beyond 900 s and an Orbis network check.
+instance. No hardware experiment is scheduled; booting a CI baikal2 build is a
+new boot set and needs its own bounded session.
 
 Source migration itself performed no hardware experiment. IP/MAC/volume/boot
 identifiers and the USB serial in the historical entries are documentation
@@ -12351,6 +12352,37 @@ but they are not evidence of a Linux 6.18 boot.
   profile down/up cycles run from the desktop session (SSH lacks NM
   network-control) with the same DMA generation, operation beyond 900s, then
   an Orbis network check after returning
+
+## EXP-20261017-021 — third native boot with NM profile cycles (aborted)
+
+- objective: a third fresh boot of the unchanged native-dev1 kernel with the
+  cable connected, three NetworkManager profile down/up cycles from the desktop
+  with the same DMA generation, operation beyond 900s, then an Orbis network
+  check
+- UART: bounded session opened 23:31:17.147124+06 and aborted
+  23:35:59.675530+06 with its reason recorded; generation `f2c4b740`, epoch1,
+  bytes 1299628..1300891 (1263), 15 normalized lines of Wi-Fi driver trace and
+  one SSH login, zero capture events. Raw evidence stays private
+- operator: no action; boot `4f4f81d5` from EXP-020 kept running. The owner set
+  the native Ethernet promotion count at two boots, EXP-019 and EXP-020, which
+  already covered a cable at launch, an unplug/replug and a launch without the
+  cable, and declined further hardware checks, including the Orbis network
+  check
+- verdict: ABORTED before any action; no new evidence
+- follow-up without hardware: linux-psx master `1bf12af` adds the tested native
+  autoload patch to the active target as `6.18.44-psx-ps4-baikal2` (56 patches;
+  ordered patch set
+  `828a4f14b205283b43075a8eaa34531a97bfb78676daa02e33e654ead4e66dbe`, equal to
+  native-dev1) and removes the `ps4-ethernet` NetworkManager tool and the
+  native-dev target. Omarchy psX removes the MTS2 `omarchy-ps4-ethernet`
+  package, the manual `activate-baikal-ethernet` adapter and their tests, and
+  pins that commit. The CI-built baikal2 kernel has not been booted. The USB
+  root still had package `omarchy-ps4-ethernet 0.1.1-1` installed, its service
+  disabled
+- untested: Orbis Ethernet after a native Linux boot; `ip link` down/up under
+  NetworkManager; other network managers; repeated cold boots; other consoles
+- next action: none scheduled. Booting a CI `6.18.44-psx-ps4-baikal2` build
+  is a new boot set and needs its own bounded session
 
 ## Session-close checklist
 
