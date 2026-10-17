@@ -68,9 +68,10 @@
   Any authorized media write requires identifying the actual target and explicit
   confirmation. Console-internal storage/boot writes and PKG installation need
   their own explicit task authority and bounded experiment.
-- The explicit Ethernet adapter is optional, manual and once per boot. Preserve
-  its kernel/config/module pins, PCI/glue guards, NM ownership barrier and
-  positive publication check. Do not auto-enable a service or arm on import.
+- Baikal Ethernet is native from Linux psX `6.18.44-psx-ps4-baikal2`: udev
+  loads `psx_mts_net` and the network manager's first open publishes `psx0`.
+  Do not add a userspace activation adapter, package or service. Boot with
+  `psx_mts_net.autoarm=0` or `modprobe.blacklist=psx_mts_net` to keep it off.
 - Published MTS DMA/code/maps/references remain retained. Do not unload, reset,
   force cleanup, clear overrides or retry an uncertain arm/UP. Terminal faults
   need a fresh power-off/boot; ordinary healthy admin down/up uses one generation.

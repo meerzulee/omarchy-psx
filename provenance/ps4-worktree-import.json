@@ -65,12 +65,13 @@
       "source": "README.md",
       "destination": "platforms/ps4/README.md",
       "source_sha256": "ae7d5c36320e37b6fee74042b3374aa8ac4f09c668e17c112b7357ffa310baa4",
-      "destination_sha256": "082dfa641c1033b96c51175d911138351302e567ec1232a9fa610c9530ca9e38",
+      "destination_sha256": "0dae9812b6ca0c3dcc3e4819630b198d9479b2804c3184005dc1d245076450ed",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M README.md",
       "adaptations": [
-        "Prepend current PS4 location, deployed-identifier and historical-evidence boundaries; preserve the original README below."
+        "Prepend current PS4 location, deployed-identifier and historical-evidence boundaries; preserve the original README below.",
+        "2026-10-18: point the Ethernet documentation row at Linux psX docs/ETHERNET.md after removing the MTS2 package and its handoff document."
       ]
     },
     {
@@ -104,20 +105,6 @@
       "adaptations": [
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "Correct inherited relative links to migrated documentation."
-      ]
-    },
-    {
-      "source": "docs/BAIKAL-ETHERNET.md",
-      "destination": "platforms/ps4/docs/BAIKAL-ETHERNET.md",
-      "source_sha256": "f22bb7b8b3625bf145b273f68d655241dbe0c63e5506238ad7b247971b023e7c",
-      "destination_sha256": "2fc0ef1842dc623b2b18d475774eb27f4122a6d68264d47ba222423b55c42cce",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? docs/BAIKAL-ETHERNET.md",
-      "adaptations": [
-        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
-        "Use pinned public kernel history instead of an old sibling checkout link.",
-        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
       ]
     },
     {
@@ -408,12 +395,13 @@
       "source": "docs/USB-PARTITIONED-DEVELOPMENT.md",
       "destination": "platforms/ps4/docs/USB-PARTITIONED-DEVELOPMENT.md",
       "source_sha256": "db28c11398259d904759ad172adc4cdd211c1afd44e7864e03035fe718d1f348",
-      "destination_sha256": "832a418c77d09b157636254e063b45d0bb1a1bacfca06572e910c457e957f988",
+      "destination_sha256": "b206300fb3c850a721c81430a803c51f7678df612d33c67c9ba2e65ae328de1f",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "?? docs/USB-PARTITIONED-DEVELOPMENT.md",
       "adaptations": [
-        "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
+        "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
+        "2026-10-18: replace the removed Ethernet handoff link with the experiment ledger and note the package removal."
       ]
     },
     {
@@ -1235,66 +1223,6 @@
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/LICENSE",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/LICENSE",
-      "source_sha256": "2022df5284611fcca47f5c26d1ba43cdfede177822cfc05660537d59775b0a59",
-      "destination_sha256": "2022df5284611fcca47f5c26d1ba43cdfede177822cfc05660537d59775b0a59",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? packages/omarchy-ps4-ethernet/LICENSE",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/PKGBUILD",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PKGBUILD",
-      "source_sha256": "fd8d67d4a8845bec76ddb3eaf682665dc97b1dc48a624659ca20ea2a907ae078",
-      "destination_sha256": "fd8d67d4a8845bec76ddb3eaf682665dc97b1dc48a624659ca20ea2a907ae078",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? packages/omarchy-ps4-ethernet/PKGBUILD",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
-      "source_sha256": "21182fcf0f181fd21ef20b80c10a8059d57eff7b5c24ea7c85027a4e703252de",
-      "destination_sha256": "21182fcf0f181fd21ef20b80c10a8059d57eff7b5c24ea7c85027a4e703252de",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/README.md",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/README.md",
-      "source_sha256": "a41c8b8e272a142a09b929b3ef46c1da015e32d4ad14e78d5dca27d954687391",
-      "destination_sha256": "a41c8b8e272a142a09b929b3ef46c1da015e32d4ad14e78d5dca27d954687391",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? packages/omarchy-ps4-ethernet/README.md",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
-      "source_sha256": "ba1f2afe5f9b413ae16520e8ae9f965ff154201edc88ec807007e0b3d0a16aac",
-      "destination_sha256": "ba1f2afe5f9b413ae16520e8ae9f965ff154201edc88ec807007e0b3d0a16aac",
-      "source_mode": "0o755",
-      "destination_mode": "0o755",
-      "source_state": "?? packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
-      "adaptations": []
-    },
-    {
-      "source": "packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
-      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
-      "source_sha256": "855fc802c126dc4c55272c9d153a8cd5b801177b91f61fee235c331cadfb89ca",
-      "destination_sha256": "855fc802c126dc4c55272c9d153a8cd5b801177b91f61fee235c331cadfb89ca",
-      "source_mode": "0o644",
-      "destination_mode": "0o644",
-      "source_state": "?? packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
       "adaptations": []
     },
     {
@@ -2396,16 +2324,6 @@
       "adaptations": []
     },
     {
-      "source": "tests/baikal-ethernet-test",
-      "destination": "platforms/ps4/tests/baikal-ethernet-test",
-      "source_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
-      "destination_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
-      "source_mode": "0o755",
-      "destination_mode": "0o755",
-      "source_state": "?? tests/baikal-ethernet-test",
-      "adaptations": []
-    },
-    {
       "source": "tests/boot-profile-test",
       "destination": "platforms/ps4/tests/boot-profile-test",
       "source_sha256": "a04bb075fe3ce16f53be11c8cde9004c99c0e8777ed73e8d4c88cbccee034552",
@@ -2783,13 +2701,13 @@
   "added_files": [
     {
       "destination": "platforms/ps4/docs/IMPORT-NOTES.md",
-      "sha256": "2be55cb694c93d93de5d1749ce4b4e60eb2646eede9fba5b4580881e8ff027d1",
+      "sha256": "2177f11dba8777e5eeb4968009b0e8735ea10fc55b3c36f00d6dc32500035047",
       "mode": "0o644",
       "purpose": "Current import, acquisition, frozen-profile, credential and hardware-scope instructions."
     },
     {
       "destination": "platforms/ps4/scripts/check-source",
-      "sha256": "5b5c1bd1ed94ca167f94c2a4b43db4c5320dcb8353f87ba38c62a632d7be0659",
+      "sha256": "5b2ba482ec1ddf4d73fadb73291aa9ebe16ec47eb1a88a792722a1f990ac761a",
       "mode": "0o755",
       "purpose": "Container-free source/fixture test runner with explicit prerequisite skips."
     },
@@ -2842,13 +2760,73 @@
       "PS5 support",
       "OrbStack/container, generated artifact or console tests"
     ],
-    "independent_review": "Reviewed nested paths, source bootstrap, all four package recipe checksums and matching module layout. Corrected frozen beta kernel/module selection and module digest verification; archived unported whole-device writer is disabled. No hardware or containers used."
+    "independent_review": "Reviewed nested paths, source bootstrap, all four package recipe checksums and matching module layout. Corrected frozen beta kernel/module selection and module digest verification; archived unported whole-device writer is disabled. No hardware or containers used.",
+    "later_changes": "2026-10-18: the Ethernet activation package, adapter and their tests were retired; the test counts above record the import-time run."
   },
   "summary": {
-    "source_files_imported": 260,
-    "source_files_adapted": 60,
-    "source_files_byte_identical": 200,
+    "source_files_imported": 252,
+    "source_files_adapted": 59,
+    "source_files_byte_identical": 193,
     "source_files_excluded": 6,
-    "new_platform_files": 4
-  }
+    "new_platform_files": 4,
+    "source_files_retired": 8
+  },
+  "retired": [
+    {
+      "source": "docs/BAIKAL-ETHERNET.md",
+      "destination": "platforms/ps4/docs/BAIKAL-ETHERNET.md",
+      "destination_sha256": "2fc0ef1842dc623b2b18d475774eb27f4122a6d68264d47ba222423b55c42cce",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: handoff for the removed MTS2 package. EXP016 in experiments/SESSIONS.md and Git history keep it; Linux psX docs/ETHERNET.md documents native Ethernet."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/LICENSE",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/LICENSE",
+      "destination_sha256": "2022df5284611fcca47f5c26d1ba43cdfede177822cfc05660537d59775b0a59",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/PKGBUILD",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PKGBUILD",
+      "destination_sha256": "fd8d67d4a8845bec76ddb3eaf682665dc97b1dc48a624659ca20ea2a907ae078",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/PS4Ethernet.nmconnection.in",
+      "destination_sha256": "21182fcf0f181fd21ef20b80c10a8059d57eff7b5c24ea7c85027a4e703252de",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/README.md",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/README.md",
+      "destination_sha256": "a41c8b8e272a142a09b929b3ef46c1da015e32d4ad14e78d5dca27d954687391",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/activate-baikal-ethernet",
+      "destination_sha256": "ba1f2afe5f9b413ae16520e8ae9f965ff154201edc88ec807007e0b3d0a16aac",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
+      "destination": "platforms/ps4/packages/omarchy-ps4-ethernet/omarchy-ps4-ethernet.service",
+      "destination_sha256": "855fc802c126dc4c55272c9d153a8cd5b801177b91f61fee235c331cadfb89ca",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: MTS2-only Ethernet activation package, superseded by native psx_mts_net autoload in Linux psX 6.18.44-psx-ps4-baikal2 (EXP-20261017-019/020). The imported bytes remain in Git history."
+    },
+    {
+      "source": "tests/baikal-ethernet-test",
+      "destination": "platforms/ps4/tests/baikal-ethernet-test",
+      "destination_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18 with the omarchy-ps4-ethernet package it tested."
+    }
+  ]
 }

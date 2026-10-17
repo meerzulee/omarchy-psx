@@ -149,6 +149,8 @@ hosts; both older module trees remain installed. The new kernel and complete
 module tree were verified, and modem DHCP/IPv4 transport plus three NM profile
 reconnects passed. The separate activation package0.1.1 fixes the observed
 first-UP handoff gap and is installed for future boots. Its automatic startup
-still needs a later boot. See [the Ethernet handoff](BAIKAL-ETHERNET.md) and
-EXP016 for duration, cable and administrative-test qualifications. The
-standard USB profile and original package metadata remain unchanged.
+still needs a later boot. See EXP016 in the
+[experiment ledger](../experiments/SESSIONS.md) for duration, cable and
+administrative-test qualifications. The package and its handoff document were
+removed on 2026-10-18 after Linux psX gained native Ethernet. The standard USB
+profile and original package metadata remain unchanged.

@@ -113,7 +113,7 @@ Linux 6.18.44 · Hyprland on Wayland · UWSM · Quickshell · Omarchy 4.0.0 ·
 | [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md) | install and first boot |
 | [`docs/BUILDING.md`](docs/BUILDING.md) | reproducible build sequence |
 | [`docs/USB-PARTITIONED-DEVELOPMENT.md`](docs/USB-PARTITIONED-DEVELOPMENT.md) | private 4 GiB FAT32 + ext4 USB profile |
-| [`docs/BAIKAL-ETHERNET.md`](docs/BAIKAL-ETHERNET.md) | experimental mts2 Ethernet, startup fix, normal use and qualifications |
+| [Linux psX `docs/ETHERNET.md`](https://github.com/meerzulee/linux-psx/blob/master/docs/ETHERNET.md) | native Baikal Ethernet from `6.18.44-psx-ps4-baikal2`; the MTS2 package was removed |
 | [`docs/DEVELOPMENT-HOSTS.md`](docs/DEVELOPMENT-HOSTS.md) | macOS ARM64 and Arch Linux x86-64 setup, GitHub state and device handoff |
 | [`docs/PLAN.md`](docs/PLAN.md) | gate-driven roadmap |
 | [`docs/CHECKPOINT-2026-08-22.md`](docs/CHECKPOINT-2026-08-22.md) | current state and resume plan |

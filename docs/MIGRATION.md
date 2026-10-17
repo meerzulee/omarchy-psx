@@ -68,9 +68,10 @@ For a new boot candidate:
 
 This migration performs source/host verification only. It does not stage a new
 console boot set, enable an Ethernet service or create a new binary release.
-The historical Ethernet package is retained for its original kernel; the root
-manual adapter reads the new Linux psX artifact contract. Do not mix their
-release/config/module guards or infer unattended startup acceptance.
+The imported MTS2 Ethernet package and the manual activation adapter were
+removed on 2026-10-18: from `6.18.44-psx-ps4-baikal2` the kernel loads
+`psx_mts_net` itself and NetworkManager's ordinary wired profile brings up
+`psx0`. Their history remains in the experiment ledger and Git history.
 
 ## Kernel knowledge and remaining work
 

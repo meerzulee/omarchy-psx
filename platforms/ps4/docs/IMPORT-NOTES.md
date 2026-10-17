@@ -107,8 +107,9 @@ existing development key; it no longer embeds a project owner's identity.
 Historical documents keep old repo/release names as evidence. Their opening
 notices identify that scope. Old package names, labels (`OMARCHY-PS4`, `PS4BOOT`)
 and `/data/linux` locations are deployed interfaces, not stale repository paths.
-The optional imported `omarchy-ps4-ethernet` package targets the historical MTS2
-kernel and has an unresolved unattended-startup acceptance gate; do not enable
-it for a new Linux psX kernel. Root `scripts/activate-baikal-ethernet` is the
-explicit new-kernel adapter, with its own version/metadata/once-per-boot guards.
+The imported `omarchy-ps4-ethernet` package (historical MTS2 kernel) and the
+root `scripts/activate-baikal-ethernet` adapter were removed on 2026-10-18.
+Linux psX `6.18.44-psx-ps4-baikal2` loads `psx_mts_net` natively and
+NetworkManager's default wired profile brings up `psx0`; see EXP-20261017-019
+and -020 in `experiments/SESSIONS.md`.
 PS5 remains a separate planned integration and has no hardware acceptance here.

@@ -4,16 +4,17 @@ Linux psX is a distribution-independent kernel project. Omarchy psX owns the
 distribution implementation and optional integration described here. The full
 existing PS4 source now lives under `platforms/ps4/`: packages, rootfs and
 initramfs builders, launcher/FPKG, installation/recovery tools, tests and curated
-research. Root tools provide source handoff, initramfs preservation and the
-manual new-kernel NetworkManager adapter. Generated root filesystems, initramfs
-archives and PKGs remain external. See [MIGRATION.md](MIGRATION.md) for the
-source map and historical boot-profile boundaries.
+research. Root tools provide source handoff and initramfs preservation.
+Generated root filesystems, initramfs archives and PKGs remain external. See
+[MIGRATION.md](MIGRATION.md) for the source map and historical boot-profile
+boundaries.
 
 The kernel target is `6.18-ps4-baikal`, release
-`6.18.44-psx-ps4-baikal1`, based on upstream Linux v6.18.44 commit
-`1efe5d048a391de3ead2804b2e7f86376c356cc5`. Its 55 platform patches preserve
-the existing PS4 Baikal work. The new names/build and this integration have
-**not** acquired hardware acceptance through migration. PS5 is planned.
+`6.18.44-psx-ps4-baikal2`, based on upstream Linux v6.18.44 commit
+`1efe5d048a391de3ead2804b2e7f86376c356cc5`. Its 56 platform patches preserve
+the existing PS4 Baikal work and add native Ethernet autoload. The CI build
+has **not** been booted; the same patch set passed two boots as a local
+build. Neither is hardware acceptance. PS5 is planned.
 
 ## Pinned source handoff: Mac ARM64 and Linux x86-64
 
@@ -79,13 +80,10 @@ Linux psX `artifacts.json` schema 1 records `target`, `platform`,
 `embedded_firmware`, `modules_archive.{path,sha256}` and
 `module.{name,path,sha256,build_note_hex}`. Module paths are archive-relative
 `lib/modules/<release>/...`; they do not encode a distribution's local `/usr`
-layout. Additional source/upstream/acceptance metadata does not change the
-activation guards.
+layout. Consumers ignore additional source/upstream/acceptance metadata.
 
 Verify published artifact checksums and the kernel/archive hashes in that
-metadata **before** any installation. The activation adapter later checks the
-running release/configuration and installed/loaded module; it does not hash
-the live kernel image in memory.
+metadata **before** any installation.
 
 Install the **whole** matching module tree beside the old release. Preserve
 the old module tree and a complete boot-set backup on another machine. Never
@@ -94,7 +92,7 @@ Inspect a verified archive before extracting it; it must contain only the new
 `lib/modules/<release>/` tree and its parents. On Omarchy's merged-/usr layout:
 
 ```sh
-release=6.18.44-psx-ps4-baikal1
+release=6.18.44-psx-ps4-baikal2
 tar --zstd -tf "modules-$release.tar.zst"
 if [ -e "/usr/lib/modules/$release" ] || [ -L "/usr/lib/modules/$release" ]; then
   printf 'STOP: preserve the existing release and inspect it.\n' >&2
@@ -133,39 +131,23 @@ procedure. No new launcher PKG or internal boot-file replacement is implied.
 For another distribution, use Linux psX's generic boot documentation instead
 of this Omarchy profile. Back up first and retain a way to boot the old pair.
 
-## Optional experimental Ethernet activation
+## Ethernet
 
-The kernel and its driver have no NetworkManager dependency. This repository's
-MIT adapter is specifically for the optional Omarchy/NetworkManager layer;
-other network managers need an equivalent reviewed first-publication path.
-It requires Python 3, kmod, iproute2 and NetworkManager, resolving programs
-only through root-controlled system directories. It supports canonical `/lib`
-and merged-/usr module layouts.
+From `6.18.44-psx-ps4-baikal2` the Baikal Ethernet driver starts by itself. udev
+loads `psx_mts_net` from its PCI alias, the driver registers `psx0`, and the
+network manager's first open publishes the interface. On Omarchy,
+NetworkManager's default wired profile then handles carrier and DHCP, with the
+cable connected at boot or plugged in later. No Omarchy package, service or
+activation step is involved; the earlier MTS2 package and manual adapter were
+removed. Keep recovery Wi-Fi or a local console available.
 
-After an authorized fresh boot into the new kernel, install the reviewed
-adapter and matching generic metadata in root-owned locations:
+To keep Ethernet off for a boot, add `psx_mts_net.autoarm=0` (the module loads
+but the first open waits for an explicit `allow_open` write) or
+`modprobe.blacklist=psx_mts_net` to the kernel command line. Do not unload,
+reset or rearm a published instance: its DMA, mappings and PCI references stay
+retained until power-off, and a terminal fault needs a fresh boot.
 
-```sh
-sudo install -Dm755 scripts/activate-baikal-ethernet /usr/local/sbin/activate-baikal-ethernet
-sudo install -Dm600 artifacts.json /root/omarchy-psx/artifacts.json
-sudo /usr/local/sbin/activate-baikal-ethernet --activate \
-  --artifacts /root/omarchy-psx/artifacts.json
-```
-
-It does not enable startup. It uses one attempt marker per boot, verifies
-kernel/module/PCI/glue/DMA identity, blocks NM ownership before arming, creates
-only `PSXEthernet.nmconnection`, performs exactly one explicit UP and validates
-positive publication before NM handoff. The owned profile uses DHCPv4, metric
-100, MTU 1500, IPv6 disabled and the inherited permanent MAC. A competing
-automatic Ethernet profile causes refusal; unrelated profiles are never edited.
-Carrier and DHCP remain asynchronous, including unplugged activation.
-
-On error or uncertain completion, stop and preserve UART/report evidence. Do
-not retry, unload, reset, clear overrides, rearm or load an old experiment
-module. Published code, DMA, mappings and PCI references remain retained until
-power-off; stop acknowledgement does not prove drain. Ordinary healthy admin
-down/up preserves the same generation; a fatal terminal fault needs a fresh
-power-off/boot. Keep recovery Wi-Fi or a local console available.
+Check a boot with:
 
 ```sh
 uname -r
@@ -177,13 +159,16 @@ curl --interface psx0 --noproxy '*' --fail --max-time 30 https://example.com/ -o
 ip -s link show dev psx0
 ```
 
-A preferred wired route names `psx0`; the interface-bound HTTPS request plus
-advancing TX/RX counters provides traffic evidence. An address/carrier alone
-does not. Source review, successful compilation and old MTS2 observations do
-not establish acceptance of this new build or adapter. Record hashes, UART
-continuity, DHCP/routing, independent bidirectional transfer hashes, traffic
-beyond 900 seconds, admin cycles, cable recovery and unchanged DMA generation.
+A wired route through `psx0`, the interface-bound HTTPS request and advancing
+TX/RX counters show traffic; an address or carrier alone does not. The same
+patch set passed two boots on one console (EXP-20261017-019 and -020 in the
+PS4 experiment ledger). The CI-built release, `ip link` down/up under
+NetworkManager, other network managers and other consoles are untested. Driver
+details:
+[Linux psX `docs/ETHERNET.md`](https://github.com/meerzulee/linux-psx/blob/master/docs/ETHERNET.md).
 Redact private identifiers/logs before public reporting.
+
+## Host tests
 
 Run synthetic host tests without touching devices:
 

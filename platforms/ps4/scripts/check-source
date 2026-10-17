@@ -8,7 +8,7 @@ import sys
 
 PLATFORM = Path(__file__).resolve().parents[1]
 PYTHON_TESTS = (
-    "development-setup-test", "baikal-ethernet-test", "initramfs-repack-test",
+    "development-setup-test", "initramfs-repack-test",
     "partitioned-fpkg-test", "partitioned-usb-policy-test", "partitioned-usb-resume-test",
     "storage-layout-test", "migration-guards-test",
 )

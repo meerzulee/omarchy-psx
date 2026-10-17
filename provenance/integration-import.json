@@ -4,42 +4,6 @@
   "source_commit": "386df1ad97d92defee1794bf961a0e2f5dc85a1b",
   "imports": [
     {
-      "source_path": "scripts/dev/activate-mts2-public",
-      "source_sha256": "88cdd3d941dc6e2794bcd76c48efb947b3cb1d074e15a3e75ee4444920e1bfd1",
-      "source_bytes": 22898,
-      "destination_path": "scripts/activate-baikal-ethernet",
-      "destination_sha256": "e3247cdbe5abf8a4e24c918510e019fd72b6b6e4cf2e3538a383db3c24e2f9eb",
-      "adaptations": [
-        "Read required generic Linux psX artifacts.json schema1 fields; allow additional descriptive metadata.",
-        "Pin kernel release 6.18.44-psx-ps4-baikal1, target 6.18-ps4-baikal and platform ps4-baikal.",
-        "Resolve installed canonical module location from the relative lib/modules path instead of pinning /usr/lib.",
-        "Rename profile to PSXEthernet, assign its integration UUID, and use Omarchy psX runtime lock/attempt names.",
-        "Rename explicit manifest flag to --artifacts; retain first-open, positive publication and no-rearm guards."
-      ],
-      "license": {
-        "spdx": "MIT",
-        "copyright": "Copyright (c) 2026 Omarchy PS4 contributors",
-        "full_original_notice_preserved": true
-      }
-    },
-    {
-      "source_path": "scripts/dev/tests/test_activate_mts2_public.py",
-      "source_sha256": "50fd8ac4735d3ff4c39cf19323819d7fb731d484bd52d2c85bfc0870d56c7643",
-      "source_bytes": 23087,
-      "destination_path": "tests/test_ethernet_activation.py",
-      "destination_sha256": "3d6e2923fa2749ae025a1066cb9718ab7f6da7c473d1ceb10da44586515caa41",
-      "adaptations": [
-        "Import the relocated integration helper and use generic kernel metadata/release fixtures.",
-        "Add generic metadata extension/path/firmware-policy and ordinary /lib layout coverage.",
-        "Keep synthetic host boundaries, activation-order, uncertain-UP, retained-state and trusted-tool tests."
-      ],
-      "license": {
-        "spdx": "MIT",
-        "copyright": "Copyright (c) 2026 Omarchy PS4 contributors",
-        "full_original_notice_preserved": true
-      }
-    },
-    {
       "source_path": "bootargs/6.18-baikal-mts2-omarchy-usb.txt",
       "source_sha256": "dabd2779ac7f172ac3f534a93883694155d8b0c51d6fe2247597cc7fb111bb84",
       "source_bytes": 494,
@@ -53,5 +17,23 @@
     }
   ],
   "repository_license": "Existing Omarchy psX MIT LICENSE remains unchanged.",
-  "scope": "Source integration only; no firmware, logs, PKGs, kernel binary, root filesystem or hardware acceptance imported."
+  "scope": "Source integration only; no firmware, logs, PKGs, kernel binary, root filesystem or hardware acceptance imported.",
+  "retired": [
+    {
+      "source_path": "scripts/dev/activate-mts2-public",
+      "source_sha256": "88cdd3d941dc6e2794bcd76c48efb947b3cb1d074e15a3e75ee4444920e1bfd1",
+      "destination_path": "scripts/activate-baikal-ethernet",
+      "destination_sha256": "e3247cdbe5abf8a4e24c918510e019fd72b6b6e4cf2e3538a383db3c24e2f9eb",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18: Linux psX 6.18.44-psx-ps4-baikal2 loads psx_mts_net natively and NetworkManager's default wired profile brings up psx0 (EXP-20261017-019/020); a userspace activation adapter is no longer used."
+    },
+    {
+      "source_path": "scripts/dev/tests/test_activate_mts2_public.py",
+      "source_sha256": "50fd8ac4735d3ff4c39cf19323819d7fb731d484bd52d2c85bfc0870d56c7643",
+      "destination_path": "tests/test_ethernet_activation.py",
+      "destination_sha256": "3d6e2923fa2749ae025a1066cb9718ab7f6da7c473d1ceb10da44586515caa41",
+      "removed": "2026-10-18",
+      "reason": "Removed 2026-10-18 with the adapter it tested."
+    }
+  ]
 }

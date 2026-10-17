@@ -136,5 +136,5 @@ or active-session files. A new device connection requires a new session.
 
 The curated PS4 ledger is
 [`platforms/ps4/experiments/SESSIONS.md`](../platforms/ps4/experiments/SESSIONS.md).
-Source tests are not hardware acceptance. The new kernel/initramfs pairing,
-unattended Ethernet startup and PS5 port still require separate validation.
+Source tests are not hardware acceptance. The new kernel/initramfs pairing
+and PS5 port still require separate validation.

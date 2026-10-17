@@ -41,7 +41,7 @@ Each console will use its own selected Linux psX kernel and matching modules.
 
 | Console | Project status |
 | --- | --- |
-| **PlayStation 4** | Existing distribution source, pending Ethernet/partitioned-USB work and curated research migrated under `platforms/ps4/`. New psX boot sets require validation. |
+| **PlayStation 4** | Existing distribution source, pending partitioned-USB work and curated research migrated under `platforms/ps4/`. Linux psX `6.18.44-psx-ps4-baikal2` adds native Baikal Ethernet. New psX boot sets require validation. |
 | **PlayStation 5** | Planned port, using the Linux psX kernel foundation. |
 | **Future PlayStation consoles** | Long-term exploration as hardware access and public research become available. |
 
@@ -69,7 +69,7 @@ Full distribution image wrappers currently use the Mac/OrbStack host.
 | [`platforms/ps4/knowledge/`](platforms/ps4/knowledge/README.md) | Curated research and source references. |
 | [`platforms/ps4/experiments/`](platforms/ps4/experiments/README.md) | Historical experiment ledger, with private identifiers redacted and raw captures excluded. |
 | [`platforms/ps5/`](platforms/ps5/README.md) | Planned PS5 boundary and prerequisites. |
-| [`docs/USING-LINUX-PSX.md`](docs/USING-LINUX-PSX.md) | Whole matching kernel/modules, optional boot profile and manual Ethernet adapter. |
+| [`docs/USING-LINUX-PSX.md`](docs/USING-LINUX-PSX.md) | Whole matching kernel/modules, optional boot profile and native Ethernet. |
 | [`docs/INITRAMFS.md`](docs/INITRAMFS.md) | Existing BusyBox initramfs preservation and source reconstruction. |
 | [`docs/MIGRATION.md`](docs/MIGRATION.md) | What moved, historical compatibility interfaces and remaining qualification. |
 | [`manifests/`](manifests/development-sources.json) | Full source commit pins and external boot-input identities. |
@@ -80,9 +80,9 @@ names, services, labels and exact-hash boot profiles remain compatibility
 interfaces; a repository move does not change the installed system.
 
 This is a **source migration**, not a new turnkey image or release. Historical
-hardware results retain their original scope. New Linux psX boot sets and
-unattended Ethernet startup need separate validation. PS5 and future-console
-implementation remain planned.
+hardware results retain their original scope. New Linux psX boot sets need
+separate validation; native Ethernet passed two boots of its tested build,
+which is not acceptance. PS5 and future-console implementation remain planned.
 
 ## License
 

@@ -100,8 +100,8 @@ archive is needed to run the full source reconstruction path.
 ## Kernel and firmware boundary
 
 This initramfs has **336 entries and no kernel module tree**. Matching kernel
-modules, including `psx_mts_net`, belong in the real root's module tree and
-use the separate reviewed post-boot activation path.
+modules, including `psx_mts_net`, belong in the real root's module tree; udev
+loads `psx_mts_net` from there after the switch to the real root.
 
 The inspected archive contains ten Liverpool AMDGPU firmware files and the
 1080p EDID. It contains **no MT7668 Wi-Fi firmware**. The historical private
