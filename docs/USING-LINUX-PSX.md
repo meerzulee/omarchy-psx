@@ -1,11 +1,13 @@
 # Using Linux psX with Omarchy
 
 Linux psX is a distribution-independent kernel project. Omarchy psX owns the
-optional distribution integration described here. This repository currently
-contains handoff documentation, a legacy boot-profile example, initramfs source
-and data-only repacking tools, and a manually invoked NetworkManager adapter.
-It does **not** contain a complete migrated Omarchy distribution, a root
-filesystem, binary initramfs, OS installer or PKG.
+distribution implementation and optional integration described here. The full
+existing PS4 source now lives under `platforms/ps4/`: packages, rootfs and
+initramfs builders, launcher/FPKG, installation/recovery tools, tests and curated
+research. Root tools provide source handoff, initramfs preservation and the
+manual new-kernel NetworkManager adapter. Generated root filesystems, initramfs
+archives and PKGs remain external. See [MIGRATION.md](MIGRATION.md) for the
+source map and historical boot-profile boundaries.
 
 The kernel target is `6.18-ps4-baikal`, release
 `6.18.44-psx-ps4-baikal1`, based on upstream Linux v6.18.44 commit
@@ -21,16 +23,20 @@ from the full commit in `manifests/kernel-source.json`:
 ```sh
 git clone https://github.com/meerzulee/omarchy-psx.git
 cd omarchy-psx
-python3 scripts/setup-kernel-workspace
+./scripts/setup-workspace
 ```
 
-The script creates a missing sibling `linux-psx` at the immutable revision. It
-refuses a different/dirty existing checkout and never resets, rebases, merges
-or discards local work. The published migration pin is
-`b9bcf7234dff601ce41e141ca1403ea0a4525c1a`. For an explicitly selected different
-development commit, use `--revision` with its full 40-character SHA and record
-that choice. Missing or non-immutable pins fail closed. Do not treat moving
-`main` or a private source archive as a reproducible pin.
+The script creates missing sibling `linux-psx` and `ps4-uart` sources at the
+full commits in `manifests/development-sources.json`. It preserves existing
+checkouts whose history contains the pins, including local edits, and never
+resets, rebases, merges or discards work. `--check` is offline and read-only.
+The kernel pin also appears in `manifests/kernel-source.json`.
+
+For an exact separate kernel snapshot, the older `setup-kernel-workspace`
+helper requires an unchanged checkout at the pin. Its `--revision` option
+accepts a full 40-character SHA for an explicitly selected different snapshot;
+record that choice. Missing or moving pins are refused. The complete host
+setup is in [DEVELOPMENT-HOSTS.md](DEVELOPMENT-HOSTS.md).
 
 On **macOS ARM64**, install/start OrbStack, verify its context and run the
 kernel repository's x86-64 cross-builder:
