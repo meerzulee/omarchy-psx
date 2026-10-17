@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Check imported source hashes and the versioned initramfs contract offline."""
+import hashlib
+import json
+from pathlib import Path
+import re
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def check_file(name, expected):
+    path = (ROOT / name).resolve()
+    if not path.is_relative_to(ROOT) or not path.is_file():
+        raise ValueError(f"invalid source path: {name}")
+    if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+        raise ValueError(f"source hash differs: {name}")
+
+
+def main():
+    count = 0
+    for name in ("integration-import", "initramfs-import"):
+        record = json.loads((ROOT / f"provenance/{name}.json").read_text())
+        for item in record["imports"]:
+            check_file(item["destination_path"], item["destination_sha256"])
+            count += 1
+    initramfs = json.loads((ROOT / "manifests/ps4-initramfs.json").read_text())
+    check_file(initramfs["init_source"]["path"], initramfs["init_source"]["sha256"])
+    kernel = json.loads((ROOT / "manifests/kernel-source.json").read_text())
+    if not isinstance(kernel["revision"], str) or not re.fullmatch(r"[0-9a-f]{40}", kernel["revision"]):
+        raise ValueError("kernel source must have an immutable full commit pin")
+    print(f"PASS: {count} imported source hashes, init identity and immutable kernel handoff")
+
+
+if __name__ == "__main__":
+    main()

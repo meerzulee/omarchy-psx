@@ -55,8 +55,9 @@ Each console will use its own selected Linux psX kernel and matching modules.
 ## Current stage
 
 **Integration scaffolding.** This repository now holds a pinned kernel-source
-handoff, host setup guidance, an optional existing-Omarchy USB boot profile and
-a manually invoked experimental Ethernet adapter. Linux psX owns the kernel
+handoff, host setup guidance, the existing Omarchy `/init` source and portable
+data-only initramfs repacker, an optional USB boot profile and a manually invoked
+experimental Ethernet adapter. Linux psX owns the kernel
 and its distribution-independent build/artifact contract; Omarchy-specific
 setup stays here.
 
@@ -64,6 +65,9 @@ Read [Using Linux psX with Omarchy](docs/USING-LINUX-PSX.md) for Mac ARM64
 (OrbStack), Linux x86-64 native builds, whole matching modules and recovery.
 The [handoff manifest](manifests/kernel-source.json) pins the published kernel
 migration commit `b9bcf7234dff601ce41e141ca1403ea0a4525c1a`.
+The [initramfs guide](docs/INITRAMFS.md) identifies the exact BusyBox archive,
+external base requirement and Mac/Linux generation command. Its source import
+is recorded in [initramfs provenance](provenance/initramfs-import.json).
 [Integration provenance](provenance/integration-import.json) records the exact
 source paths, hashes, adaptations and preserved notices for imported helpers
 and the optional boot-profile example.

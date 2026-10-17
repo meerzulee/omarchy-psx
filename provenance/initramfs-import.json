@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "imported_on": "2026-10-17",
+  "source_repository": "https://github.com/meerzulee/omarchy-ps4",
+  "source_checkout_commit": "e4d148c8c42bc4f8edc8b7d4f0b769bb8ec7d5d0",
+  "source_state_notice": "These selected bytes include pending/untracked local work. The checkout commit identifies context, not an immutable Git object containing those bytes. Exact file hashes identify the migrated source; its first published immutable snapshot is in Omarchy psX.",
+  "imports": [
+    {
+      "source_path": "rootfs/initramfs/init",
+      "source_state": "tracked source with uncommitted partitioned-USB changes",
+      "source_sha256": "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894",
+      "source_bytes": 6542,
+      "destination_path": "rootfs/initramfs/init",
+      "destination_sha256": "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894",
+      "adaptations": [
+        "None: preserve all 6542 init bytes, including legacy boot parameters and labels."
+      ]
+    },
+    {
+      "source_path": "fpkg/tools/repack-initramfs-init",
+      "source_state": "untracked local source",
+      "source_sha256": "1dad6062683b8bd13d62c1c911ff0535637ab6585ab8060f299df9ffbf18dbcb",
+      "source_bytes": 7035,
+      "destination_path": "scripts/repack-ps4-initramfs",
+      "destination_sha256": "9e45dccba5b5f5ed04d52072087c150d7d68ca7ede3b5de0e26d573ceb2ab23a",
+      "adaptations": [
+        "Explicit external --base input, portable repository defaults, bounded regular-file reads, atomic no-overwrite output creation; strict newc parser and replacement algorithm preserved.",
+        "Add SPDX MIT and copyright under the existing Omarchy psX repository license; original source had no per-file notice."
+      ]
+    },
+    {
+      "source_path": "tests/initramfs-repack-test",
+      "source_state": "untracked local host tests",
+      "source_sha256": "472bd7b9670e6cb53345bc2ceb30123e86f2ba26f8084686f837a235305a5a7e",
+      "source_bytes": 5030,
+      "destination_path": "tests/test_initramfs_repack.py",
+      "destination_sha256": "07de9eab20ee572395ba631e5ce6316998f3c54aa95e3a31955eb875e51c8d58",
+      "adaptations": [
+        "Relocate tool path, add no-overwrite/default/CLI tests, require OMARCHY_INITRAMFS_TEST_BASE for the optional real input test.",
+        "Apply the existing Omarchy psX MIT license explicitly; original test had no per-file notice."
+      ]
+    }
+  ],
+  "license_basis": "Source project README declares Omarchy MIT. These original local files had no per-file license notices and there was no top-level LICENSE file in the old checkout. This source handoff uses the existing Meerzulee MIT LICENSE in Omarchy psX; unchanged init bytes inherit that repository license. Do not assert an old per-file SPDX or a nonexistent source LICENSE.",
+  "scope": "Source and host tests only. No initramfs seed/archive, BusyBox binary, firmware, PKG, root image or raw capture is imported into Git."
+}

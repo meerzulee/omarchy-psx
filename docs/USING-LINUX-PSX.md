@@ -2,9 +2,10 @@
 
 Linux psX is a distribution-independent kernel project. Omarchy psX owns the
 optional distribution integration described here. This repository currently
-contains handoff documentation, a legacy boot-profile example and a manually
-invoked NetworkManager adapter. It does **not** contain a complete migrated
-Omarchy distribution, a root filesystem, an initramfs, an OS installer or PKG.
+contains handoff documentation, a legacy boot-profile example, initramfs source
+and data-only repacking tools, and a manually invoked NetworkManager adapter.
+It does **not** contain a complete migrated Omarchy distribution, a root
+filesystem, binary initramfs, OS installer or PKG.
 
 The kernel target is `6.18-ps4-baikal`, release
 `6.18.44-psx-ps4-baikal1`, based on upstream Linux v6.18.44 commit
@@ -113,7 +114,9 @@ layout**, not a generic Linux boot requirement or validation of the new build.
 Use your established compatible PS4 loader, initramfs and root filesystem.
 The old setup used ps4-linux-loader v25 and a 1024 MB loader; its initramfs SHA256
 was `31e793671aca8b595e130fa9d1ba5a93f0d777ee45843eb1aa3925294b0dc353`.
-That initramfs is not supplied here. Check its compatibility and required
+The binary archive is external; [INITRAMFS.md](INITRAMFS.md) supplies the exact
+BusyBox identity, source/repacker, base hash and Mac/Linux generation command.
+Check its compatibility and required
 firmware before reuse. A kernel configured without embedded firmware may
 need display EDID and built-in Wi-Fi firmware inside the initramfs, before
 the root filesystem is available. Firmware licensing remains separate.

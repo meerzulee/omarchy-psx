@@ -31,6 +31,15 @@
   is required for a native kernel build. Follow its pinned dependencies/config.
 - Consume a whole matching kernel/module set plus its `artifacts.json`. Never
   install one Ethernet module as a replacement for the matching module tree.
+- For initramfs work read `docs/INITRAMFS.md`, `manifests/ps4-initramfs.json`
+  and `provenance/initramfs-import.json`. The exact legacy `/init` is preserved;
+  changing it creates a new candidate and requires updated hashes/evidence.
+- `scripts/repack-ps4-initramfs` is data-only, requires an explicit pinned
+  external base and refuses existing outputs. Keep generated archives, seeds,
+  BusyBox binaries and firmware out of Git; source provenance must distinguish
+  the old checkout HEAD from its pending/untracked source bytes.
+- Run `python3 scripts/check-provenance` and the synthetic host suite. Real-base
+  tests require explicit `OMARCHY_INITRAMFS_TEST_BASE`; never auto-probe disks.
 
 ## Hardware and activation
 

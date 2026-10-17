@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "profile": "ps4-baikal-partitioned-omarchy",
+  "format": {
+    "archive": "cpio newc (070701)",
+    "compression": "gzip",
+    "architecture": "x86_64"
+  },
+  "userspace": {
+    "busybox_version": "1.28.3",
+    "busybox_build_timestamp": "2018-04-22 21:29:51 UTC",
+    "busybox_linking": "static",
+    "archive_entries": 336,
+    "kernel_module_entries": []
+  },
+  "external_base": {
+    "bytes": 1686508,
+    "sha256": "824530e22392376d5fc27994a9ccff97f0442b7a41681155f46e183f892365ae",
+    "required": true,
+    "source_stage": "Existing Omarchy PS4 whole-device initramfs; old workspace stage fpkg/vendor/internal-boot/initramfs.cpio.gz",
+    "bundled_in_repository": false,
+    "automatic_fetch_implemented": false
+  },
+  "init_source": {
+    "path": "rootfs/initramfs/init",
+    "bytes": 6542,
+    "sha256": "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894"
+  },
+  "expected_existing_result": {
+    "output": "output/initramfs/ps4-baikal-partitioned/initramfs.cpio.gz",
+    "bytes": 1686082,
+    "sha256": "31e793671aca8b595e130fa9d1ba5a93f0d777ee45843eb1aa3925294b0dc353",
+    "non_init_entries_preserved": true
+  },
+  "root_contract": {
+    "layout": "partitioned-usb",
+    "root_label": "OMARCHY-PS4",
+    "root_filesystem": "ext4",
+    "boot_label": "PS4BOOT",
+    "boot_partition_bytes": 4294967296,
+    "boot_partition_start_sector": 2048,
+    "root_partition_start_sector": 8390656,
+    "entrypoint": "/sbin/init"
+  },
+  "external_base_firmware": [
+    {
+      "path": "lib/firmware/amdgpu/liverpool_ce.bin",
+      "bytes": 8832,
+      "sha256": "173ff0d1633fa0e0a22e0b7e92780b4ec9bb0a72346f0c0ccd8ffe899078763a"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_me.bin",
+      "bytes": 17024,
+      "sha256": "ab835c37011af3af2a597f2fd806e155cccb869e2e2171e65c2524dade506056"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_mec.bin",
+      "bytes": 17024,
+      "sha256": "e86d5846f8433bc682b7dbdf2a4563ec1c527e223ca77460ef15294507b9ba32"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_mec2.bin",
+      "bytes": 17024,
+      "sha256": "f3250bc60e0ff24a80830ebda428fc781d641395e5977d84588694d803cd993a"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_pfp.bin",
+      "bytes": 17024,
+      "sha256": "d2b3ce936f184b4fa0fe10fd867c125b5902862377a5343f03c11f76be62343f"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_rlc.bin",
+      "bytes": 6400,
+      "sha256": "8c26efaac42f508042b8db0ed04efe7a2ee5e30ad3ae139f0846fbb3cf85abca"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_sdma.bin",
+      "bytes": 4456,
+      "sha256": "638602157d38a25e584e81710c9c3a36731c52599d92e010b77dd53890dc662a"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_sdma1.bin",
+      "bytes": 4456,
+      "sha256": "8bb8fc3280153dbc9dc545d3ec046fa38361be5acf7e6f956aa0fd57196c84b8"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_uvd.bin",
+      "bytes": 232752,
+      "sha256": "30eed8d680321bdc6213409a4a882442049b2a559eadb9ee2554d53b0cfb96c9"
+    },
+    {
+      "path": "lib/firmware/amdgpu/liverpool_vce.bin",
+      "bytes": 101072,
+      "sha256": "fb768657d70c8674c1c48a284e5299ab2877ac2420957ea4b36c75f7f5997869"
+    },
+    {
+      "path": "lib/firmware/edid/1920x1080.bin",
+      "bytes": 128,
+      "sha256": "78fae7bf275d9ac2acab158330acdbe4fe823f23453cee21503f70c638a6918e"
+    }
+  ],
+  "wifi_firmware_present": false,
+  "binary_distribution": "None in this source handoff; no base/busybox/firmware archive uploaded.",
+  "hardware_scope": {
+    "historical": "Existing Omarchy initramfs used with private Linux PS4 Baikal/mts kernels; see EXP-20261017-016",
+    "new_kernel_release": "6.18.44-psx-ps4-baikal1",
+    "new_kernel_pairing": "not boot-tested; firmware-free kernel has no embedded MT7668 payloads",
+    "repack_verification": "Byte-identical to the existing archive on the migration host; no new console operation."
+  }
+}
