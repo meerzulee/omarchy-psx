@@ -61,6 +61,8 @@ grep -Fq 'Exec=env AMD_DEBUG=notiling OMARCHY_PATH=/usr/share/omarchy uwsm start
   fail 'Omarchy LightDM appearance is missing'
 [[ $(systemctl is-enabled NetworkManager.service) == enabled ]] || \
   fail 'NetworkManager is not enabled'
+[[ $(systemctl is-enabled bluetooth.service) == enabled ]] || \
+  fail 'Bluetooth is not enabled'
 [[ $(systemctl is-enabled systemd-timesyncd.service) == enabled ]] || \
   fail 'network time synchronization is not enabled'
 grep -Fxq 'AMD_DEBUG=notiling' /etc/environment || \
@@ -90,7 +92,7 @@ case $root_layout in
   partitioned-usb)
     grep -Fxq 'LABEL=PS4BOOT  /boot  vfat  ro,nofail,umask=0077  0  0' /etc/fstab || \
       fail 'partitioned USB boot filesystem contract is missing'
-    [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-20 ]] || \
+    [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-21 ]] || \
       fail 'partitioned USB provisioning package does not match'
     ;;
   *) fail 'unsupported root layout' ;;

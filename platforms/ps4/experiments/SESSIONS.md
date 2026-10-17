@@ -12384,6 +12384,68 @@ but they are not evidence of a Linux 6.18 boot.
 - next action: none scheduled. Booting a CI `6.18.44-psx-ps4-baikal2` build
   is a new boot set and needs its own bounded session
 
+## EXP-20261018-001 — first Linux 7.2 Baikal boot
+
+- objective: boot `7.2.11-psx-ps4-baikal-dev1` on the existing PS4 Slim /
+  Baikal B1 / firmware 12.02 USB installation and check USB root, display and
+  Wi-Fi. Owner confirmed the identified media update, then reported it working
+- candidate: 61-patch Baikal port, upstream `a2de78ee6ed8bf8cd99d177c74865a6e8c3cb6ea`,
+  OrbStack Debian GCC 14.2 build. bzImage SHA256
+  `c9c0e1aacd30679f7e496c31a2170bbd4e3591b297ade8804068832af881b194`;
+  whole module archive `e384a5efd1e6bd3644a98dc36208e0874fe0c587ff7d02787773021ea649b20a`.
+  All 67 recorded source inputs matched the active kernel checkout
+- install: guarded by USB serial/size/UUIDs and old file hashes. Read-only
+  FAT/ext4 checks passed before and after. Added all matching modules, ran
+  depmod and replaced only bzImage; initramfs `089d62daaef9b4ab7a61486d193533deef5f79c7782ecd8ddc10030477b0f460`,
+  bootargs, VRAM and historical release metadata unchanged. Fresh verified
+  recovery set `psx-recovery-EXP-20261018-001` plus external copies preserve the
+  previous native-dev1 kernel and its module tree. Both partitions unmounted
+- result: boot `7d1ca219` ran the expected release. USB root mounted read/write
+  at 11.624s and graphical.target at 18.246s. Hyprland reports HDMI-A-1 at
+  1920x1080/60 Hz; AMD hardware acceleration reports OpenGL 4.6 and Vulkan
+  device API 1.3.354 (Mesa 26.1.7). Wi-Fi DHCP/default route, gateway ping 3/3
+  and interface-bound HTTPS 200 with TLS verification passed. Zero failed
+  system/user units; all 41 installed module hashes match the build
+- Bluetooth/audio: hci0 enumerated and completed setup with "Firmware already
+  downloaded"; bluetooth.service disabled/inactive. Pairing untested. HDMI
+  audio sink present with PipeWire/WirePlumber active; owner cannot verify sound
+- UART: completed 00:51:56.771790..00:58:07.755116+06, generation `f2c4b740`,
+  epoch1, bytes 1474213..1624715 (150502), 1883 normalized lines, none omitted,
+  zero capture events. Compact context reviewed; no panic/oops, xHCI death or
+  root I/O fault through 222s kernel time. Notable warnings also appeared in
+  the EXP-018 6.18 baseline, including regulatory.db and missing crypto_user
+- verdict: PASS for one core boot with display, accelerated graphics and Wi-Fi.
+  Not acceptance or long-term stability evidence. Cold firmware load, Bluetooth
+  pairing, audible output and native Ethernet untested. This target lacks the
+  later native Ethernet autoload patch. Private receipts and complete raw/event/
+  compact evidence: `lab/psx-7.2-boot-2026-10-18`
+- next action: owner requested enabling Bluetooth for a device test, then
+  assessing native Ethernet on 7.2; use separate experiments for these variables
+
+## EXP-20261018-002 — Bluetooth panel and audio on Linux 7.2
+
+- objective: on the unchanged EXP-001 boot `7d1ca219`, enable Bluetooth and
+  pair one device. Owner requested the test and confirmed audible Bluetooth
+  playback: "audio working over blueetooth confirm"
+- setup/fix: hci0 had initialized but bluetooth.service was disabled. The owner
+  enabled/started BlueZ in the desktop terminal. The Omarchy shortcut existed,
+  but `omarchy.bluetooth` was in disabledPlugins, so the shell refused to open
+  it. The official plugin helper enabled it beside the network widget; owner
+  confirmed the panel appeared. Previous shell config saved privately
+- result: BlueZ active/enabled, hci0 powered; LG SL4(FD) connected. PipeWire's
+  bluez5 device/default sink carried active left/right Firefox playback; owner
+  confirmed sound. AVRCP input enumerated at 956.290s. Wi-Fi SSH stayed up;
+  no HCI timeout, firmware fault, xHCI death or root I/O error in reviewed logs
+- UART: completed 00:59:51.270011..01:10:47.773719+06; generation `f2c4b740`,
+  epoch1, bytes 1624715..1636764 (12049), 145 normalized lines, none omitted,
+  zero capture events. Compact context reviewed. Private raw/events/context and
+  service/PipeWire snapshot: `lab/psx-7.2-bluetooth-2026-10-18`
+- verdict: PASS for service/panel enable, one audio-device connection and
+  observed stereo playback. Service and panel left enabled as requested.
+  Reconnect/reboot persistence and cold firmware loading untested
+- next action: owner authorized committing the Omarchy Bluetooth defaults fix
+  and testing the separately built native Ethernet kernel in EXP-003
+
 ## Session-close checklist
 
 - [ ] Bounded UART session stopped or explicitly aborted with reason.

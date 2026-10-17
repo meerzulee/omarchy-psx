@@ -45,6 +45,9 @@
           "id": "omarchy.network"
         },
         {
+          "id": "omarchy.bluetooth"
+        },
+        {
           "id": "omarchy.audio"
         }
       ]
@@ -53,7 +56,6 @@
   "plugins": [],
   "disabledPlugins": [
     "omarchy.battery",
-    "omarchy.bluetooth",
     "omarchy.idle",
     "omarchy.monitor",
     "omarchy.nightlight",
