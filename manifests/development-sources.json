@@ -4,7 +4,7 @@
     {
       "directory": "linux-psx",
       "url": "https://github.com/meerzulee/linux-psx.git",
-      "branch": "main",
+      "branch": "master",
       "commit": "881f12dc0de77b0f55bb8dc4d613dd9de8626e7e",
       "expected_path": "targets/6.18-ps4-baikal.env"
     },
