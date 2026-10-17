@@ -488,7 +488,7 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "296922bc0169e6fa0d659df9e2d216b4703522dfbff72266d54fdafdde56bca0",
+      "destination_sha256": "ba5ff9d1a8d2d09eb7681d4acdfcf89f94b7ef2bc49039f5d946d76c474a4487",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
@@ -497,7 +497,8 @@
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "Replace the personal build-host hostname with build-host; preserve peer/console roles.",
         "Replace unavailable private raw/generated links with explicit private-evidence annotations; use pinned URLs for public references.",
-        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
+        "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable.",
+        "2026-10-17: update current resume point and append independently observed EXP-20261017-017 standalone service adoption/traffic evidence; original source hash and historical verdicts unchanged."
       ]
     },
     {

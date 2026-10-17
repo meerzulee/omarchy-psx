@@ -1,22 +1,24 @@
 > Imported PS4 history from `omarchy-ps4` on 2026-10-17. Paths and milestones below describe the original PS4 implementation and artifacts; they do not qualify a new Linux psX build or PS5. Use the [current migration guide](../../../docs/MIGRATION.md) for the active repository layout. Private network/host details are redacted.
 
-# Current resume point — source migration, 2026-10-17
+# Current resume point — Ethernet integration, 2026-10-17
 
-The latest hardware entry is **EXP-20261017-016, DEGRADED**. Historical MTS2
-transport, preferred Ethernet routing, independent hash-checked traffic,
-NetworkManager profile reconnects and operation beyond 900 seconds passed on
-one Baikal B1 console. Initial automatic startup failed; the corrected package
-still needs a later unattended boot. Strict administrative packet gating was
-inconclusive and cable recovery was not observed. Retain published DMA/code;
-never unload, reset, unbind or rearm an uncertain instance.
+The latest hardware entry is **EXP-20261017-017, PASS for same-boot standalone
+service adoption and wired transport on the original MTS2 kernel**. The new
+`ps4-ethernet.service` is enabled; the older Omarchy service is disabled for
+future startup only. The healthy retained generation, profile, routes and Wi-Fi
+were preserved. Fresh unattended startup of the new service remains pending.
 
-No hardware experiment was performed by this source migration. The new
-`6.18.44-psx-ps4-baikal1` build and reconstructed initramfs are unqualified.
-Use the root migration/host guides to resume development, then establish a
-fresh continuous UART connection and bounded session for consequential work.
-IP/MAC/volume/boot identifiers and the USB serial below are documentation
+Historical EXP016 remains DEGRADED: its initial startup failed, strict admin
+packet gating was inconclusive and cable recovery was not observed. The new
+`6.18.44-psx-ps4-baikal1` kernel and reconstructed initramfs remain unqualified.
+Never unload, reset, unbind or rearm a published or uncertain instance. The next
+hardware question is unattended startup at the owner's next normal boot; no
+reboot or cable action is requested now.
+
+Source migration itself performed no hardware experiment. IP/MAC/volume/boot
+identifiers and the USB serial in the historical entries are documentation
 pseudonyms; distinct IP relationships are preserved. Private raw/generated
-evidence references are explicit annotations rather than broken public links.
+evidence remains local. Use root migration/host guides for current source paths.
 
 # Historical development session ledger
 
@@ -12138,6 +12140,48 @@ but they are not evidence of a Linux 6.18 boot.
 - next action: at the owner's next usual boot, verify installed package0.1.1
   performs the first-UP and NM DHCP automatically, without manual correction.
   No further reboot or cable action requested now
+
+## EXP-20261017-017 — standalone Ethernet autoconnect service adoption
+
+- objective: adopt the standalone Linux psX NetworkManager/systemd adapter on
+  the already-published original `6.18.44-ps4-baikal-mts2` kernel, then verify
+  real wired traffic without reboot, module replacement, rearm or admin cycles.
+  Owner explicitly authorized SSH testing while the PS4 was online
+- scope/rollback: one adapter/service variable, setup action window180s. On
+  failure disable new future startup and restore old enablement without --now;
+  retain the actual driver/DMA. No automatic activation retry or unload/reset
+- candidate: `linux-psx/contrib/networkmanager/ps4-ethernet`, SHA256
+  `cdde1893455e097df1366a83f12fd30593ff2d6a22ae0cf663b622857dd04779`;
+  uses existing root-sealed original candidate metadata and matching full module
+  tree. Kernel/initramfs/module/boot files unchanged
+- result: explicit --setup installed script/metadata/unit, enabled and started
+  `ps4-ethernet.service` successfully. Both service and explicit repeat reported
+  ALREADY INITIALIZED after positive driver/profile/NM validation; no gate/UP
+  action or extra DMA generation. New service active/exited, enabled, exit0
+- transport: a new SSH connection to the wired address checked the trusted PS4
+  host key and source-specific psx0 reply route. Independent random4194304byte
+  files passed SHA256 verification in both directions. Interface-bound kernel.org
+  HTTPS returned200, TLSverify0 and the wired source; TX/RX byte counters advanced
+- test correction: the first HTTPS robots.txt endpoint returned404, while TLS
+  and wired source were valid. The runner restored old future-service enablement
+  and preserved the error/rollback receipts. Changing only the URL to the known
+  homepage answered the traffic question; no activation was repeated. Restored
+  new future enablement after all state/traffic checks, then disabled only the
+  old duplicate's future startup. Existing old unit remained active/exited
+- retention: before/after boot/config/module/note/profile/route identities,
+  four DMA extents, refcnt1 and admin open/close counts unchanged. Driver
+  state3/admin1/engine1/poll1/carrier1 and terminal/error/stop-error0 remained
+  healthy. NetworkManager managed/autoconnect and Wi-Fi were preserved
+- UART: completed18:35:59.707921..18:37:55.885791+06; same generation/epoch1,
+  offsets2191294..2195926,4632bytes/67normalizedlines, no omitted lines and zero
+  capture events. Compact context reviewed: expected systemd service/session
+  messages, no panic/oops/lockup or new driver fault. Raw evidence stays private
+- verdict: PASS for same-boot service adoption and wired traffic on this console.
+  No fresh first-publication, unattended boot, cable recovery, public MTS2 build,
+  new psX kernel or additional console qualification is claimed. Historical
+  EXP016 remains DEGRADED. Private receipts: lab/ethernet-autoconnect-2026-10-17
+- next action: verify the enabled standalone service at the owner's next normal
+  boot; no further reboot, cable or operator action is requested in this test
 
 ## Session-close checklist
 
