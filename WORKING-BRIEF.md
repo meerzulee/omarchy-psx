@@ -82,7 +82,18 @@ workspace templates have separate path semantics. Privacy review removed
 machine/network identifiers while preserving address relationships, hardware
 IDs, exact artifact hashes and original historical acceptance limits.
 
-Source publication and a fresh-clone handoff check complete this phase.
+**Current phase complete.** The source migration is published. An independent
+fresh public clone fetched both exact sibling pins, passed offline workspace
+verification and passed both repositories' `make check` suites without old
+checkouts, containers or hardware. Omarchy's Linux source CI passed:
+
+https://github.com/meerzulee/omarchy-psx/actions/runs/39024272025
+
+Kernel provenance/host CI passed; its automatic full binary rebuild continues
+separately from the completed source handoff:
+
+https://github.com/meerzulee/linux-psx/actions/runs/39024166882
+
 Image/FPKG builds, live storage writes, fresh boot acceptance, unattended
 Ethernet startup and PS5 implementation remain outside this migration.
 
