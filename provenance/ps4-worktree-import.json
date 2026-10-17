@@ -358,14 +358,15 @@
       "source": "docs/PS4-FIXES.md",
       "destination": "platforms/ps4/docs/PS4-FIXES.md",
       "source_sha256": "385d28f1145c80b5cebc25d61d8d61a2b61db476b5994d8c131bf99baf1cfcfa",
-      "destination_sha256": "60a5fc91fd9836e16f1f5e541e32f6655da43279b5ed3829c34608e1fc9bfc3b",
+      "destination_sha256": "5820b3193edaf913abb165b71435c5ef5d7ce771eed100335cfdf94e303b3600",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
-        "2026-10-18: replace the Bluetooth-disabled default note with the scoped EXP-20261018-002 Slim/Baikal B1 Linux 7.2 service/panel and LG SL4 playback PASS; keep cold-load/reconnect/reboot qualification open."
+        "2026-10-18: replace the Bluetooth-disabled default note with the scoped EXP-20261018-002 Slim/Baikal B1 Linux 7.2 service/panel and LG SL4 playback PASS; keep cold-load/reconnect/reboot qualification open.",
+        "2026-10-18: record the wired-selector regression and one-console rendered Ethernet glyph plus operator confirmation via supported local plugin clone; retain observation scope."
       ]
     },
     {
@@ -477,7 +478,7 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "d791d3957b637b55e48de2125c94a49d8bbe803914fa2a407606c0602e40173f",
+      "destination_sha256": "4eacba77d959a6274309f53214bec7c2595e2a21eca54eb41cf1a56b9780e6b3",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
@@ -491,7 +492,10 @@
         "2026-10-17: update current resume point and append EXP-20261017-018 (psX 6.18 firmware-free boot) and EXP-20261017-019 (native Ethernet autoload) records with the private host name replaced by its build-host role; original source hash and historical verdicts unchanged.",
         "2026-10-17: update current resume point and append EXP-20261017-020 (native cable-absent launch and hot-plug); original source hash and historical verdicts unchanged.",
         "2026-10-18: update current resume point and append the aborted EXP-20261017-021 with the owner's two-boot native Ethernet promotion and the adapter removal; original source hash and historical verdicts unchanged.",
-        "2026-10-18: update the current resume point and append completed EXP-20261018-001 first Linux 7.2 Baikal boot and EXP-20261018-002 Bluetooth service/panel plus one-device audio observations; retain untested cold-load/reconnect/reboot limits and original source hashes."
+        "2026-10-18: update the current resume point and append completed EXP-20261018-001 first Linux 7.2 Baikal boot and EXP-20261018-002 Bluetooth service/panel plus one-device audio observations; retain untested cold-load/reconnect/reboot limits and original source hashes.",
+        "2026-10-18: refresh the Linux 7.2 resume point and record EXP-003 guarded native-kernel installation followed by an operator-identified jailbreak/Orbis reboot fault before candidate execution; Ethernet remains inconclusive, with fresh EXP-004 after jailbreak recovery. Original source hash and historical verdicts unchanged.",
+        "2026-10-18: record completed EXP-004 after jailbreak recovery, one native 7.2 boot with DHCP/default route and verified wired traffic; preserve unclassified RX-drop, cold-load/cycle/stability limits and original source hash.",
+        "2026-10-18: append the separate desktop-only Ethernet-icon follow-up, supported local clone and shell restart, rendered glyph and owner confirmation; no extra hardware experiment or kernel acceptance."
       ]
     },
     {
@@ -1262,12 +1266,13 @@
       "source": "packages/omarchy-ps4-provisioning/PKGBUILD",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/PKGBUILD",
       "source_sha256": "587a70b46f1054ec5867c61009f3f7eec2b4bdfe96c6197b0bb71b02c54ff7b3",
-      "destination_sha256": "3c25182d214bed308c401f31e1ac70e55fcd91fe7e1d043e4924ec1eba480d87",
+      "destination_sha256": "a021b76c20f36c9a4e4f84bac06666533d20b39db6c0ce7301bfe5f67065485c",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M packages/omarchy-ps4-provisioning/PKGBUILD",
       "adaptations": [
-        "2026-10-18: provisioning release 21 pins runtime release 9 for the Bluetooth-default package chain."
+        "2026-10-18: provisioning release 21 pins runtime release 9 for the Bluetooth-default package chain.",
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
       ]
     },
     {
@@ -1468,12 +1473,13 @@
       "source": "packages/omarchy-ps4/PKGBUILD",
       "destination": "platforms/ps4/packages/omarchy-ps4/PKGBUILD",
       "source_sha256": "a215ce97633c751ec7aed281989a6710dea43b09a5b589b3b8513b42bf2716b3",
-      "destination_sha256": "9c33a896efbc7f3ff4ace3fcb0da36d326a220f17fcacba41941823634affbce",
+      "destination_sha256": "8a2571b3130db435d2113a3a0c8c45e5ce6eb3a9c098ae963672b8907f510f86",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M packages/omarchy-ps4/PKGBUILD",
       "adaptations": [
-        "2026-10-18: runtime release 9 pins settings release 7 for the Bluetooth default."
+        "2026-10-18: runtime release 9 pins settings release 7 for the Bluetooth default.",
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
       ]
     },
     {
@@ -1540,11 +1546,13 @@
       "source": "packages/omarchy-ps4/ps4-network-panel.patch",
       "destination": "platforms/ps4/packages/omarchy-ps4/ps4-network-panel.patch",
       "source_sha256": "482a0698be408e38376ae50f1a555ff538546241eb6d7b0dd35862e10d42f46f",
-      "destination_sha256": "482a0698be408e38376ae50f1a555ff538546241eb6d7b0dd35862e10d42f46f",
+      "destination_sha256": "4cd0487fab7ef5c49ef54771b64f51bf320dbc71b954ea041707eac57379c115",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-18: retain upstream findDevice for wired status and icon priority while preserving the PS4 Wi-Fi station selector."
+      ]
     },
     {
       "source": "packages/omarchy-ps4/ps4-replaced-commands.txt",
@@ -2102,12 +2110,13 @@
       "source": "scripts/configure-gift-rootfs-container",
       "destination": "platforms/ps4/scripts/configure-gift-rootfs-container",
       "source_sha256": "3ac80f6ed289a609ac4bf811a2c222789f3aa6dfe7f36df4f7fb5e4a8633ff13",
-      "destination_sha256": "8a96a4eb5339c85e1a035b8e7e03e1626ce46d6f845841f09686df13a998d435",
+      "destination_sha256": "892aa8b9e6b9015b49f7ac8de48282c7f668c8ba2e60de195d9cc1f20c404f37",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M scripts/configure-gift-rootfs-container",
       "adaptations": [
-        "2026-10-18: enable bluetooth.service offline without starting it and require provisioning release 21 in partitioned images; preserve the remaining image policy."
+        "2026-10-18: enable bluetooth.service offline without starting it and require provisioning release 21 in partitioned images; preserve the remaining image policy.",
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
       ]
     },
     {
@@ -2310,12 +2319,13 @@
       "source": "scripts/validate-gift-rootfs-container",
       "destination": "platforms/ps4/scripts/validate-gift-rootfs-container",
       "source_sha256": "edb49b8a43c35e065bbe947ade96ad48b344e068d2f508d9adb7e898b1b8c895",
-      "destination_sha256": "59c9926dcbb74a94740202ef0c76476f7af7a1d91ad39426be766aff3acb756d",
+      "destination_sha256": "0e2009dab9a2cd54ba1b202eaaf0a3aa00b55d333c1a7cb96065b36c0f8be1e4",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M scripts/validate-gift-rootfs-container",
       "adaptations": [
-        "2026-10-18: require bluetooth.service enabled and the matching provisioning release 21; no device operation is performed by this policy check."
+        "2026-10-18: require bluetooth.service enabled and the matching provisioning release 21; no device operation is performed by this policy check.",
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
       ]
     },
     {
@@ -2526,11 +2536,13 @@
       "source": "tests/network-panel-patch-test",
       "destination": "platforms/ps4/tests/network-panel-patch-test",
       "source_sha256": "0eaf90e563d3fea863e24e15e16e83c2d3ab2816d781ab3dfad6731740360aa8",
-      "destination_sha256": "0eaf90e563d3fea863e24e15e16e83c2d3ab2816d781ab3dfad6731740360aa8",
+      "destination_sha256": "3eb0409707af1037f355c2944376e3e74db156e6f640346ab96525984a35b8e7",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "tracked-clean",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-18: allow an explicitly supplied pinned upstream fixture and execute actual patched wired selector, connection-kind and icon regression cases; original broken patch fails."
+      ]
     },
     {
       "source": "tests/package-content-test",

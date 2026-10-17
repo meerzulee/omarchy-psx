@@ -3,7 +3,12 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-upstream=$project_dir/cache/omarchy-quattro
+upstream=${1:-$project_dir/cache/omarchy-quattro}
+source "$project_dir/upstream/omarchy.lock"
+[[ $(git -C "$upstream" rev-parse HEAD) == "$OMARCHY_COMMIT" ]] || {
+  printf '%s\n' 'network-panel: upstream commit does not match the project pin' >&2
+  exit 1
+}
 panel_patch=$project_dir/packages/omarchy-ps4/ps4-network-panel.patch
 temporary=$(mktemp -d)
 trap 'rm -rf -- "$temporary"' EXIT
@@ -29,6 +34,7 @@ function assert(condition, message) {
 }
 
 const wifi = 2
+const wired = 1
 const station = 1
 const accessPoint = 2
 const unknown = 4
@@ -58,6 +64,27 @@ assert(
 assert(panel.includes('WifiDeviceMode.Station'), 'Panel.qml must pass the Quickshell station enum')
 assert(panel.includes('WifiDeviceMode.AccessPoint'), 'Panel.qml must reject the Quickshell access-point enum')
 assert(!panel.includes('wifiDevice: findDevice(DeviceType.Wifi)'), 'Panel.qml must not use the generic first-device fallback')
+
+// Exercise the actual patched QML selector and bar kind expression. The PS4
+// station adaptation once removed this helper while wiredDevice still used it,
+// making the icon report Wi-Fi even with a connected native Ethernet device.
+const selector = panel.match(/^  function findDevice\(type\) \{[\s\S]*?^  \}/m)
+assert(selector, 'the shared device selector must remain available to wiredDevice')
+assert(panel.includes('wiredDevice: findDevice(DeviceType.Wired)'), 'wiredDevice must use the shared selector')
+const kind = panel.match(/readonly property string kind: \{([\s\S]*?)^  \}/m)
+assert(kind, 'Panel.qml must expose its connection kind')
+const selectDevice = devices => new Function('networkDevices', 'return (' + selector[0].trim() + ')')(devices)
+const connectionKind = new Function('wiredDevice', 'connectedWifiNetwork', kind[1])
+const idleWired = { name: 'eth0', type: wired, connected: false }
+const psx0 = { name: 'psx0', type: wired, connected: true }
+const connectedWifiNetwork = { connected: true, signalStrength: 0.8 }
+const selectedWired = selectDevice([idleWired, ap0, usbWifi, psx0])(wired)
+assert(selectedWired === psx0, 'a connected native NIC must win over an earlier idle wired NIC')
+assert(connectionKind(selectedWired, connectedWifiNetwork) === 'ethernet', 'connected wired must win while Wi-Fi stays connected')
+assert(model.connectionIcon(connectionKind(selectedWired, connectedWifiNetwork), 80) === '󰈀', 'dual connected interfaces must show the Ethernet glyph')
+assert(connectionKind(selectDevice([idleWired, usbWifi])(wired), connectedWifiNetwork) === 'wifi', 'Wi-Fi must remain visible without connected Ethernet')
+assert(connectionKind(selectDevice([idleWired])(wired), null) === 'disconnected', 'an idle Ethernet interface must not claim a connection')
+assert(selectDevice([ap0, usbWifi])(wired) === null, 'no wired device must be handled without an undefined helper')
 JS
 
-printf '%s\n' 'Network panel station selection passed.'
+printf '%s\n' 'Network panel station selection and wired icon priority passed.'

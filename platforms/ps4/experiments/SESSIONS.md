@@ -1,6 +1,27 @@
 > Imported PS4 history from `omarchy-ps4` on 2026-10-17. Paths and milestones below describe the original PS4 implementation and artifacts; they do not qualify a new Linux psX build or PS5. Use the [current migration guide](../../../docs/MIGRATION.md) for the active repository layout. Private network/host details are redacted.
 
-# Current resume point — Ethernet integration, 2026-10-17
+# Current resume point — Linux 7.2, 2026-10-18
+
+`7.2.11-psx-ps4-baikal-dev1` passed one core boot in EXP-20261018-001,
+including USB root, accelerated 1080p graphics and Wi-Fi. EXP-002 enabled BlueZ
+and the previously disabled Omarchy Bluetooth panel; the owner confirmed LG SL4
+Bluetooth audio. The default service/panel fix and observed results are committed
+in Omarchy psX as `40f6fa9`. These are scoped observations, not broad acceptance.
+
+The USB now holds the separately built 62-patch
+`7.2.11-psx-ps4-baikal-native-dev1` candidate with its whole matching modules.
+EXP-003 verified its installation and filesystem health, but an operator-identified
+jailbreak/Orbis fault prevented Linux execution. After recovery, EXP-004 passed
+one native Ethernet boot: automatic module load and first-open publication,
+DHCP/default route, gateway ping, interface-bound HTTPS and independent 4 MiB
+hash-checked transfers in both directions. Bluetooth service also started after
+boot. This is one short test, not promotion of the 7.2 candidate; cable/admin
+cycles, longer operation and cold firmware loading remain untested. Continuous
+UART remains running with no bounded hardware experiment active. The separate
+desktop follow-up restored the wired status icon; the owner confirmed it.
+The working 7.2 dev1 boot files/module tree remain the verified rollback.
+
+## Previous resume point — Ethernet integration, 2026-10-17
 
 Native Baikal Ethernet is promoted. linux-psx master `1bf12af` adds the
 `psx_mts_net` autoload patch to the active target as `6.18.44-psx-ps4-baikal2`;
@@ -12445,6 +12466,88 @@ but they are not evidence of a Linux 6.18 boot.
   Reconnect/reboot persistence and cold firmware loading untested
 - next action: owner authorized committing the Omarchy Bluetooth defaults fix
   and testing the separately built native Ethernet kernel in EXP-003
+
+## EXP-20261018-003 — native Ethernet candidate installed; Orbis reboot fault
+
+- objective: one fresh cable-connected boot of the 62-patch native Ethernet
+  candidate, then autoload/first-open publication, DHCP and short traffic checks
+- candidate: `7.2.11-psx-ps4-baikal-native-dev1`, the exact working 61-patch
+  7.2 port plus unchanged native autoload patch. Config differs only in
+  LOCALVERSION. bzImage `e5bdfd965066bac8c0a098ffa351e49b870aff52563e9c74e60e73d1c7cb6868`;
+  whole modules `18d3f5f267fc9c4cbe5a65755cf78987669c3a2a9990ab7a39e59c0a6b78ca6a`.
+  All 41 module vermagic/architecture checks and native PCI/depmod aliases passed
+- install: owner returned the USB after shutdown. Guarded serial/UUID/old-hash
+  checks passed; installed the whole matching module tree and replaced only
+  bzImage. Other boot hashes unchanged. FAT/ext4 read-only checks clean before
+  and after; partitions unmounted. Recovery `psx-recovery-EXP-20261018-003`
+  and external copies preserve the working dev1 kernel/modules
+- terminal boundary: UART records Orbis PowerManager requesting Reboot,
+  gbase VM teardown errors and interleaved "Fatal trap 12: page fault while in
+  kernel mode". The next Orbis minikernel found system dump info, synced its
+  buffers and issued ICC Fatal shutdown at 6s uptime. No new Linux version
+  banner, sys_kexec or MTS activation was observed. The owner later identified
+  this as a jailbreak failure; do not attribute the Orbis fault to the candidate
+- UART: completed 01:11:49.009292..01:18:38.011722+06, generation `f2c4b740`,
+  epoch1, bytes 1636764..1808273 (171509), 2726 normalized lines, none omitted,
+  zero capture events. Compact context and raw boundary reviewed. Private
+  installation, build, raw/events/context evidence:
+  `lab/psx-7.2-ethernet-hw-2026-10-18` and `lab/psx-7.2-ethernet-2026-10-18`
+- verdict: INCONCLUSIVE for native Ethernet; candidate execution/activation
+  not observed. Installation passed. Stopped at the firmware fault with no retry
+- next action: EXP-004, a fresh launch after the owner-reported jailbreak
+  recovery, with the installed candidate unchanged. Do not repeat the warm
+  Orbis reboot path or manually load/rearm MTS
+
+## EXP-20261018-004 — native Ethernet on Linux 7.2 after jailbreak recovery
+
+- objective: launch the unchanged EXP-003 candidate after fresh console/
+  jailbreak recovery, then verify native activation, DHCP and wired traffic.
+  PS4 Slim / Baikal B1 / firmware 12.02; cable connected at Linux launch
+- identity: `7.2.11-psx-ps4-baikal-native-dev1`, the same measured kernel and
+  whole module tree installed in EXP-003. Running MTS module SHA256
+  `52ca9761a9c9f85f6539c6bb4c5c953c15c28e3cde1f589ac8397a4af66152ed`
+  and vermagic match. USB root mounted read/write at 11.766s and graphical
+  target reached at 17.963s; zero failed system units
+- activation: automatic PCI probe at 15.104s, psx0 registration at 15.198s,
+  exactly four prepared DMA extents and one first-open RUNNING publication at
+  17.467s, link=1/published=1/retained=1. No manual activation, unload, reset,
+  unbind or rearm
+- network: psx0 acquired DHCP and the preferred default route (metric 100;
+  Wi-Fi initially metric 600). Wired management SSH worked. Gateway ping bound
+  to psx0 passed 5/5 with 0% loss; interface-bound HTTPS returned 200 with TLS
+  verification successful. Independent random 4 MiB memory-only SSH streams
+  passed SHA256 verification in each direction (0.781s upload, 0.852s download).
+  Interface counters rose by over 4 MiB each way; RX/TX errors and TX drops
+  remained zero. RX drops rose from 70 to 73 and remain unclassified. Wi-Fi was
+  disconnected during the observation; wired tests continued successfully
+- Bluetooth: service remained enabled and was active after this boot. No new
+  audible playback/reconnect test was requested or claimed
+- UART: completed 01:20:50.944803..01:25:49.025591+06, generation `f2c4b740`,
+  epoch1, bytes 1929630..2241283 (311653), 4481 normalized lines, compact context
+  capped at 4000 lines with 482 omitted; complete raw retained, zero capture
+  events and no continuity errors. Compact context reviewed first, then native
+  boot/raw boundary checked through 131.962s kernel time. A pre-Linux SceShellUI
+  userspace exception recovered before normal launcher/sys_kexec; it was not a
+  Linux fault. No Linux panic/oops, xHCI death, USB-root I/O fault or MTS terminal
+  fault observed. Wi-Fi disconnect produced driver diagnostic noise
+- verdict: PASS for one native 7.2 boot with DHCP and short wired traffic.
+  Not broad acceptance, long-duration stability, cable/admin-cycle or cold-load
+  evidence. Known-good dev1 rollback remains verified and unchanged. Private
+  plan, runtime snapshots, stream hashes and complete UART artifacts:
+  `lab/psx-7.2-ethernet-boot-2026-10-18`
+- desktop follow-up (outside the bounded hardware experiment): the PS4 network
+  patch removed upstream `findDevice()` while wiredDevice still called it.
+  Restored that helper in source and the installed desktop through Omarchy's
+  supported local network-plugin clone. Preserved shell config and original
+  plugin as a private rollback; Bluetooth stays in the bar. Plugin hot reload
+  kept stale QML, so a supported shell restart loaded the fix. The rendered bar
+  then showed Ethernet, its panel reported the wired DHCP address and the owner
+  confirmed: "nice it shows ethernet icon". The new synthetic fixture executes
+  the actual patched selector/kind/icon for wired/Wi-Fi/idle cases; the old
+  patch fails its missing-helper assertion. No network or driver state changed
+- next action: owner authorized committing/pushing the completed PS4 changes
+  and publishing kernel prereleases, 6.18 followed by 7.2. No further hardware
+  experiment scheduled. Bluetooth defaults commit: `40f6fa9`
 
 ## Session-close checklist
 

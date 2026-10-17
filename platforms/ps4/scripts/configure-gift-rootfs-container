@@ -27,8 +27,8 @@ esac
 case $root_layout in
   whole-device-filesystem) ;;
   partitioned-usb)
-    grep -q '^pkgrel=21$' /workspace/packages/omarchy-ps4-provisioning/PKGBUILD || \
-      fail 'partitioned USB needs provisioning package 21 or a reviewed successor'
+    grep -q '^pkgrel=22$' /workspace/packages/omarchy-ps4-provisioning/PKGBUILD || \
+      fail 'partitioned USB needs provisioning package 22 or a reviewed successor'
     ;;
   *) fail 'unsupported root layout' ;;
 esac
@@ -46,7 +46,7 @@ done <"$snapshot/manifest/packages.lock"
 
 cp -a /workspace/rootfs/xfce/overlay/. /
 if [[ $root_layout == partitioned-usb ]]; then
-  [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-21 ]] || \
+  [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-22 ]] || \
     fail 'partitioned USB requires the matching provisioning package'
   install -d -m 0755 /boot
   printf '%s\n' 'LABEL=PS4BOOT  /boot  vfat  ro,nofail,umask=0077  0  0' >> /etc/fstab
