@@ -2,18 +2,21 @@
 
 # Current resume point — Ethernet integration, 2026-10-17
 
-The latest hardware entry is **EXP-20261017-017, PASS for same-boot standalone
-service adoption and wired transport on the original MTS2 kernel**. The new
-`ps4-ethernet.service` is enabled; the older Omarchy service is disabled for
-future startup only. The healthy retained generation, profile, routes and Wi-Fi
-were preserved. Fresh unattended startup of the new service remains pending.
+The latest hardware entry is **EXP-20261017-019, PASS for one fresh boot of
+native `psx_mts_net` autoload on the psX 6.18 kernel**
+(`6.18.44-psx-ps4-baikal-native-dev1`, linux-psx development target
+`6.18-ps4-baikal-native-dev`). udev loaded the driver, NetworkManager's default
+wired profile made the first open, and DHCP, traffic and one cable replug
+passed with no userspace Ethernet adapter. The MTS2-only adapter and old private
+kernels were removed from the USB root after a verified backup; the public
+`6.18.44-psx-ps4-baikal1` kernel stays in the FAT recovery directory.
 
-Historical EXP016 remains DEGRADED: its initial startup failed, strict admin
-packet gating was inconclusive and cable recovery was not observed. The new
-`6.18.44-psx-ps4-baikal1` kernel and reconstructed initramfs remain unqualified.
-Never unload, reset, unbind or rearm a published or uncertain instance. The next
-hardware question is unattended startup at the owner's next normal boot; no
-reboot or cable action is requested now.
+EXP-20261017-018 booted the firmware-free `6.18.44-psx-ps4-baikal1` once
+(display, Wi-Fi, Bluetooth); a later Aeolia xHCI death in that boot made its
+stability DEGRADED. Historical EXP016 remains DEGRADED. No single boot here is
+acceptance. Never unload, reset, unbind or rearm a published or uncertain
+instance. The next hardware question is EXP-20261017-020: a fresh boot without
+the cable, then connect it.
 
 Source migration itself performed no hardware experiment. IP/MAC/volume/boot
 identifiers and the USB serial in the historical entries are documentation
@@ -12182,6 +12185,123 @@ but they are not evidence of a Linux 6.18 boot.
   EXP016 remains DEGRADED. Private receipts: lab/ethernet-autoconnect-2026-10-17
 - next action: verify the enabled standalone service at the owner's next normal
   boot; no further reboot, cable or operator action is requested in this test
+
+## EXP-20261017-018 — psX 6.18 firmware-free kernel boot
+
+- objective: replace the USB-booted `6.18.44-ps4-baikal-mts2` kernel with the
+  linux-psx CI build `6.18.44-psx-ps4-baikal1` (master `2d6f332`), which embeds
+  no firmware, and verify one fresh boot with display, Wi-Fi and Bluetooth.
+  Ethernet activation was out of scope. Owner explicitly authorized the USB write
+- precondition: before the install, fresh MTS2 boot `653b3fd2` (EXP017 next
+  action) autostarted the enabled `ps4-ethernet.service` unattended; NM
+  connected psx0 with the default route via psx0 and traffic without errors.
+  One unattended boot; not acceptance
+- candidate: bzImage SHA256 `218e9c9a4f5debeefa40021154629f8d80cf92f6c00382d87a8d22bd92f32137`
+  from CI artifact `linux-psx-ps4-baikal-2d6f332b13132853b36ebcd876526bb01874968b`
+  with its matching module tree. initramfs SHA256
+  `089d62daaef9b4ab7a61486d193533deef5f79c7782ecd8ddc10030477b0f460`: the
+  omarchy-ps4 internal-boot initramfs repacked by `scripts/repack-ps4-initramfs`
+  plus 10 local MediaTek MT7668 firmware files in one gzip stream. It contains
+  vendor firmware and stays private. bootargs/vram/release.json unchanged
+- scope/rollback: guarded updater bound to boot `653b3fd2`, the running MTS2
+  kernel/driver state, USB serial/UUIDs and old FAT hashes. Old FAT set kept in
+  `/boot/psx-recovery-EXP-20261017-018` and as external tar SHA256
+  `48af3ed9527f40a11dabe01f18b45fcf664d676e5aa01b4d1f5a976ad2e0d533`.
+  Rollback restores bzImage and initramfs from either copy
+- install: committed; new module tree installed with depmod, FAT bzImage and
+  initramfs replaced and re-verified, console-internal files unchanged. MTS2
+  driver stayed running/error0 until the owner rebooted
+- transition: clean MTS2 shutdown; `psx_mts_net: terminal reason=shutdown
+  error=0 stop_error=0 stop_ack=1 retained=1 drain=unproven`, then Orbis and the
+  loader started the new kernel
+- result: boot `1ee5b70c` ran `6.18.44-psx-ps4-baikal1`. amdgpu initialized
+  Liverpool, HDMI-A-1 connected and Hyprland ran on seat0; graphical.target
+  after 5.9s userspace (16.9s total). MT7668 SDIO Wi-Fi connected and BT hci0
+  set up on a kernel with no embedded firmware. The MT7668 Wi-Fi RAM code and
+  patch files exist only in the initramfs (rootfs has `mt7668pr2h.bin.zst`
+  only), but no firmware-load line was logged, Orbis had just initialized the
+  chip, and BT printed "Firmware already downloaded" on this and the previous
+  MTS2 boot. Firmware source is not directly witnessed; cold path untested.
+  No failed units. The unique kernel
+  warning set matched the previous MTS2 boot (25 vs 27; the two missing lines
+  were shutdown-time systemd transaction notes)
+- Ethernet: not activated, as designed. `ps4-ethernet.service` stayed enabled
+  with ConditionResult=no because it is pinned to
+  `ConditionKernelVersion=6.18.44-ps4-baikal-mts2`; the matching-vermagic
+  `psx_mts_net` has no autoload alias and stayed unloaded; PS4Ethernet profile
+  idle. Owner saw no wired connection in the desktop, as expected
+- UART: completed 21:10:32.752019..21:29:15.383873+06; generation `f2c4b740`,
+  epoch1, bytes 127204..425435 (298231), 4165 normalized lines, zero capture
+  events. Compact context reviewed and raw scanned for panic/oops/BUG/WARNING/
+  call traces: none. Raw evidence stays private
+- verdict: PASS for one fresh boot of the firmware-free psX 6.18 kernel with a
+  local firmware initramfs on this console: display, Wi-Fi and BT. Not
+  acceptance; Ethernet on the psX kernel untested. Private receipts:
+  lab/psx-6.18-boot-2026-10-17
+- post-session (continuous capture, same boot, uptime 1738-1749s): a USB
+  keyboard disconnected and re-enumerated, `usb 1-1.2` reset, then
+  `xhci_aeolia 0000:00:14.7: xHCI host not responding to stop endpoint
+  command`, `assume dead`, `HC died; cleaning up`. The USB root disk went
+  offline (`device offline error, dev sda` on writes, then ext4 -EIO directory
+  reads); SSH stopped answering while ping and Wi-Fi stayed up. No earlier
+  record of an Aeolia xHCI death; psX-kernel specificity unknown. This boot's
+  stability is therefore DEGRADED; the boot-time PASS above stands
+- next action: power-cycle and check the root filesystem, then EXP-019 tests
+  native `psx_mts_net` autoload on psX 6.18
+
+## EXP-20261017-019 — native psx_mts_net autoload on a clean public baseline
+
+- objective: verify that the firmware-free psX 6.18 kernel with a native
+  autoload driver patch brings up wired Ethernet with no userspace adapter:
+  udev autoload, `psx0` registered after module LIVE, NetworkManager's first
+  open publishes, DHCP and traffic, then one unplug/replug in the same boot
+- candidate: linux-psx branch `native-ethernet-autoload` (uncommitted at test
+  time; committed unchanged to linux-psx master as `abb2d84`, pushed with
+  `f48795e`),
+  `0700-network-mts/0002-net-ps4-mts-native-autoload.patch` on the
+  `6.18-ps4-baikal` series; local dev target `6.18-ps4-baikal-native-dev`,
+  release `6.18.44-psx-ps4-baikal-native-dev1`, OrbStack build (Debian GCC
+  14.2). bzImage SHA256 `e92565bcfec82d0739f44bace1fa779d561d9e60497fb0ba815e7c40b016ee3c`,
+  modules archive `cfbdab024331c4b71e0529f6880758fdd12898aa8bb86fb935d78cbefeaaa050`.
+  Config equals the CI `baikal1` config except toolchain symbols and
+  LOCALVERSION. Initramfs and the other boot files unchanged
+- install: after the EXP-018 xHCI death the stick moved to build-host on
+  the owner's instruction. Read-only fsck was clean on both partitions (the
+  desktop automount had replayed the ext4 journal). A host installer checked
+  disk/partition identity and old hashes, installed the module tree with
+  depmod (PCI alias present) and swapped only the FAT bzImage, keeping the old
+  set in `psx-recovery-EXP-20261017-019`. The owner then asked to clean up old
+  kernels and assume the public kernel: the old private `6.18.44-ps4-baikal`,
+  `-mts1` and `-mts2` module trees, six old FAT experiment directories and
+  the MTS2-only Ethernet adapter (`ps4-ethernet` unit and enable link, tool,
+  MTS2 metadata, `PS4Ethernet` profile) were removed after a byte-verified
+  backup on build-host. Final read-only fsck clean
+- result: boot `b843010a` ran the native-dev kernel. udev loaded
+  `psx_mts_net` (autoarm=Y): PROBED at 14.9s, `REGISTERED psx0` at 15.0s after
+  LIVE, NetworkManager's first open at 17.3s prepared four DMA extents, then
+  `RUNNING continuous polling-only link=1 published=1`, refcnt1. No adapter
+  ran: the tool and metadata were absent and the packaged
+  `omarchy-ps4-ethernet.service` had ConditionResult=no. NetworkManager
+  auto-created `Wired connection 1` (IPv4 DHCP, IPv6 auto with link-local
+  only); default route via `psx0` metric 100
+- transport: SSH over the wired address; independent random 4194304-byte files
+  passed SHA256 in both directions (4.3 and 2.7 MiB/s); interface-bound
+  HTTPS to kernel.org returned 200 with TLS verified
+- cable: one unplug/replug. Carrier down1/up2; NetworkManager reactivated
+  with a new DHCP lease 9s after link; gateway ping 5/5 via `psx0`; a second
+  4 MiB pair matched in both directions. TX dropped 6 while unplugged
+- counters: RX 7328 and TX 7889 packets with 0 errors; RX dropped 131,
+  unclassified (the root-only driver report was not read)
+- UART: completed 22:35:39.163976..22:42:46.911737+06; generation
+  `f2c4b740`, epoch1, bytes 576110..746229 (170119), 2082 normalized lines,
+  zero capture events. Compact context reviewed; the raw fault scan matched
+  only baseline printk/ntfs3/console notices. Raw evidence stays private
+- verdict: PASS for one fresh boot with the cable connected plus one in-boot
+  replug: native plug-and-play Ethernet with NetworkManager defaults and no
+  adapter. Not acceptance; boot without a cable, repeated boots, other network
+  managers and Linux 7.2 are untested. Private receipts:
+  lab/psx-native-eth-2026-10-17 (Mac and build-host)
+- next action: EXP-020, a fresh boot without the cable, then connect it
 
 ## Session-close checklist
 
