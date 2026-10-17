@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/meerzulee/linux-psx.git",
+  "revision": "b9bcf7234dff601ce41e141ca1403ea0a4525c1a",
+  "revision_status": "Published immutable kernel migration commit; CI and hardware acceptance are separate.",
+  "target": "6.18-ps4-baikal",
+  "kernel_release": "6.18.44-psx-ps4-baikal1",
+  "artifacts_schema": 1,
+  "upstream": {
+    "repository": "https://github.com/gregkh/linux.git",
+    "ref": "v6.18.44",
+    "commit": "1efe5d048a391de3ead2804b2e7f86376c356cc5"
+  }
+}

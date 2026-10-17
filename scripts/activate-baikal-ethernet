@@ -1,0 +1,475 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: MIT
+"""Operator-invoked, once-per-boot Linux psX Omarchy activation.
+
+Derived from Omarchy PS4 activate-baikal-ethernet under the MIT license:
+MIT License
+
+Copyright (c) 2026 Omarchy PS4 contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+No startup enablement, unload/reset, automatic rearm, or unrelated profile edits.
+Consumes generic Linux psX artifacts.json; no kernel-side NM integration required.
+"""
+import argparse
+import configparser
+import fcntl
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import stat
+import subprocess
+import sys
+import time
+import uuid
+
+NAME = "psx_mts_net"
+RELEASE = "6.18.44-psx-ps4-baikal1"
+CANDIDATE = None  # Explicit root-sealed Linux psX artifacts.json.
+PARAMS = f"/sys/module/{NAME}/parameters"
+PCI = "/sys/bus/pci/devices/0000:00:14.1"
+GLUE = "/sys/bus/pci/devices/0000:00:14.4"
+PROFILE = "/etc/NetworkManager/system-connections/PSXEthernet.nmconnection"
+TEMPLATE = b"""[connection]
+id=PSXEthernet
+uuid=615bb3ec-47f4-4b02-871c-680c96b98f68
+type=ethernet
+interface-name=psx0
+autoconnect=true
+autoconnect-priority=999
+
+[ethernet]
+mac-address=@MAC@
+cloned-mac-address=preserve
+auto-negotiate=false
+wake-on-lan=32768
+mtu=1500
+
+[ipv4]
+method=auto
+route-metric=100
+
+[ipv6]
+method=disabled
+"""
+PROFILE_UUID = "615bb3ec-47f4-4b02-871c-680c96b98f68"
+NM = "/usr/bin/nmcli"
+TRUSTED_TOOL_DIRS = ("/usr/bin", "/usr/sbin", "/bin", "/sbin")
+TOOLS = {"nmcli", "ip", "modprobe", "modinfo"}
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+class System:
+    """Small OS boundary; tests replace this with a fully synthetic host."""
+    def __init__(self):
+        self.deadline = time.monotonic() + 60
+        self.tools = {}
+
+    def read(self, path):
+        return Path(path).read_bytes()
+
+    def text(self, path):
+        return self.read(path).decode().strip()
+
+    def exists(self, path):
+        return Path(path).exists()
+
+    def real(self, path):
+        return str(Path(path).resolve(strict=True))
+
+    def pci_command(self, path):
+        descriptor = os.open(path + "/config", os.O_RDONLY)
+        try:
+            return os.pread(descriptor, 2, 4)
+        finally:
+            os.close(descriptor)
+
+    def sealed(self, path, mode=None):
+        path = Path(path)
+        info = path.lstat()
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == info.st_gid == 0 and
+                not info.st_mode & 0o022 and
+                (mode is None or stat.S_IMODE(info.st_mode) == mode),
+                "Expected sealed root-owned regular file: " + str(path))
+        for parent in path.parents:
+            info = parent.lstat()
+            require(stat.S_ISDIR(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o022,
+                    "Unsealed/symlink parent: " + str(parent))
+        return self.read(path)
+
+    def resolve_tool(self, name):
+        require(name in TOOLS, "Unexpected activation tool")
+        if name in self.tools:
+            return self.tools[name]
+        for directory in TRUSTED_TOOL_DIRS:
+            candidate = Path(directory) / name
+            if not self.exists(str(candidate)):
+                continue
+            # Seal the canonical target, including its real ancestors. Also
+            # verify alias ownership/parents; /bin and kmod applet symlinks are
+            # legitimate only when root controls the complete path.
+            self.sealed(self.real(str(candidate)))
+            for item in (candidate, *candidate.parents):
+                info = item.lstat()
+                require(info.st_uid == 0 and
+                        (stat.S_ISLNK(info.st_mode) or not info.st_mode & 0o022),
+                        "Untrusted command path: " + str(item))
+            require(os.access(candidate, os.X_OK), "Tool is not executable: " + str(candidate))
+            # Preserve the alias in argv[0]: modprobe may link to multicall kmod.
+            self.tools[name] = str(candidate)
+            return str(candidate)
+        raise RuntimeError("Required tool not found in trusted system directories: " + name)
+
+    def command(self, *args, timeout=5):
+        remaining = self.deadline - time.monotonic()
+        require(remaining > 0, "Boot activation deadline reached")
+        require(args and args[0].startswith("/"), "Command must use an explicit system tool")
+        executable = self.resolve_tool(Path(args[0]).name)
+        return subprocess.check_output((executable, *args[1:]), text=True, stderr=subprocess.STDOUT,
+                                       env={"PATH": "/usr/bin:/usr/sbin", "LC_ALL": "C"},
+                                       timeout=min(timeout, remaining)).rstrip("\n")
+
+    def write(self, path, data):
+        with open(path, "wb", buffering=0) as stream:
+            require(stream.write(data) == len(data), "Short sysfs write: " + path)
+
+    def claim_attempt(self):
+        boot = str(uuid.UUID(self.text("/proc/sys/kernel/random/boot_id")))
+        marker = "/run/omarchy-psx-ethernet-attempt-" + boot
+        fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, "w") as stream:
+            json.dump({"boot_id": boot, "kernel_release": RELEASE,
+                       "manifest": CANDIDATE, "started_epoch": time.time()}, stream)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+
+    def create_profile(self, data):
+        # Only create our exact named file. Existing profiles are never replaced.
+        path = Path(PROFILE)
+        for parent in path.parents:
+            info = parent.lstat()
+            require(stat.S_ISDIR(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o022,
+                    "Unsealed profile directory: " + str(parent))
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+
+
+def candidate_guard(system):
+    require(os.geteuid() == 0, "Run this explicitly with sudo --activate --artifacts PATH")
+    require(os.uname().release == RELEASE and os.uname().machine == "x86_64", "Kernel release/architecture differs")
+    candidate = json.loads(system.sealed(CANDIDATE, 0o600))
+    required = {"schema", "target", "platform", "kernel_release", "kernel_config_sha256",
+                "kernel_sha256", "embedded_firmware", "modules_archive", "module"}
+    require(required <= set(candidate), "Missing Linux psX artifact fields")
+    require(candidate["schema"] == 1 and candidate["target"] == "6.18-ps4-baikal" and
+            candidate["platform"] == "ps4-baikal" and candidate["kernel_release"] == RELEASE and
+            candidate["embedded_firmware"] is False, "Artifact target/release/firmware policy differs")
+    archive, module = candidate["modules_archive"], candidate["module"]
+    require(archive["path"] == "modules-" + RELEASE + ".tar.zst", "Module archive name differs")
+    require(module["name"] == NAME and module["path"] ==
+            "lib/modules/" + RELEASE + "/kernel/drivers/net/ethernet/" + NAME + ".ko",
+            "Relative module path differs")
+    for value in (candidate["kernel_config_sha256"], candidate["kernel_sha256"],
+                  archive["sha256"], module["sha256"]):
+        require(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value), "Invalid artifact digest")
+    # Resolve kmod's installed /lib tree, supporting merged-/usr and ordinary
+    # /lib layouts. The generic manifest never embeds the local canonical path.
+    installed = system.real("/" + module["path"])
+    candidate = {"schema": 1, "kernel_release": RELEASE,
+                 "kernel_config_sha256": candidate["kernel_config_sha256"],
+                 "module_path": installed, "module_sha256": module["sha256"],
+                 "loaded_note_hex": module["build_note_hex"]}
+    require(set(candidate) == {"schema", "kernel_release", "kernel_config_sha256", "module_path",
+                               "module_sha256", "loaded_note_hex"}, "Unexpected candidate fields")
+    require(candidate["schema"] == 1 and candidate["kernel_release"] == RELEASE and
+            candidate["module_path"] == installed, "Candidate release/path differs")
+    for field in ("kernel_config_sha256", "module_sha256"):
+        require(re.fullmatch(r"[0-9a-f]{64}", candidate[field]), "Invalid candidate digest: " + field)
+    require(re.fullmatch(r"(?:[0-9a-f]{2}){16,256}", candidate["loaded_note_hex"]), "Invalid loaded-note pin")
+    require(digest(gzip.decompress(system.read("/proc/config.gz"))) == candidate["kernel_config_sha256"],
+            "Running kernel configuration differs")
+    require(digest(system.sealed(installed)) == candidate["module_sha256"], "Installed module hash differs")
+    require(system.real(installed) == installed, "Module path is not canonical")
+    require(system.real(system.command("/usr/bin/modinfo", "-n", NAME)) == installed, "modinfo resolves another module")
+    require(system.command("/usr/bin/modinfo", "-F", "vermagic", installed).split()[0] == RELEASE,
+            "Module vermagic differs")
+    require(not system.command("/usr/bin/modinfo", "-F", "depends", installed), "Unexpected module dependencies")
+    words = shlex.split(system.command("/usr/bin/modprobe", "--show-depends", "--ignore-install", NAME))
+    require(len(words) == 2 and words[0] == "insmod" and system.real(words[1]) == installed,
+            "modprobe has foreign artifacts/options/commands")
+    return candidate
+
+
+def pci_guard(system, bound):
+    for path, device in ((PCI, "0x90d8"), (GLUE, "0x90db")):
+        require(system.text(path + "/vendor") == "0x104d" and system.text(path + "/device") == device,
+                "Sony PCI identity differs")
+        require(system.text(path + "/power_state") == "D0" and
+                system.pci_command(path) == b"\x46\x05", "PCI command/power differs")
+    require(system.real(GLUE + "/driver").rsplit("/", 1)[-1] == "baikal_pcie", "Glue is not bound")
+    require(system.text(PCI + "/driver_override") in ("", "(null)"), "A retained/foreign override exists")
+    require(system.text(PCI + "/dma_mask_bits") == system.text(PCI + "/consistent_dma_mask_bits") == "32",
+            "DMA masks differ")
+    require(system.text(system.real(PCI + "/iommu_group") + "/type") == "identity", "Unexpected IOMMU policy")
+    resources = [line.split() for line in system.text(PCI + "/resource").splitlines()]
+    glue_resources = [line.split() for line in system.text(GLUE + "/resource").splitlines()]
+    for row, start, size in ((resources[0], 0xc2000000, 0x1000),
+                              (glue_resources[2], 0xc8800000, 0x200000)):
+        actual_start, end, flags = (int(value, 16) for value in row)
+        require(actual_start == start and end == start + size - 1 and flags & 0x200,
+                "PCI BAR resource differs")
+    require(system.exists(PCI + "/driver") == bound, "GBE binding state differs")
+    modules = {line.split()[0] for line in system.text("/proc/modules").splitlines()
+               if line.split()[0].startswith("psx_mts_")}
+    require(modules == ({NAME} if bound else set()), "Old/foreign MTS module is present")
+    if bound:
+        require(system.real(PCI + "/driver").rsplit("/", 1)[-1] == NAME and
+                system.real("/sys/class/net/psx0/device") == system.real(PCI), "Netdevice/driver identity differs")
+        require(system.text("/sys/class/net/psx0/name_assign_type") == "2", "Fixed interface name differs")
+
+
+def report(system, candidate):
+    base = "/sys/module/" + NAME
+    require(system.text(base + "/initstate") == "live", "Module is not LIVE")
+    require(system.read(base + "/notes/.note.gnu.build-id").hex() == candidate["loaded_note_hex"],
+            "Loaded module identity differs")
+    value = json.loads(system.read(PARAMS + "/report"))
+    require(value["continuous"] == 1 and value["lease_seconds"] == 0 and value["bound"] == 1 and
+            value["terminal_fault"] == value["error"] == value["stop_error"] == 0 and
+            value["drain_proven"] is False, "Unexpected continuous driver contract/fault")
+    return value
+
+
+def fresh(value, allowed=0):
+    require(value["state"] == 1 and value["allowed"] == allowed and
+            all(value[key] == 0 for key in ("attempted", "published", "self_pinned", "engine_live",
+                                            "admin_up", "carrier", "poll_enabled")),
+            "Driver is not positively gated PROBED/unpublished")
+
+
+def published(value):
+    require(value["state"] == 3 and all(value[key] == 1 for key in
+            ("attempted", "published", "self_pinned", "engine_live", "poll_enabled")),
+            "Published engine is not healthy; retain and inspect")
+    require(value["admin_up"] in (0, 1) and value["carrier"] in (0, 1), "Invalid admin/carrier state")
+    require(value["phy_id"] == 0x03a29441 and value["phy_page"] == 0 and value["bmcr"] == 0x1040 and
+            value["mmd147_before"] in (0, 0x10) and value["mmd147_after"] == 0 and
+            value["mac08"] == 0x0f597c00 and value["mask"] == 0x7ffffa and value["gate"] == 0,
+            "Published PHY/MAC contract differs")
+    extents = value["dma"]
+    require(len(extents) == 4, "Missing DMA extents")
+    for index, (address, size) in enumerate(extents):
+        require(isinstance(address, int) and isinstance(size, int) and
+                size == (0x4000 if index < 2 else 0x60000) and
+                0 <= address <= 0xffffffff and address + size - 1 <= 0xffffffff and
+                (index >= 2 or address % 0x4000 == 0), "Invalid full DMA extent/alignment")
+        require(all(address + size <= old or old + length <= address for old, length in extents[:index]),
+                "DMA extents overlap")
+
+
+def parse_profile(data):
+    parser = configparser.ConfigParser(interpolation=None, strict=True)
+    parser.read_string(data.decode())
+    result = {group: dict(parser[group]) for group in parser.sections()}
+    if "802-3-ethernet" in result:
+        require("ethernet" not in result, "Duplicate Ethernet profile groups")
+        result["ethernet"] = result.pop("802-3-ethernet")
+    connection = result.get("connection", {})
+    if connection.get("type") == "802-3-ethernet":
+        connection["type"] = "ethernet"
+    # NM1.58 nm-keyfile.c3901 skips GParamSpec defaults: autoconnect TRUE
+    # (nm-setting-connection.c2601) and auto-negotiate FALSE (wired.c1349).
+    # Preserve every non-default/critical setting; never infer MAC preservation,
+    # WOL policy, UUID, interface, route metric or IP methods from their absence.
+    if "connection" in result:
+        connection.setdefault("autoconnect", "true")
+    if "ethernet" in result:
+        result["ethernet"].setdefault("auto-negotiate", "false")
+    if result.get("proxy") == {}:
+        result.pop("proxy")
+    timestamp = connection.pop("timestamp", None)
+    require(timestamp is None or timestamp.isdigit(), "Invalid profile timestamp")
+    if "mac-address" in result.get("ethernet", {}):
+        result["ethernet"]["mac-address"] = result["ethernet"]["mac-address"].lower()
+    return result
+
+
+def profile_guard(system, mac, create):
+    require(re.fullmatch(r"(?:[0-9a-f]{2}:){5}[0-9a-f]{2}", mac) and
+            int(mac[:2], 16) & 1 == 0 and mac != "00:00:00:00:00:00", "Invalid inherited MAC")
+    expected = {"connection": {"id": "PSXEthernet", "uuid": PROFILE_UUID, "type": "ethernet",
+                                "interface-name": "psx0", "autoconnect": "true",
+                                "autoconnect-priority": "999"},
+                "ethernet": {"mac-address": mac, "cloned-mac-address": "preserve",
+                             "auto-negotiate": "false", "wake-on-lan": "32768", "mtu": "1500"},
+                "ipv4": {"method": "auto", "route-metric": "100"},
+                "ipv6": {"method": "disabled"}}
+    template = TEMPLATE.replace(b"@MAC@", mac.encode())
+    require(parse_profile(template) == expected, "Embedded Omarchy profile template differs")
+    if not system.exists(PROFILE):
+        require(create, "Owned profile is missing on an already published engine")
+        system.create_profile(template)
+    require(parse_profile(system.sealed(PROFILE, 0o600)) == expected,
+            "Owned profile was changed; preserve it and inspect")
+
+
+def profile_list_guard(system, mac, require_owned):
+    lines = system.command(NM, "-t", "-e", "no", "-f", "UUID,TYPE,FILENAME", "connection", "show").splitlines()
+    owned = 0
+    require(len(lines) <= 128, "Too many profiles for bounded boot preflight")
+    for line in lines:
+        identifier, kind, filename = line.split(":", 2)
+        require(str(uuid.UUID(identifier)) == identifier, "Invalid NM profile UUID")
+        if identifier == PROFILE_UUID:
+            require(kind in ("ethernet", "802-3-ethernet") and filename == PROFILE, "Owned UUID has another origin")
+            owned += 1
+            continue
+        if kind not in ("ethernet", "802-3-ethernet"):
+            continue
+        fields = system.command(NM, "-e", "no", "-g",
+                                "connection.interface-name,802-3-ethernet.mac-address,connection.autoconnect",
+                                "connection", "show", "uuid", identifier).split("\n")
+        require(len(fields) == 3, "Cannot classify competing Ethernet profile")
+        interface, address, auto = fields
+        compatible = interface in ("", "--", "psx0") and address.lower() in ("", "--", mac)
+        require(not (compatible and auto == "yes"), "Another autoconnect Ethernet profile could claim psx0")
+    require(owned == (1 if require_owned else 0) or (not require_owned and owned == 1),
+            "Owned profile is missing/duplicated")
+
+
+def activate(system):
+    candidate = candidate_guard(system)  # No activation, even module load, before all pins match.
+    deadline = time.monotonic() + 10
+    while not system.exists(GLUE + "/driver"):
+        require(time.monotonic() < deadline, "Baikal glue did not bind within10 seconds")
+        time.sleep(0.1)
+    loaded = system.exists("/sys/module/" + NAME)
+    pci_guard(system, loaded)
+    # Claim before the first module/NM mutation. A failed/uncertain attempt is
+    # never repeated in this boot; inspect the retained state instead.
+    system.claim_attempt()
+    if not loaded:
+        system.command("/usr/bin/modprobe", "--ignore-install", "--first-time", NAME, timeout=10)
+        pci_guard(system, True)
+    value = report(system, candidate)
+    mac = system.text("/sys/class/net/psx0/address")
+    inherited = ":".join(f"{byte:02x}" for byte in (
+        (value["mac14"] >> 8) & 255, value["mac14"] & 255,
+        (value["mac18"] >> 24) & 255, (value["mac18"] >> 16) & 255,
+        (value["mac18"] >> 8) & 255, value["mac18"] & 255))
+    require(mac == inherited, "Linux MAC differs from cached inherited hardware filter")
+    if value["published"]:
+        published(value)
+        require(int(system.text("/sys/module/" + NAME + "/refcnt")) >= 1, "Resident module pin missing")
+        profile_guard(system, mac, create=False)
+        return "ALREADY INITIALIZED: continuous engine retained; no rearm or NM changes"
+    fresh(value)
+    require(system.text("/sys/module/" + NAME + "/refcnt") == "0", "Unexpected unpublished module reference")
+    system.command(NM, "device", "set", "psx0", "autoconnect", "no", "managed", "no")
+    require(system.command(NM, "-g", "GENERAL.NM-MANAGED", "device", "show", "psx0") == "no",
+            "psx0 is not unmanaged")
+    require(system.command(NM, "-g", "GENERAL.AUTOCONNECT", "device", "show", "psx0") == "no",
+            "Device autoconnect is not blocked")
+    ipv6 = "/proc/sys/net/ipv6/conf/psx0/disable_ipv6"
+    if system.exists(ipv6):
+        system.write(ipv6, b"1\n")
+        require(system.text(ipv6) == "1", "Cannot disable wired IPv6")
+    profile_list_guard(system, mac, require_owned=False)
+    profile_guard(system, mac, create=True)
+    system.command(NM, "connection", "load", PROFILE)
+    profile_list_guard(system, mac, require_owned=True)
+    # Profile-load errors, foreign ownership, and initial NM errors precede arming.
+    pci_guard(system, True)
+    fresh(report(system, candidate))
+    system.write(PARAMS + "/allow_open", b"1\n")
+    fresh(report(system, candidate), allowed=1)
+    require(system.command(NM, "-g", "GENERAL.NM-MANAGED", "device", "show", "psx0") == "no" and
+            system.command(NM, "-g", "GENERAL.AUTOCONNECT", "device", "show", "psx0") == "no",
+            "NM ownership changed before first open; retain and inspect")
+    # NM may have cached an earlier gate-closed UP failure. Perform exactly one
+    # explicit first open while NM remains blocked; never retry an uncertain UP.
+    system.command("/usr/bin/ip", "link", "set", "dev", "psx0", "up", timeout=25)
+    opened = report(system, candidate)
+    published(opened)  # ndo_open may return0 after a retained publication fault.
+    require(opened["admin_up"] == 1 and
+            system.text("/sys/module/" + NAME + "/refcnt") == "1",
+            "First open did not establish admin-up with exactly one permanent pin")
+    # Carrier and DHCP remain asynchronous, including an unplugged first open.
+    system.command(NM, "device", "set", "psx0", "managed", "yes", "autoconnect", "yes")
+    require(system.command(NM, "-g", "GENERAL.NM-MANAGED", "device", "show", "psx0") == "yes",
+            "NM did not accept psx0 management; retain and inspect")
+    require(system.command(NM, "-g", "GENERAL.AUTOCONNECT", "device", "show", "psx0") == "yes",
+            "NM did not enable autoconnect; retain and inspect")
+    return "ENABLED: PSXEthernet delegated to NetworkManager; carrier/DHCP asynchronous"
+
+
+def main():
+    global CANDIDATE
+    parser = argparse.ArgumentParser(description="Explicit Linux psX Omarchy activation; no startup installation")
+    parser.add_argument("--activate", action="store_true", help="Authorize this boot's one activation attempt")
+    parser.add_argument("--artifacts", required=True, type=Path, help="Root-owned mode0600 Linux psX artifacts.json")
+    args = parser.parse_args()
+    require(args.activate, "Explicit --activate is required")
+    require(os.geteuid() == 0, "Run as root")
+    require(args.artifacts.is_absolute(), "Manifest path must be absolute")
+    CANDIDATE = str(args.artifacts)
+    system = System()
+    system.sealed(str(Path(__file__).absolute()))
+    fd = os.open("/run/omarchy-psx-ethernet.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    try:
+        info = os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o077,
+                "Activation lock is not root-private")
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        print(activate(system), flush=True)
+    finally:
+        os.close(fd)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as error:
+        print("Omarchy psX Ethernet activation refused: " + str(error) +
+              "; STOP. Do not retry, unload/reset, clear overrides or rearm in this boot. "
+              "Preserve report/UART evidence; published DMA stays retained until power-off.",
+              file=sys.stderr, flush=True)
+        sys.exit(1)

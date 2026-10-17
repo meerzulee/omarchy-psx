@@ -41,7 +41,7 @@ Each console will use its own selected Linux psX kernel and matching modules.
 
 | Console | Project status |
 | --- | --- |
-| **PlayStation 4** | Existing Omarchy PS4 port; integration into psX is planned. |
+| **PlayStation 4** | Existing PS4 port; source handoff and experimental integration scaffolding now live here. |
 | **PlayStation 5** | Planned port, using the Linux psX kernel foundation. |
 | **Future PlayStation consoles** | Long-term exploration as hardware access and public research become available. |
 
@@ -54,12 +54,24 @@ Each console will use its own selected Linux psX kernel and matching modules.
 
 ## Current stage
 
-**Project setup and documentation.** The existing
-[Omarchy PS4 project](https://github.com/meerzulee/omarchy-ps4) remains the home
-of the current PS4 implementation while integration is prepared.
+**Integration scaffolding.** This repository now holds a pinned kernel-source
+handoff, host setup guidance, an optional existing-Omarchy USB boot profile and
+a manually invoked experimental Ethernet adapter. Linux psX owns the kernel
+and its distribution-independent build/artifact contract; Omarchy-specific
+setup stays here.
 
-Source, build instructions and releases will be added here as the work lands.
-PS5 and future-console support are planned.
+Read [Using Linux psX with Omarchy](docs/USING-LINUX-PSX.md) for Mac ARM64
+(OrbStack), Linux x86-64 native builds, whole matching modules and recovery.
+The [handoff manifest](manifests/kernel-source.json) pins the published kernel
+migration commit `b9bcf7234dff601ce41e141ca1403ea0a4525c1a`.
+[Integration provenance](provenance/integration-import.json) records the exact
+source paths, hashes, adaptations and preserved notices for imported helpers
+and the optional boot-profile example.
+
+This is not a turnkey OS installer or a complete migration of the existing
+[Omarchy PS4 implementation](https://github.com/meerzulee/omarchy-ps4).
+No new Linux psX binary release or hardware acceptance is implied. PS5 and
+future-console support remain planned.
 
 ## License
 
