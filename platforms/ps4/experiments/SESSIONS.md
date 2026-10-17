@@ -2,21 +2,24 @@
 
 # Current resume point — Ethernet integration, 2026-10-17
 
-The latest hardware entry is **EXP-20261017-019, PASS for one fresh boot of
-native `psx_mts_net` autoload on the psX 6.18 kernel**
-(`6.18.44-psx-ps4-baikal-native-dev1`, linux-psx development target
-`6.18-ps4-baikal-native-dev`). udev loaded the driver, NetworkManager's default
-wired profile made the first open, and DHCP, traffic and one cable replug
-passed with no userspace Ethernet adapter. The MTS2-only adapter and old private
-kernels were removed from the USB root after a verified backup; the public
-`6.18.44-psx-ps4-baikal1` kernel stays in the FAT recovery directory.
+The latest hardware entry is **EXP-20261017-020, PASS for a native
+`psx_mts_net` boot launched without the Ethernet cable and then hot-plugged**
+on the psX 6.18 kernel (`6.18.44-psx-ps4-baikal-native-dev1`, linux-psx
+development target `6.18-ps4-baikal-native-dev`). The first open published
+with no link; carrier, NetworkManager's default wired profile, DHCP and
+traffic followed the plug with no user network action and no adapter.
+EXP-20261017-019 passed with the cable connected at boot plus one replug. The
+MTS2-only adapter and old private kernels were removed from the USB root after
+a verified backup; the public `6.18.44-psx-ps4-baikal1` kernel stays in the FAT
+recovery directory.
 
 EXP-20261017-018 booted the firmware-free `6.18.44-psx-ps4-baikal1` once
 (display, Wi-Fi, Bluetooth); a later Aeolia xHCI death in that boot made its
 stability DEGRADED. Historical EXP016 remains DEGRADED. No single boot here is
 acceptance. Never unload, reset, unbind or rearm a published or uncertain
-instance. The next hardware question is EXP-20261017-020: a fresh boot without
-the cable, then connect it.
+instance. The next hardware question is EXP-20261017-021: a third fresh boot
+with the cable connected, NetworkManager profile down/up cycles with the same
+DMA generation, operation beyond 900 s and an Orbis network check.
 
 Source migration itself performed no hardware experiment. IP/MAC/volume/boot
 identifiers and the USB serial in the historical entries are documentation
@@ -12302,6 +12305,52 @@ but they are not evidence of a Linux 6.18 boot.
   managers and Linux 7.2 are untested. Private receipts:
   lab/psx-native-eth-2026-10-17 (Mac and build-host)
 - next action: EXP-020, a fresh boot without the cable, then connect it
+
+## EXP-20261017-020 — native psx_mts_net cable-absent launch then hot-plug
+
+- objective: with the unchanged EXP-019 kernel, launch Linux from Orbis with
+  the Ethernet cable unplugged, observe psx0 and the driver before any cable,
+  then connect it and verify link, DHCP and traffic with no network action by
+  the operator. Single variable: no cable at launch
+- candidate: linux-psx master `abb2d84`, target `6.18-ps4-baikal-native-dev`,
+  release `6.18.44-psx-ps4-baikal-native-dev1`, the same bzImage
+  `e92565bcfec82d0739f44bace1fa779d561d9e60497fb0ba815e7c40b016ee3c` and boot
+  files as EXP-019. No storage write
+- setup: the outgoing EXP-019 boot `b843010a` at 2522s uptime still had psx0
+  carrier1, interface-bound HTTPS 200 with TLS verified, advancing counters
+  and 0 errors (RX dropped had grown to 1505, unclassified): operation beyond
+  900s. The owner restarted Linux with the cable connected; UART recorded
+  `psx_mts_net: terminal reason=shutdown error=0 stop_error=0 stop_ack=1
+  retained=1 drain=unproven`, `reboot: Restarting system`, then Orbis. The
+  owner unplugged the cable and launched Linux. No Orbis network test result
+  was reported
+- before plug: boot `4f4f81d5`. udev loaded `psx_mts_net` (autoarm=Y):
+  PROBED at 14.0s and `REGISTERED psx0` at 14.1s (journal clock). At 16.6s
+  NetworkManager took psx0 and brought it up, which made the first open with
+  no cable: four DMA extents, then `RUNNING continuous polling-only link=0
+  published=1 retained=1`. psx0 UP/NO-CARRIER, carrier_changes0, 0 packets;
+  NM device `unavailable` with `Wired connection 1` waiting
+- hot-plug: NM logged `carrier: link connected` at 109.9s and activated
+  `Wired connection 1` itself; the DHCP lease came at 119.6s, 9.7s after link,
+  with the default route via psx0 metric 100. carrier_changes1; no further
+  driver line
+- transport: independent random 4194304-byte files passed SHA256 in both
+  directions (6.6 MiB/s each); interface-bound HTTPS 200 with TLS verified from
+  the wired address; gateway ping 5/5 via psx0. Counters RX 3473 / TX 3577
+  packets with 0 errors, RX dropped 29, TX dropped 0
+- UART: completed 23:20:35.635744..23:28:07.456144+06; generation `f2c4b740`,
+  epoch1, bytes 996904..1299490 (302586), 4201 normalized lines, zero capture
+  events. The raw fault scan matched only the clean terminal stop line, one
+  Orbis UI warning, `panic=0` in the command line and baseline printk/ntfs3/
+  console notices. Raw evidence stays private
+- verdict: PASS for one fresh boot launched without the cable and then
+  hot-plugged: the first open published with no link, and carrier, DHCP and
+  traffic followed the plug with no user network action and no adapter. Second
+  native boot; not acceptance
+- next action: EXP-021, a third fresh boot with the cable connected, three NM
+  profile down/up cycles run from the desktop session (SSH lacks NM
+  network-control) with the same DMA generation, operation beyond 900s, then
+  an Orbis network check after returning
 
 ## Session-close checklist
 
