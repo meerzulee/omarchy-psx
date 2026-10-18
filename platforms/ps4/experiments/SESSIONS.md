@@ -12549,6 +12549,209 @@ but they are not evidence of a Linux 6.18 boot.
   and publishing kernel prereleases, 6.18 followed by 7.2. No further hardware
   experiment scheduled. Bluetooth defaults commit: `40f6fa9`
 
+## EXP-20261018-005 — Linux 7.2 VMID4 mapping canary
+
+- objective: one owned 256-byte SDMA copy through reserved VMID4 at
+  `0x300000000`, before attempting UVD startup. PS4 Slim / Baikal B1 / Orbis
+  12.02. One fresh diagnostic boot; no UVD/VCE registration or decode workload
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-map-canary-dev1`, project
+  `f0a2683` plus the exact native 62-patch prefix and diagnostic patch
+  `61eefde3d2da415f2609d574f8bdda8055de03c72cb4fe10fb0b3cd02a37a302`.
+  Config input changes LOCALVERSION only. Kernel
+  `5ff1f0e8a24c312f39a57eef93a81677efab28a12483e2848a0bb6993fbc4e7a`;
+  whole matching modules
+  `52605de208e9f5ac6290abd80d257fb6efe51fbfe68bbd77988a6e104838cdbe`.
+  Native build, 41-module identity checks, source reviews and offline bounds
+  fixtures passed; exact private inputs and the corrected missing-header
+  compiler failure are retained in `lab/uvd-2026-10-18`
+- install: owner confirmed the returned Kingston. Serial/UUID/size, old boot
+  hashes and all 41 rollback modules matched. Installed the entire new module
+  tree, backed up all five boot files, then replaced bootargs before kernel.
+  Only the canary gate was appended. Read-only FAT/ext4 checks were clean
+  before and after; both partitions unmounted before the owner moved the USB
+- observed: new kernel and gate confirmed in UART. BEGIN at 8.209562s, MAP at
+  8.226804s, PASS at 8.256172s. Actual geometry was max PFN `0x1000000`,
+  block10, root `0x20000` bytes, PDE index `0xc00`, leaf `0x2000` bytes.
+  Source/result/IB PTEs selected distinct owned DMA pages. Exact 64-word
+  readback passed with CRC32 `570ae4eb`, first `50533400`, last `6f2dca37`,
+  source/result guards and unchanged IB. Published BOs and fence stay retained
+- runtime: owner confirmed the desktop was normal. Wired SSH worked, system
+  state was running with zero failed units, and the installed MTS object matched
+  the candidate. No VM fault, SDMA timeout, GPU recovery or root-storage fault
+  was observed in the reviewed diagnostic/Linux interval
+- rollback: owner reported rebooting into Orbis and returning the USB; this
+  was not a confirmed full power-off. The guarded rollback restored the exact
+  native kernel `e5bdfd96...` before original bootargs, with all other boot
+  hashes unchanged and both module trees retained. FAT/ext4 checks remained
+  clean and partitions unmounted. The owner subsequently confirmed full
+  power-off after bounded capture finalization; continuous capture remained
+  running. No power-off acceptance claim or warm-reboot DMA quiescence was
+  qualified
+- UART: completed 02:25:39.978787..02:37:41.803329+06, generation `f2c4b740`,
+  epoch1, bytes 2292261..2746992 (454731), 6588 normalized lines, compact
+  context capped at 4000 with 2589 omitted. Zero capture events/continuity
+  errors. Compact context and exact canary raw boundary reviewed. Raw data
+  remains private
+- verdict: PASS for one SDMA VMID4 mapping/readback diagnostic. This does not
+  prove UVD requester/cache selection, firmware fetch, readiness, decoding,
+  general stability or support for the separately rebuilt public release
+- next action: source-only UVD startup analysis, including the distinction
+  between UVD4.2 and UVD5/6 cache units/requester fields. No next hardware
+  experiment is active and no further boot is requested yet
+
+## EXP-20261018-006 — Linux 7.2 UVD readiness preflight rejection
+
+- objective: one readiness-only UVD startup hypothesis on Slim / Baikal B1 /
+  Orbis 12.02, after a complete owned VMID4 mapping precheck. Default-off
+  boot gate, no decode/ring commands, finite observation, retained park on
+  either outcome, full power-off and native rollback in one session
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-ready-dev1`, project `f0a2683`,
+  exact native62 prefix, tested mapping patch63 and readiness adaptation64
+  `0e943fd6292c9289e50007720eb86cc8d1581512a031411c975032e65501649c`.
+  Kernel `ad290552658f61f8614d206c9929ee8165644b4d1efcd4dd95124ab14ffc94a6`;
+  whole matching modules
+  `4860da7946405b904e7f6b91525a87e95f70ae7cb9ec1140c09c7e4ea7054acd`.
+  Config changes LOCALVERSION only. An initial objtool warning was resolved
+  with a defensive local park after the external helper call; its initial
+  artifacts were preserved and never booted. The final diagnostic compile
+  resolved that objtool warning; source reviews, focused host checks and
+  compiled artifact audit passed
+- initramfs: private `cf2102f5...` replaces only the UVD firmware member with
+  the previously identified Baikal input; all other 346 entries and metadata
+  were independently verified unchanged. No firmware embedded in the kernel
+  or included in source inputs. Runtime firmware validation was not reached
+- install: actual confirmed Kingston serial/UUID/sizes, all five native boot
+  hashes and 41 rollback modules matched. Installed the full new module tree,
+  backed up all five boot files, then committed initramfs, args and kernel-last.
+  Read-only filesystem checks passed before/after and partitions were unmounted
+- observed: exact new kernel/gate in UART. At 8.417992s, the owned mapping
+  reported 812 distinct checked DMA/PFN pages with unmapped guards. At
+  8.457514s, the 256-byte high-slot SDMA precheck passed, CRC32 `570ae4eb`,
+  source/result/IB VAs `0x3003fd000` / `0x3003fe000` / `0x3003ff000`.
+  The next preflight reported actual `gb_addr_config=02011003`, expected
+  historical `02011002`; at 8.503928s it parked with `PREFLIGHT error=-22`.
+  This occurs before Atom preflight, firmware request or UVD register setup.
+  No UVD BEGIN, RBC release, ready indication or decode was observed
+- other evidence: no GPU VM-fault, SDMA timeout, panic or root-storage fault
+  signature in the reviewed Linux interval. IRQ warnings and later SDIO Wi-Fi
+  firmware download/probe errors were present; their cause is not established.
+  This parked diagnostic supplies no desktop or networking acceptance
+- recovery: owner confirmed full power-off and returned the same Kingston.
+  Native kernel-first, original initramfs and original args restored; all five
+  hashes match, original 41 modules verified, new module tree retained.
+  Both read-only filesystem checks passed before/after rollback; USB unmounted
+- UART: completed 03:10:44.279350..03:14:54.734363+06, generation `f2c4b740`,
+  epoch1, bytes 2801806..3016745 (214939), 3167 normalized lines, none omitted,
+  zero capture events/continuity errors. Compact context read before exact raw
+  marker verification. Precheck/raw terminal offsets 3015023 / 3015695.
+  Raw evidence remains private under `lab/uvd-2026-10-18/uvd-ready-runtime`
+- verdict: CPU checks of 812 mapped pages and one hardware 256-byte high-slot
+  SDMA precheck PASS; this is not hardware coverage of all 812 pages. UVD
+  readiness NOT REACHED due to preflight mismatch. No firmware-fetch, decode,
+  stability or support claim.
+  No repeat of this unchanged candidate
+- next action: source-only trace of current GFX layout `02011003` versus the
+  historical literal `02011002`, before preparing a distinct candidate. No
+  hardware experiment is active
+
+## EXP-20261018-007 — Linux 7.2 UVD startup reaches VMID14 fault
+
+- objective: one readiness-only boot after correcting the strict expected
+  driver-computed GFX configuration from `02011002` to `02011003`. All 64
+  prior patches, firmware/initramfs, mappings, register sequence, clocks,
+  polling and retained terminal park stay unchanged; no decode/ring commands
+- candidate: private commit `c2d1a330`, release
+  `7.2.11-psx-ps4-baikal-uvd-ready-dev2`, 65 ordered patches. Kernel
+  `6106041c4c3dcc90877bd30d2fc0a14c751d6f31e526617e30cdad91013b5aa1`;
+  full matching 41 modules. Host/source/package checks passed; compiled
+  comparison found exactly one executable byte changed. The broader rebuild
+  reports warnings in unchanged baseline sources, none in the diagnostic or
+  from objtool; it is not a warning-free whole build
+- bounds: one launch, stop on terminal/fault or 180 seconds after launch;
+  full power-off/return and native rollback, no reset/retry/unbind/unload or
+  verification boot
+- install: same Kingston serial/UUID/sizes and native rollback matched; full
+  dev2 modules installed, native files backed up in the EXP007 namespace,
+  initramfs/args/kernel-last committed and hash-verified. Both read-only
+  filesystem checks passed before/after; actual partitions are unmounted
+- observed: one exact dev2 Linux banner. SDMA high-slot precheck passed;
+  validated payload reached startup BEGIN at 8.402470s, held snapshots and
+  RBC_RELEASE at 8.635804s. A GPU VM fault appeared at 8.658096s; terminal
+  `FAULT_OR_RESET error=-5` parked at 8.742137s. Positive VM faults establish
+  failure; that OR-label alone does not establish an actual GPU reset
+- new finding: actual fault-status register `0x1C03B002` decodes as VMID14,
+  READ, client59 `UMC`, protection bits `0x02`. Fault page `0x00300000`
+  gives GPU page base `0x300000000`, the first page of the intended VCPU BAR
+  range. IH data `0x001c3b02` is a different value. The probe owned VMID4 and
+  indexed snapshots read back4; the actual requester selector is unresolved.
+  No ready indication, instruction-fetch, firmware-execution or decode proof
+- operator/recovery: white screen reported. Owner reported full power-off and
+  USB return; trace subsequently includes Orbis return, with no second Linux
+  launch. No power-off/quiescence qualification. Native kernel-first rollback
+  restored all five hashes and verified41 modules; both read-only filesystem
+  checks passed before/after. Actual USB unmounted, diagnostic modules retained
+- UART: completed 04:05:36.301621..04:12:21.660433+06, generation `f2c4b740`,
+  epoch1, bytes3141146..3393341 (252195), 3478 normalized lines, none omitted,
+  zero capture events. Compact context read before targeted raw review.
+  Raw SHA256 `b74f7a633330ecb0a82c30be09352b992f0f639db7825aa75fd9d17a4e90ad28`;
+  private evidence is under `lab/uvd-2026-10-18/uvd-ready-dev2/runtime`
+- verdict: FAIL for UVD readiness; the incompatible GB guard is resolved and
+  the new failure is a VMID14 UMC access despite an owned VMID4 mapping
+- source follow-up: public VCN1 headers and five common UVD6 register anchors
+  identify a candidate separate cached-VCPU selector at `0x3d3c`; Liverpool
+  applicability and its initial value remain unobserved hypotheses. Private
+  `35b9f379` / `uvd-ready-dev3` adds guarded low14-to-owned4 programming while
+  held, with full-word readback/stability checks; host build/reviews passed
+- follow-up: owner subsequently elected to run the host-staged candidate
+  under EXP008 below; EXP007 native restoration remains its recorded end state
+
+## EXP-20261018-008 — selector readback passes, interrupt guard stops startup
+
+- objective: one guarded `0x3d3c` low14-to-owned4 write while held, with upper
+  bits preserved/full readback checks, then requester/readiness observation.
+  PS4 Slim / Baikal B1 / Orbis 12.02; no decode or ring commands
+- candidate: built private commit `35b9f379`, release
+  `7.2.11-psx-ps4-baikal-uvd-ready-dev3`, 66 patches with all 65 dev2 patches
+  unchanged. Kernel `b98603038f0a44856faa89e8dfcabdc670aff09bb4234ce40e1dbc7225c2c4d0`;
+  complete matching 41 modules. Host tests/source/object/package checks passed;
+  broader build warnings remain in unchanged baseline sources
+- bounds/setup: one launch, terminal/fault or 180 seconds, then indicator-off,
+  leave off, return USB and native rollback in the same session. Fresh exact
+  media identity, native boot/module hashes and clean read-only filesystem
+  checks passed before/after installation; initramfs/args/kernel-last committed
+- observed: one exact dev3 banner. High-slot 256-byte SDMA precheck passed at
+  8.337488s (CRC 570ae4eb). Candidate selector initially read `0000000e` at
+  8.354060s; held write expected/readback `00000004` at 8.475748s. RBC release
+  at 8.541136s; terminal `FETCH_GUARD_CHANGED error=-5` at 8.627685s, retained park
+- new finding: later failure snapshot read selector4, `STATUS=2`,
+  `MASTINT_EN=2`, `RBC_RB_CNTL=1101080c`, IB size0 and ring pointers0/0.
+  `VCPU_EN=0x2` alone violates the guard's interrupt-mask clause; both
+  RBC_NO_FETCH and RBC_NO_UPDATE remain set. The combined guard failure is
+  not evidence that ring fetch became enabled. Snapshot reads are later and
+  non-atomic; the exact first failed read and writer are unresolved
+- limits: no printed GPU VM fault or READY_OBSERVED marker in the bounded
+  trace. IRQ-acknowledged faults may escape sampled status; absence of printed
+  faults does not prove fault-free operation or actual requester VMID.
+  STATUS2 is a later set readiness-convention bit, not accepted readiness,
+  firmware-execution, decode, desktop, stability or support evidence
+- recovery: owner reported power indicator fully off/console left off before
+  USB return; one Linux launch and no post-terminal Orbis boot in the slice.
+  No independent cold-start or DMA-quiescence qualification. Host automount
+  triggered a preflight refusal before writes; actual mounts were unmounted,
+  both read-only fscks passed, then native kernel-first/initramfs/args restored.
+  All five native hashes and 41 modules verified; both read-only fscks passed
+  again and actual partitions unmounted. Diagnostic modules/recovery retained
+- UART: completed 11:24:31.810307..11:30:10.289603+06, generation `f2c4b740`,
+  epoch1, bytes3682699..3782646 (99947), 1297 normalized lines, none omitted,
+  zero capture events. Compact context reviewed before targeted raw offsets.
+  Raw SHA256 `a96dfa3497625bd41fccfa1019d36acae596ac6629299dff6e35c66ce5a688a4`;
+  raw evidence stays private under `lab/uvd-2026-10-18/uvd-ready-dev3/runtime`
+- verdict: guarded selector read/write PASS; full readiness-contract FAIL at
+  the interrupt guard. No promotion and no unchanged retry
+- next action: source-only early UVD IRQ routing/acknowledgement review before
+  any guard change. Owner ended hardware work; normal USB restored, no active
+  experiment or next boot scheduled
+
 ## Session-close checklist
 
 - [ ] Bounded UART session stopped or explicitly aborted with reason.
