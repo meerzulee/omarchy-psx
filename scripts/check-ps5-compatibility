@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Report recorded PS5 dependencies offline; never execute or install inputs."""
+import argparse
+from datetime import date
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import stat
+import sys
+from urllib.parse import urlsplit
+
+MANIFEST = Path(__file__).resolve().parents[1] / "manifests/ps5-dependencies.json"
+MAX_BYTES = 64 * 1024 * 1024
+REQUIREMENTS = {"hypervisor", "linux_handoff", "kernel", "early_userspace", "hardware_acceptance"}
+FIRMWARE = r"[0-9]{2}\.[0-9]{2}"
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def fields(value, names, context):
+    require(isinstance(value, dict), f"{context}: expected an object")
+    missing = set(names) - value.keys()
+    require(not missing, f"{context}: missing fields: {', '.join(sorted(missing))}")
+
+
+def matches(pattern, value):
+    return isinstance(value, str) and re.fullmatch(pattern, value) is not None
+
+
+def https_url(value):
+    if not isinstance(value, str) or re.search(r"\s", value):
+        return False
+    parts = urlsplit(value)
+    return (parts.scheme == "https" and bool(parts.hostname)
+            and parts.username is None and parts.password is None)
+
+
+def safe_path(value):
+    return (isinstance(value, str) and bool(value) and not re.search(r"[\s\x00-\x1f\x7f\\?#%]", value)
+            and not PurePosixPath(value).is_absolute()
+            and all(part not in ("", ".", "..") for part in value.split("/")))
+
+
+def validate_manifest(record):
+    fields(record, ("schema", "researched_on", "target", "sources", "requirements", "boot_contract"), "manifest")
+    require(type(record["schema"]) is int and record["schema"] == 1, "manifest: unsupported schema")
+    require(matches(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", record["researched_on"]), "researched_on: expected YYYY-MM-DD")
+    date.fromisoformat(record["researched_on"])
+    target = record["target"]
+    fields(target, ("console", "model", "firmware", "jailbreak", "payload_delivery"), "target")
+    require(target["console"] == "ps5", "target.console: expected ps5")
+    for key in ("model", "jailbreak", "payload_delivery"):
+        require(isinstance(target[key], str) and bool(target[key].strip()), f"target.{key}: expected nonempty text")
+    require(matches(FIRMWARE, target["firmware"]), "target.firmware: expected exact NN.NN version")
+    require(isinstance(record["boot_contract"], dict), "boot_contract: expected an object")
+    require(isinstance(record["sources"], list) and bool(record["sources"]), "sources: expected a nonempty list")
+    source_ids = set()
+    for source in record["sources"]:
+        fields(source, ("id", "repository", "commit", "files"), "source")
+        sid = source["id"]
+        require(matches(r"[a-z0-9][a-z0-9_-]*", sid), "source.id: expected a safe directory name")
+        require(sid not in source_ids, f"source: duplicate id {sid}")
+        source_ids.add(sid)
+        repo = source["repository"]
+        require(matches(r"https://github\.com/[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*", repo), f"{sid}: expected a GitHub repository URL")
+        require(matches(r"[0-9a-f]{40}", source["commit"]), f"{sid}: expected full immutable commit")
+        require(isinstance(source["files"], list) and bool(source["files"]), f"{sid}.files: expected a nonempty list")
+        paths = set()
+        for item in source["files"]:
+            fields(item, ("path", "url", "bytes", "sha256"), f"{sid} file")
+            name = item["path"]
+            require(safe_path(name), f"{sid}: unsafe source path")
+            require(name not in paths, f"{sid}: duplicate file path {name}")
+            paths.add(name)
+            expected_url = f"https://raw.githubusercontent.com/{repo.removeprefix('https://github.com/')}/{source['commit']}/{name}"
+            require(https_url(item["url"]) and item["url"] == expected_url,
+                    f"{sid}/{name}: URL must match repository, full commit and path")
+            require(type(item["bytes"]) is int and 0 <= item["bytes"] <= MAX_BYTES,
+                    f"{sid}/{name}: bytes must be an integer from 0 to {MAX_BYTES}")
+            require(matches(r"[0-9a-f]{64}", item["sha256"]), f"{sid}/{name}: invalid SHA-256")
+    require(isinstance(record["requirements"], list), "requirements: expected a list")
+    requirement_ids = set()
+    for item in record["requirements"]:
+        fields(item, ("id", "status", "firmwares", "reason", "evidence"), "requirement")
+        rid = item["id"]
+        require(isinstance(rid, str) and rid in REQUIREMENTS, "requirement: unknown id")
+        require(rid not in requirement_ids, f"requirement: duplicate id {rid}")
+        requirement_ids.add(rid)
+        require(item["status"] in ("blocked", "pending", "ready"), f"{rid}: unknown status")
+        versions = item["firmwares"]
+        require(isinstance(versions, list) and all(matches(FIRMWARE, v) for v in versions),
+                f"{rid}.firmwares: expected exact NN.NN versions")
+        require(len(set(versions)) == len(versions), f"{rid}: duplicate firmware version")
+        require(isinstance(item["reason"], str) and bool(item["reason"].strip()), f"{rid}: reason is required")
+        require(isinstance(item["evidence"], list) and bool(item["evidence"])
+                and all(https_url(url) for url in item["evidence"]), f"{rid}: evidence must contain HTTPS URLs")
+    require(requirement_ids == REQUIREMENTS, "requirements: all five dependency ids are required")
+    return record
+
+
+def read_identity(path, limit=MAX_BYTES, keep_bytes=False):
+    """Bounded regular-file read with final-component symlink/race protection."""
+    path = Path(path)
+    before = path.lstat()
+    require(stat.S_ISREG(before.st_mode), f"{path}: expected a regular nonsymlink file")
+    require(before.st_size <= limit, f"{path}: exceeds {limit}-byte limit")
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+    digest, size, chunks = hashlib.sha256(), 0, []
+    with os.fdopen(os.open(path, flags), "rb") as stream:
+        opened = os.fstat(stream.fileno())
+        require(stat.S_ISREG(opened.st_mode) and (before.st_dev, before.st_ino) == (opened.st_dev, opened.st_ino),
+                f"{path}: file changed during open")
+        while chunk := stream.read(min(1024 * 1024, limit - size + 1)):
+            size += len(chunk)
+            require(size <= limit, f"{path}: exceeds {limit}-byte limit")
+            digest.update(chunk)
+            if keep_bytes:
+                chunks.append(chunk)
+        after = os.fstat(stream.fileno())
+    require(size == before.st_size == after.st_size and before.st_mtime_ns == after.st_mtime_ns,
+            f"{path}: file changed during read")
+    result = {"bytes": size, "sha256": digest.hexdigest()}
+    if keep_bytes:
+        result["content"] = b"".join(chunks)
+    return result
+
+
+def check_sources(record, directory):
+    root = Path(directory).resolve(strict=True)
+    require(root.is_dir(), f"{directory}: expected a source directory")
+    checked = []
+    for source in record["sources"]:
+        for item in source["files"]:
+            path = root / source["id"] / item["path"]
+            require(path.resolve().is_relative_to(root), f"{path}: source escapes supplied directory")
+            measured = read_identity(path)
+            require(measured["bytes"] == item["bytes"], f"{path}: source size differs")
+            require(measured["sha256"] == item["sha256"], f"{path}: source SHA-256 differs")
+            checked.append({"source": source["id"], "path": item["path"], **measured})
+    return checked
+
+
+def report(record, firmware):
+    require(matches(FIRMWARE, firmware), "firmware: expected exact NN.NN version")
+    requirements = [{**item, "recorded_for_firmware": firmware in item["firmwares"]}
+                    for item in record["requirements"]]
+    return {"firmware": firmware, "researched_on": record["researched_on"],
+            "requirements_recorded_ready": all(item["status"] == "ready" and item["recorded_for_firmware"]
+                                               for item in requirements),
+            "requirements": requirements,
+            "notice": "Recorded requirements only; file identity and metadata do not establish hardware acceptance."}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", type=Path, default=MANIFEST)
+    parser.add_argument("--firmware", help="exact firmware NN.NN; defaults to manifest target")
+    parser.add_argument("--validate-manifest", action="store_true", help="validate metadata; success does not mean ready")
+    parser.add_argument("--json", action="store_true", help="write machine-readable output")
+    parser.add_argument("--elf", type=Path, help="measure a local payload file's identity only")
+    parser.add_argument("--sources", type=Path, help="check local SOURCE_ID/PATH files without downloading")
+    args = parser.parse_args(argv)
+    manifest_valid = False
+    try:
+        data = read_identity(args.manifest, limit=2 * 1024 * 1024, keep_bytes=True)
+        record = validate_manifest(json.loads(data["content"]))
+        manifest_valid = True
+        firmware = record["target"]["firmware"] if args.firmware is None else args.firmware
+        result = report(record, firmware)
+        result["manifest_valid"] = True
+        if args.elf:
+            result["elf_identity"] = {**read_identity(args.elf), "compatibility": "not established by identity"}
+        if args.sources:
+            result["verified_source_files"] = check_sources(record, args.sources)
+        result["mode"] = "manifest_validation" if args.validate_manifest else "dependency_report"
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"Manifest valid. Recorded dependency status for PS5 {result['firmware']}:")
+            for item in result["requirements"]:
+                coverage = "exact firmware recorded" if item["recorded_for_firmware"] else "exact firmware absent"
+                print(f"  {item['id']}: {item['status']} ({coverage}) — {item['reason']}")
+            if args.elf:
+                identity = result["elf_identity"]
+                print(f"ELF input identity only: {identity['bytes']} bytes; SHA-256 {identity['sha256']}")
+            if args.sources:
+                print(f"Verified {len(result['verified_source_files'])} local source files.")
+            print("All requirements recorded ready." if result["requirements_recorded_ready"] else "Dependency requirements remain unresolved.")
+            print(result["notice"])
+        return 0 if args.validate_manifest or result["requirements_recorded_ready"] else 2
+    except (ValueError, OSError, UnicodeError) as error:
+        if args.json:
+            print(json.dumps({"error": str(error), "manifest_valid": manifest_valid}))
+        else:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

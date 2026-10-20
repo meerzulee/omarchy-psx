@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Exercise the real timezone picker with synthetic Gum/systemd responses.
+
+No system timezone, account, device or console is inspected or changed.
+"""
+import hashlib
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+PLATFORM = Path(__file__).resolve().parents[1]
+PACKAGE = PLATFORM / "packages/omarchy-ps4-provisioning"
+PICKER = PACKAGE / "omarchy-ps4-timezone-picker"
+BASH = shutil.which("bash")
+CITY_CHOICE = "Choose by city or region..."
+
+HARNESS = r'''
+set -euo pipefail
+source "$1"
+timezone=${PREVIOUS_ZONE:-}
+timezone_label=${PREVIOUS_LABEL:-}
+render_setup_step() { printf '%s\n' "$*" >>"$FIXTURE/screens"; }
+gum() {
+  local number answer
+  number=$(<"$FIXTURE/count")
+  number=$((number + 1))
+  printf '%s\n' "$number" >"$FIXTURE/count"
+  printf '%s\n' "$@" >"$FIXTURE/args-$number"
+  cat >"$FIXTURE/menu-$number"
+  answer=$(sed -n "${number}p" "$FIXTURE/answers")
+  [[ $answer != __CANCEL__ ]] || return 130
+  printf '%s\n' "$answer"
+}
+timedatectl() {
+  printf '%s\n' "$*" >>"$FIXTURE/systemd-calls"
+  [[ $* == '--no-pager list-timezones' ]] || return 99
+  [[ ${LIST_STATUS:-0} == 0 ]] || return "$LIST_STATUS"
+  cat "$FIXTURE/zones"
+}
+tzupdate() { echo unexpected-network-lookup >>"$FIXTURE/network-calls"; return 99; }
+status=0
+omarchy_prompt_timezone || status=$?
+printf '%s\n%s\n' "$timezone" "$timezone_label"
+exit "$status"
+'''
+
+
+@unittest.skipUnless(BASH, "Bash is required")
+class TimezonePicker(unittest.TestCase):
+    def run_picker(self, answers, zones="Asia/Bishkek\nUTC\n", previous="", label="", list_status=0):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory)
+            (fixture / "answers").write_text("\n".join(answers) + "\n")
+            (fixture / "zones").write_text(zones)
+            (fixture / "count").write_text("0\n")
+            env = {**os.environ, "FIXTURE": directory, "PREVIOUS_ZONE": previous,
+                   "PREVIOUS_LABEL": label, "LIST_STATUS": str(list_status)}
+            result = subprocess.run([BASH, "-c", HARNESS, "fixture", str(PICKER)],
+                                    env=env, text=True, capture_output=True)
+            menus = [(fixture / f"menu-{n}").read_text().splitlines()
+                     for n in range(1, int((fixture / "count").read_text()) + 1)]
+            calls = (fixture / "systemd-calls").read_text().splitlines() if (fixture / "systemd-calls").exists() else []
+            self.assertFalse((fixture / "network-calls").exists(), "Setup attempted a network lookup")
+            return result, menus, calls
+
+    def test_all_gmt_offsets_have_the_correct_sign_and_no_dst(self):
+        result = subprocess.run([BASH, "-c", 'source "$1"; omarchy_gmt_timezone_rows', "fixture", str(PICKER)],
+                                text=True, capture_output=True, check=True)
+        rows = [row.split("\t") for row in result.stdout.splitlines()]
+        self.assertEqual(len(rows), 27)
+        for offset, (label, name) in zip(range(-12, 15), rows):
+            with self.subTest(label=label):
+                self.assertEqual(label, f"GMT{offset:+03d}:00")
+                for month in (1, 7):
+                    local = datetime(2026, month, 1, tzinfo=timezone.utc).astimezone(ZoneInfo(name))
+                    self.assertEqual(local.utcoffset(), timedelta(hours=offset))
+                    self.assertFalse(local.dst())
+
+    def test_fixed_choices_need_no_location_list_or_network(self):
+        for label, expected in [("GMT-12:00", "Etc/GMT+12"), ("GMT+00:00", "Etc/UTC"),
+                                ("GMT+06:00", "Etc/GMT-6"), ("GMT+14:00", "Etc/GMT-14")]:
+            with self.subTest(label=label):
+                result, menus, calls = self.run_picker([label], list_status=1)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.splitlines(), [expected, label])
+                self.assertEqual(len(menus[0]), 28)  # 27 offsets plus the named-location option.
+                self.assertIn("GMT-12:00", menus[0])
+                self.assertIn("GMT+14:00", menus[0])
+                self.assertEqual(calls, [])
+
+    def test_cancellation_keeps_previous_selection(self):
+        result, _, calls = self.run_picker(["__CANCEL__"], previous="Asia/Bishkek", label="Asia/Bishkek")
+        self.assertEqual(result.returncode, 130)
+        self.assertEqual(result.stdout.splitlines(), ["Asia/Bishkek", "Asia/Bishkek"])
+        self.assertEqual(calls, [])
+
+    def test_unlisted_gmt_offset_is_rejected(self):
+        result, _, _ = self.run_picker(["GMT+15:00"], previous="Etc/UTC", label="GMT+00:00")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout.splitlines(), ["Etc/UTC", "GMT+00:00"])
+
+    def test_city_choices_preserve_half_and_quarter_hour_zones(self):
+        zones = "Asia/Kolkata\nAsia/Kathmandu\nAsia/Bishkek\nEurope/Dublin\nUTC\n"
+        for city in ("Kolkata", "Kathmandu"):
+            with self.subTest(city=city):
+                result, menus, calls = self.run_picker([CITY_CHOICE, "Asia", city], zones=zones)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.splitlines(), [f"Asia/{city}"] * 2)
+                self.assertIn("Europe", menus[1])
+                self.assertIn("Kathmandu", menus[2])
+                self.assertEqual(calls, ["--no-pager list-timezones"])
+
+    def test_nested_city_names_and_long_lists_are_not_truncated(self):
+        zones = "America/Argentina/Buenos_Aires\n" + "".join(f"America/Example_{n}\n" for n in range(30))
+        result, menus, _ = self.run_picker([CITY_CHOICE, "America", "Argentina/Buenos_Aires"], zones=zones)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ["America/Argentina/Buenos_Aires"] * 2)
+        self.assertEqual(len(menus[2]), 31)
+        self.assertIn("Example_29", menus[2])
+
+    def test_cancelled_city_and_unlisted_location_keep_previous_zone(self):
+        for answer, code in [("__CANCEL__", 130), ("Not_in_the_list", 1)]:
+            with self.subTest(answer=answer):
+                result, _, _ = self.run_picker([CITY_CHOICE, "Asia", answer], previous="Etc/GMT-6", label="GMT+06:00")
+                self.assertEqual(result.returncode, code)
+                self.assertEqual(result.stdout.splitlines(), ["Etc/GMT-6", "GMT+06:00"])
+
+    def test_utc_fallback_and_location_list_error(self):
+        result, _, _ = self.run_picker([CITY_CHOICE, "UTC"], zones="")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ["UTC", "UTC"])
+        result, _, _ = self.run_picker([CITY_CHOICE], previous="Asia/Bishkek", label="Asia/Bishkek", list_status=1)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.stdout.splitlines(), ["Asia/Bishkek", "Asia/Bishkek"])
+
+    def test_package_sources_and_timezone_dependency(self):
+        script = r'''source "$1"
+printf '%s\n' "${depends[@]}"
+printf '%s\n' '---SOURCES---'
+for i in "${!source[@]}"; do
+  printf '%s\t%s\n' "${source[i]}" "${sha256sums[i]}"
+done
+'''
+        result = subprocess.run([BASH, "-c", script, "fixture", str(PACKAGE / "PKGBUILD")],
+                                text=True, capture_output=True, check=True)
+        dependencies, sources = result.stdout.split("---SOURCES---\n")
+        self.assertIn("tzdata", dependencies.splitlines())
+        rows = [row.split("\t") for row in sources.splitlines()]
+        self.assertIn("omarchy-ps4-timezone-picker", [name for name, _ in rows])
+        for name, expected in rows:
+            with self.subTest(source=name):
+                self.assertEqual(hashlib.sha256((PACKAGE / name).read_bytes()).hexdigest(), expected)
+
+
+if __name__ == "__main__":
+    unittest.main()

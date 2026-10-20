@@ -1,0 +1,8 @@
+FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
+
+# Image construction uses regular files only: no mounts, privileged container,
+# block devices or x86 emulation are needed for these native host tools.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+       acl attr dosfstools e2fsprogs fdisk mtools python3 tar xz-utils zstd \
+    && rm -rf /var/lib/apt/lists/*

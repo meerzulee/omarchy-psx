@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<!-- Omarchy O, Copyright (c) David Heinemeier Hansson, MIT; see LICENSE-omarchy.txt. -->
+<rect width="300" height="300" rx="48" fill="#1a1b26"/>
+<g fill="#9abaff" transform="translate(82.5 15)"><path clip-rule="evenodd" d="m105 30.002h15v14.997h15v180.001h-15v15h-15v15.002h-75v-15.002h-15v-15h-15v-180.001h15v-14.997h15v-15.002h75zm-60 194.998h45v-179.998h-45z" fill-rule="evenodd"/></g>
+</svg>

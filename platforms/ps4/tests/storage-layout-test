@@ -15,16 +15,19 @@ SOURCE = Path(__file__).resolve().parents[1] / "packages/omarchy-ps4-provisionin
 
 @unittest.skipUnless(os.geteuid() == 0 and os.uname().sysname == "Linux", "Linux root fixture required")
 class StorageGuards(unittest.TestCase):
-    def run_fixture(self, scenario, whole=False):
+    def run_fixture(self, scenario, whole=False, image=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             state = root / "state"
             (state / "provisioning").mkdir(parents=True)
             (state / "provisioning/pending").touch()
             layout = "whole-device-filesystem" if whole else "partitioned-usb"
+            base_bytes = 16 * 1024 ** 3
+            image_fields = (f"auto_grow=1\nbase_image_bytes={base_bytes}\nboot_bytes=4294967296\n"
+                            f"partition_growth={0 if scenario == 'not-authorized' else 1}\n")
             (state / "image-layout").write_text(
-                f"schema=1\nlayout={layout}\nfilesystem=ext4\nlabel=OMARCHY-PS4\n"
-                + ("auto_grow=1\nbase_image_bytes=32000000000\n" if whole else
+                f"schema={2 if image else 1}\nlayout={layout}\nfilesystem=ext4\nlabel=OMARCHY-PS4\n"
+                + (image_fields if image else "auto_grow=1\nbase_image_bytes=32000000000\n" if whole else
                    f"auto_grow={1 if scenario == 'grow-forbidden' else 0}\nboot_bytes=4294967296\n"))
             devices = root / "dev"
             devices.mkdir()
@@ -42,7 +45,8 @@ class StorageGuards(unittest.TestCase):
                     part.mkdir()
                     (part / "partition").write_text(str(number))
                     (part / "start").write_text(str(2048 if number == 1 else 8390656))
-                    size = (8388607 if scenario == "wrong-boot-size" else 8388608) if number == 1 else disk_sectors - 8390656
+                    root_sectors = base_bytes // 512 - 8390656 if image else disk_sectors - 8390656
+                    size = (8388607 if scenario == "wrong-boot-size" else 8388608) if number == 1 else root_sectors
                     (part / "size").write_text(str(size))
                     (links / f"sda{number}").symlink_to(part)
                     os.mknod(devices / f"sda{number}", 0o60600, os.makedev(7, 250 + number))
@@ -53,13 +57,18 @@ class StorageGuards(unittest.TestCase):
                     (sysfs / "sda2/size").write_text(str(disk_sectors - 8390657))
             tools = root / "tools"
             tools.mkdir()
+            capacity = (disk_sectors if whole else disk_sectors - 8390656) * 512
+            initial_bytes = base_bytes - 8390656 * 512 if image else 32000000000 if whole else capacity
             commands = {
                 "findmnt": f"printf '%s\\n' '{devices}/sda{'' if whole else '2'}'",
                 "lsblk": "case $* in *TYPE*) [[ ${*: -1} == *sda ]] && echo disk || echo part ;; *TRAN*) echo usb ;; esac",
                 "blkid": "case $* in *LABEL*) [[ ${*: -1} == *sda1 ]] && echo PS4BOOT || echo OMARCHY-PS4 ;; *TYPE*) [[ ${*: -1} == *sda1 ]] && echo vfat || echo ext4 ;; esac",
-                "blockdev": f"[[ $1 == --getss ]] && echo 512 || echo {((disk_sectors if whole else disk_sectors - 8390656) * 512)}",
-                "dumpe2fs": f"bytes={((disk_sectors if whole else disk_sectors - 8390656) * 512)}\n"
-                    + ("[[ -e $TEST_ROOT/resized ]] || bytes=32000000000\n" if whole else "")
+                "blockdev": "if [[ $1 == --getss ]]; then echo 512; else\n"
+                    + f"bytes={capacity}\n"
+                    + (f"[[ -e $TEST_ROOT/partition-grown ]] || bytes={initial_bytes}\n" if image else "")
+                    + "echo $bytes; fi",
+                "dumpe2fs": f"bytes={capacity}\n"
+                    + (f"[[ -e $TEST_ROOT/resized ]] || bytes={initial_bytes}\n" if whole or image else "")
                     + ("bytes=$((bytes - 33554432))\n" if scenario == "small-filesystem" else "")
                     + "printf 'Block count: %s\\nBlock size: 4096\\n' $((bytes / 4096))",
                 "resize2fs": 'touch "$TEST_ROOT/resized"',
@@ -71,6 +80,12 @@ class StorageGuards(unittest.TestCase):
             script = SOURCE.read_text().replace("state_dir=/var/lib/omarchy-ps4", f"state_dir={state}")
             script = script.replace("log_file=/var/log/omarchy-ps4-grow-root.log", f"log_file={root}/log")
             script = script.replace("/sys/class/block/", str(links) + "/").replace("/dev/", str(devices) + "/")
+            helper = root / "expand-partition.py"
+            helper.write_text("import os\nfrom pathlib import Path\nroot=Path(os.environ['TEST_ROOT'])\n"
+                + ("raise SystemExit(1)\n" if scenario == "partition-update-failed" else
+                   f"Path({str(sysfs / 'sda2/size')!r}).write_text('{disk_sectors - 8390656}')\n"
+                   "(root/'partition-grown').touch()\n"))
+            script = script.replace("/usr/lib/omarchy-ps4/partitioned-image.py", str(helper))
             path = root / "grow-root"
             path.write_text(script)
             result = subprocess.run(["bash", str(path)], env={**os.environ, "PATH": str(tools) + ":" + os.environ["PATH"], "TEST_ROOT": str(root)}, capture_output=True, text=True)
@@ -86,6 +101,18 @@ class StorageGuards(unittest.TestCase):
         result, marker, resized = self.run_fixture("valid", whole=True)
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         self.assertTrue(marker and resized)
+
+    def test_flashable_image_grows_partition_then_ext4(self):
+        result, marker, resized = self.run_fixture("valid", image=True)
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        self.assertTrue(marker and resized)
+
+    def test_failed_or_unauthorized_partition_growth_does_not_resize(self):
+        for scenario in ("not-authorized", "partition-update-failed", "internal", "wrong-boot-size", "extra-partition"):
+            with self.subTest(scenario=scenario):
+                result, marker, resized = self.run_fixture(scenario, image=True)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertFalse(marker or resized)
 
     def test_reject_invalid_layout_without_resize_or_marker(self):
         for scenario in ("internal", "grow-forbidden", "wrong-boot-size", "extra-partition", "short-root", "small-filesystem"):

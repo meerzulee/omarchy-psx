@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "candidate": "ps4-mesa-26.2.5-avc-dev1",
+  "hardware_acceptance": false,
+  "upstream": {
+    "project": "Mesa",
+    "version": "26.2.5",
+    "tag": "mesa-26.2.5",
+    "tag_object": "f9ce5e81f30cd694726bff6d8197e509a8374ea7",
+    "commit": "ddaf85e353442d9d7f192fdcf1823e652e3f2ee3",
+    "git_url": "https://gitlab.freedesktop.org/mesa/mesa.git",
+    "url": "https://archive.mesa3d.org/mesa-26.2.5.tar.xz",
+    "bytes": 68652756,
+    "sha256": "794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5",
+    "checksum_source": "https://docs.mesa3d.org/relnotes/26.2.5.html",
+    "latest_stable_checked": "2026-10-20"
+  },
+  "patches": [
+    {
+      "path": "patches/0001-ps4-graphics-families.patch",
+      "sha256": "b3cf0f24fd00f156bbba12be0c270189ad30c274646b5e86298890e4cb4829cc"
+    },
+    {
+      "path": "patches/0002-ps4-uvd-avc-capabilities.patch",
+      "sha256": "ea9d72c9335872b1cf41611ba225e4b645b5ecd81feff8323f4302e038196ac0"
+    }
+  ]
+}

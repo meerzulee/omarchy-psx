@@ -14,6 +14,129 @@
         "No kernel-side boot default, root filesystem, initramfs or hardware acceptance is imported."
       ],
       "license_note": "Source command-line configuration has no per-file SPDX/notice; bytes preserved unchanged."
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+      "source_path": "logo.svg",
+      "source_sha256": "e05ab723c3b9df19d4140b1d97eff0303ba07366aa1fe431b4ad0c8af7fc51f0",
+      "destination_path": "website/assets/omarchy-psx.svg",
+      "destination_sha256": "4ceeda26aa11f7c48df4b8d6cd1cdecae4fd1354c643f7d782f592ab7f0d44f7",
+      "adaptations": [
+        "Preserve all seven canonical OMARCHY path geometries unchanged; use currentColor and accessible SVG metadata.",
+        "Append PSX rendered from the pinned upstream omarchy-ascii embedded Delta Corps Priest 1 font; convert full and half blocks to vector runs, align at the canonical baseline, and preserve aspect ratio."
+      ],
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md.",
+      "additional_sources": [
+        {
+          "repository": "https://github.com/omacom/omarchy",
+          "commit": "4baae6bf2afb2c07b617100371c07d8b6dea71a5",
+          "url": "https://raw.githubusercontent.com/omacom/omarchy/4baae6bf2afb2c07b617100371c07d8b6dea71a5/bin/omarchy-ascii",
+          "sha256": "9640bc210e8cfe016459bc7b4917344403fe49f67ce013f2cff118cdafdcf7c5"
+        }
+      ]
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+      "source_path": "logo.svg",
+      "source_sha256": "e05ab723c3b9df19d4140b1d97eff0303ba07366aa1fe431b4ad0c8af7fc51f0",
+      "destination_path": "website/assets/favicon.svg",
+      "destination_sha256": "55a19ec8c14b17c37c262fd11563e71badf8aaa911d8f28d884b96dc0c5e7f88",
+      "adaptations": [
+        "Retain the canonical O path geometry, centered on a rounded dark tile with the documentation accent color."
+      ],
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md."
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "4baae6bf2afb2c07b617100371c07d8b6dea71a5",
+      "source_path": "bin/omarchy-ascii",
+      "source_sha256": "9640bc210e8cfe016459bc7b4917344403fe49f67ce013f2cff118cdafdcf7c5",
+      "destination_path": "website/assets/psx.svg",
+      "destination_sha256": "71db2ce3296c079430e945cb75c088548ccf7d2d48833a2e0ad437b1636ab67f",
+      "adaptations": [
+        "Render PSX using the embedded Delta Corps Priest 1 font by CoSMiC cHiLD; convert terminal full/half blocks to SVG geometry without loading a runtime font."
+      ],
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md."
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "4baae6bf2afb2c07b617100371c07d8b6dea71a5",
+      "source_path": "bin/omarchy-ascii",
+      "source_sha256": "9640bc210e8cfe016459bc7b4917344403fe49f67ce013f2cff118cdafdcf7c5",
+      "destination_path": "website/assets/psx.txt",
+      "destination_sha256": "06d33d7a3389e1eb930547c36ed7eef7b91fe3ae6a13f38ee30316eca1486ed9",
+      "adaptations": [
+        "Preserve the renderer output for the text PSX, including the trailing blank font rows.",
+        "2026-10-20: record removal of one redundant final blank line in checkpoint0888e8e; font rows and source hash remain unchanged."
+      ],
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md."
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+      "source_path": "LICENSE",
+      "source_sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+      "destination_path": "website/assets/LICENSE-omarchy.txt",
+      "destination_sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+      "adaptations": [
+        "Preserve the upstream MIT copyright and permission notice unchanged; ship it with generated website assets."
+      ],
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md."
+    },
+    {
+      "source_repository": "https://github.com/omacom/omarchy",
+      "source_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+      "source_path": "logo.svg",
+      "source_sha256": "e05ab723c3b9df19d4140b1d97eff0303ba07366aa1fe431b4ad0c8af7fc51f0",
+      "license_note": "Omarchy upstream MIT notice retained in website/assets/LICENSE-omarchy.txt; font author credit retained in SVG and website/BRANDING.md.",
+      "additional_sources": [
+        {
+          "repository": "https://github.com/omacom/omarchy",
+          "commit": "4baae6bf2afb2c07b617100371c07d8b6dea71a5",
+          "url": "https://raw.githubusercontent.com/omacom/omarchy/4baae6bf2afb2c07b617100371c07d8b6dea71a5/bin/omarchy-ascii",
+          "sha256": "9640bc210e8cfe016459bc7b4917344403fe49f67ce013f2cff118cdafdcf7c5"
+        }
+      ],
+      "destination_path": "website/assets/omarchy-psx-square-tokyo-night.svg",
+      "destination_sha256": "d08d152f51794fd45f10a7ae79233bc48742a6e0d13d9309eb7393dd0643de62",
+      "adaptations": [
+        "Preserve canonical Omarchy paths and the existing Delta Corps Priest 1 PSX outlines; arrange on two centered lines in a square 2048 by 2048 canvas.",
+        "Use identical 4/3 glyph scale on both lines, with centered total text bounds and space for circular avatar cropping.",
+        "Use the pinned Tokyo Night palette: background #1a1b26, blue #7aa2f7 and bright magenta #bb9af7; embed the upstream MIT notice in the SVG metadata."
+      ]
+    },
+    {
+      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
+      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
+      "source_path": "mesa-ps4/ps4-mesa.patch",
+      "source_sha256": "f7a78f8b894dc06bb6d210f2d0f9b04cdb51e285e40c2832a6813d4d88f465a9",
+      "source_bytes": 5525,
+      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/0001-ps4-graphics-families.patch",
+      "destination_sha256": "b3cf0f24fd00f156bbba12be0c270189ad30c274646b5e86298890e4cb4829cc",
+      "adaptations": [
+        "Port discovery changes to ac_identify_chip and cache changes to ac_fill_memory_info in the refactored 26.2.5 source.",
+        "Place shared family enum values after BONAIRE and before KAVERI, preserving the existing GFX7 lower bound without redundant comparisons.",
+        "Retain independent FAMILY_KV generic-then-console revision matching; narrow console revisions intentionally override SPOOKY.",
+        "Use the pinned source raster values, GS depth 32, 128 KiB per TCC cache classification, family names and Bonaire LLVM processor target.",
+        "Exclude the unrelated CLC/LLVM compatibility edit and unused private drm/radeon surface enum additions.",
+        "Do not change video capabilities or serializer; the independently owned 0002 capability patch is outside this provenance entry.",
+        "Full source, license and focused validation record: platforms/ps4/experiments/mesa-uvd/patches/ps4-graphics-provenance.json. Host-check status in that record is historical; completed hardware scope is in the experiment ledger."
+      ],
+      "license_note": "MIT; original per-file Mesa/AMD notices remain unchanged; accompanying notice preserved in platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa."
+    },
+    {
+      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
+      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
+      "source_path": "mesa-ps4/LICENSE",
+      "source_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
+      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa",
+      "destination_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
+      "adaptations": [
+        "Preserve the accompanying Mesa/AMD license notices byte-for-byte."
+      ],
+      "license_note": "MIT notices for the imported PS4 graphics port; original per-file notices remain in Mesa source."
     }
   ],
   "repository_license": "Existing Omarchy psX MIT LICENSE remains unchanged.",

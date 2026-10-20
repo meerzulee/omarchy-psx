@@ -12549,6 +12549,604 @@ but they are not evidence of a Linux 6.18 boot.
   and publishing kernel prereleases, 6.18 followed by 7.2. No further hardware
   experiment scheduled. Bluetooth defaults commit: `40f6fa9`
 
+## EXP-20261018-005 — Linux 7.2 VMID4 mapping canary
+
+- objective: one owned 256-byte SDMA copy through reserved VMID4 at
+  `0x300000000`, before attempting UVD startup. PS4 Slim / Baikal B1 / Orbis
+  12.02. One fresh diagnostic boot; no UVD/VCE registration or decode workload
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-map-canary-dev1`, project
+  `f0a2683` plus the exact native 62-patch prefix and diagnostic patch
+  `61eefde3d2da415f2609d574f8bdda8055de03c72cb4fe10fb0b3cd02a37a302`.
+  Config input changes LOCALVERSION only. Kernel
+  `5ff1f0e8a24c312f39a57eef93a81677efab28a12483e2848a0bb6993fbc4e7a`;
+  whole matching modules
+  `52605de208e9f5ac6290abd80d257fb6efe51fbfe68bbd77988a6e104838cdbe`.
+  Native build, 41-module identity checks, source reviews and offline bounds
+  fixtures passed; exact private inputs and the corrected missing-header
+  compiler failure are retained in `lab/uvd-2026-10-18`
+- install: owner confirmed the returned Kingston. Serial/UUID/size, old boot
+  hashes and all 41 rollback modules matched. Installed the entire new module
+  tree, backed up all five boot files, then replaced bootargs before kernel.
+  Only the canary gate was appended. Read-only FAT/ext4 checks were clean
+  before and after; both partitions unmounted before the owner moved the USB
+- observed: new kernel and gate confirmed in UART. BEGIN at 8.209562s, MAP at
+  8.226804s, PASS at 8.256172s. Actual geometry was max PFN `0x1000000`,
+  block10, root `0x20000` bytes, PDE index `0xc00`, leaf `0x2000` bytes.
+  Source/result/IB PTEs selected distinct owned DMA pages. Exact 64-word
+  readback passed with CRC32 `570ae4eb`, first `50533400`, last `6f2dca37`,
+  source/result guards and unchanged IB. Published BOs and fence stay retained
+- runtime: owner confirmed the desktop was normal. Wired SSH worked, system
+  state was running with zero failed units, and the installed MTS object matched
+  the candidate. No VM fault, SDMA timeout, GPU recovery or root-storage fault
+  was observed in the reviewed diagnostic/Linux interval
+- rollback: owner reported rebooting into Orbis and returning the USB; this
+  was not a confirmed full power-off. The guarded rollback restored the exact
+  native kernel `e5bdfd96...` before original bootargs, with all other boot
+  hashes unchanged and both module trees retained. FAT/ext4 checks remained
+  clean and partitions unmounted. The owner subsequently confirmed full
+  power-off after bounded capture finalization; continuous capture remained
+  running. No power-off acceptance claim or warm-reboot DMA quiescence was
+  qualified
+- UART: completed 02:25:39.978787..02:37:41.803329+06, generation `f2c4b740`,
+  epoch1, bytes 2292261..2746992 (454731), 6588 normalized lines, compact
+  context capped at 4000 with 2589 omitted. Zero capture events/continuity
+  errors. Compact context and exact canary raw boundary reviewed. Raw data
+  remains private
+- verdict: PASS for one SDMA VMID4 mapping/readback diagnostic. This does not
+  prove UVD requester/cache selection, firmware fetch, readiness, decoding,
+  general stability or support for the separately rebuilt public release
+- next action: source-only UVD startup analysis, including the distinction
+  between UVD4.2 and UVD5/6 cache units/requester fields. No next hardware
+  experiment is active and no further boot is requested yet
+
+## EXP-20261018-006 — Linux 7.2 UVD readiness preflight rejection
+
+- objective: one readiness-only UVD startup hypothesis on Slim / Baikal B1 /
+  Orbis 12.02, after a complete owned VMID4 mapping precheck. Default-off
+  boot gate, no decode/ring commands, finite observation, retained park on
+  either outcome, full power-off and native rollback in one session
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-ready-dev1`, project `f0a2683`,
+  exact native62 prefix, tested mapping patch63 and readiness adaptation64
+  `0e943fd6292c9289e50007720eb86cc8d1581512a031411c975032e65501649c`.
+  Kernel `ad290552658f61f8614d206c9929ee8165644b4d1efcd4dd95124ab14ffc94a6`;
+  whole matching modules
+  `4860da7946405b904e7f6b91525a87e95f70ae7cb9ec1140c09c7e4ea7054acd`.
+  Config changes LOCALVERSION only. An initial objtool warning was resolved
+  with a defensive local park after the external helper call; its initial
+  artifacts were preserved and never booted. The final diagnostic compile
+  resolved that objtool warning; source reviews, focused host checks and
+  compiled artifact audit passed
+- initramfs: private `cf2102f5...` replaces only the UVD firmware member with
+  the previously identified Baikal input; all other 346 entries and metadata
+  were independently verified unchanged. No firmware embedded in the kernel
+  or included in source inputs. Runtime firmware validation was not reached
+- install: actual confirmed Kingston serial/UUID/sizes, all five native boot
+  hashes and 41 rollback modules matched. Installed the full new module tree,
+  backed up all five boot files, then committed initramfs, args and kernel-last.
+  Read-only filesystem checks passed before/after and partitions were unmounted
+- observed: exact new kernel/gate in UART. At 8.417992s, the owned mapping
+  reported 812 distinct checked DMA/PFN pages with unmapped guards. At
+  8.457514s, the 256-byte high-slot SDMA precheck passed, CRC32 `570ae4eb`,
+  source/result/IB VAs `0x3003fd000` / `0x3003fe000` / `0x3003ff000`.
+  The next preflight reported actual `gb_addr_config=02011003`, expected
+  historical `02011002`; at 8.503928s it parked with `PREFLIGHT error=-22`.
+  This occurs before Atom preflight, firmware request or UVD register setup.
+  No UVD BEGIN, RBC release, ready indication or decode was observed
+- other evidence: no GPU VM-fault, SDMA timeout, panic or root-storage fault
+  signature in the reviewed Linux interval. IRQ warnings and later SDIO Wi-Fi
+  firmware download/probe errors were present; their cause is not established.
+  This parked diagnostic supplies no desktop or networking acceptance
+- recovery: owner confirmed full power-off and returned the same Kingston.
+  Native kernel-first, original initramfs and original args restored; all five
+  hashes match, original 41 modules verified, new module tree retained.
+  Both read-only filesystem checks passed before/after rollback; USB unmounted
+- UART: completed 03:10:44.279350..03:14:54.734363+06, generation `f2c4b740`,
+  epoch1, bytes 2801806..3016745 (214939), 3167 normalized lines, none omitted,
+  zero capture events/continuity errors. Compact context read before exact raw
+  marker verification. Precheck/raw terminal offsets 3015023 / 3015695.
+  Raw evidence remains private under `lab/uvd-2026-10-18/uvd-ready-runtime`
+- verdict: CPU checks of 812 mapped pages and one hardware 256-byte high-slot
+  SDMA precheck PASS; this is not hardware coverage of all 812 pages. UVD
+  readiness NOT REACHED due to preflight mismatch. No firmware-fetch, decode,
+  stability or support claim.
+  No repeat of this unchanged candidate
+- next action: source-only trace of current GFX layout `02011003` versus the
+  historical literal `02011002`, before preparing a distinct candidate. No
+  hardware experiment is active
+
+## EXP-20261018-007 — Linux 7.2 UVD startup reaches VMID14 fault
+
+- objective: one readiness-only boot after correcting the strict expected
+  driver-computed GFX configuration from `02011002` to `02011003`. All 64
+  prior patches, firmware/initramfs, mappings, register sequence, clocks,
+  polling and retained terminal park stay unchanged; no decode/ring commands
+- candidate: private commit `c2d1a330`, release
+  `7.2.11-psx-ps4-baikal-uvd-ready-dev2`, 65 ordered patches. Kernel
+  `6106041c4c3dcc90877bd30d2fc0a14c751d6f31e526617e30cdad91013b5aa1`;
+  full matching 41 modules. Host/source/package checks passed; compiled
+  comparison found exactly one executable byte changed. The broader rebuild
+  reports warnings in unchanged baseline sources, none in the diagnostic or
+  from objtool; it is not a warning-free whole build
+- bounds: one launch, stop on terminal/fault or 180 seconds after launch;
+  full power-off/return and native rollback, no reset/retry/unbind/unload or
+  verification boot
+- install: same Kingston serial/UUID/sizes and native rollback matched; full
+  dev2 modules installed, native files backed up in the EXP007 namespace,
+  initramfs/args/kernel-last committed and hash-verified. Both read-only
+  filesystem checks passed before/after; actual partitions are unmounted
+- observed: one exact dev2 Linux banner. SDMA high-slot precheck passed;
+  validated payload reached startup BEGIN at 8.402470s, held snapshots and
+  RBC_RELEASE at 8.635804s. A GPU VM fault appeared at 8.658096s; terminal
+  `FAULT_OR_RESET error=-5` parked at 8.742137s. Positive VM faults establish
+  failure; that OR-label alone does not establish an actual GPU reset
+- new finding: actual fault-status register `0x1C03B002` decodes as VMID14,
+  READ, client59 `UMC`, protection bits `0x02`. Fault page `0x00300000`
+  gives GPU page base `0x300000000`, the first page of the intended VCPU BAR
+  range. IH data `0x001c3b02` is a different value. The probe owned VMID4 and
+  indexed snapshots read back4; the actual requester selector is unresolved.
+  No ready indication, instruction-fetch, firmware-execution or decode proof
+- operator/recovery: white screen reported. Owner reported full power-off and
+  USB return; trace subsequently includes Orbis return, with no second Linux
+  launch. No power-off/quiescence qualification. Native kernel-first rollback
+  restored all five hashes and verified41 modules; both read-only filesystem
+  checks passed before/after. Actual USB unmounted, diagnostic modules retained
+- UART: completed 04:05:36.301621..04:12:21.660433+06, generation `f2c4b740`,
+  epoch1, bytes3141146..3393341 (252195), 3478 normalized lines, none omitted,
+  zero capture events. Compact context read before targeted raw review.
+  Raw SHA256 `b74f7a633330ecb0a82c30be09352b992f0f639db7825aa75fd9d17a4e90ad28`;
+  private evidence is under `lab/uvd-2026-10-18/uvd-ready-dev2/runtime`
+- verdict: FAIL for UVD readiness; the incompatible GB guard is resolved and
+  the new failure is a VMID14 UMC access despite an owned VMID4 mapping
+- source follow-up: public VCN1 headers and five common UVD6 register anchors
+  identify a candidate separate cached-VCPU selector at `0x3d3c`; Liverpool
+  applicability and its initial value remain unobserved hypotheses. Private
+  `35b9f379` / `uvd-ready-dev3` adds guarded low14-to-owned4 programming while
+  held, with full-word readback/stability checks; host build/reviews passed
+- follow-up: owner subsequently elected to run the host-staged candidate
+  under EXP008 below; EXP007 native restoration remains its recorded end state
+
+## EXP-20261018-008 — selector readback passes, interrupt guard stops startup
+
+- objective: one guarded `0x3d3c` low14-to-owned4 write while held, with upper
+  bits preserved/full readback checks, then requester/readiness observation.
+  PS4 Slim / Baikal B1 / Orbis 12.02; no decode or ring commands
+- candidate: built private commit `35b9f379`, release
+  `7.2.11-psx-ps4-baikal-uvd-ready-dev3`, 66 patches with all 65 dev2 patches
+  unchanged. Kernel `b98603038f0a44856faa89e8dfcabdc670aff09bb4234ce40e1dbc7225c2c4d0`;
+  complete matching 41 modules. Host tests/source/object/package checks passed;
+  broader build warnings remain in unchanged baseline sources
+- bounds/setup: one launch, terminal/fault or 180 seconds, then indicator-off,
+  leave off, return USB and native rollback in the same session. Fresh exact
+  media identity, native boot/module hashes and clean read-only filesystem
+  checks passed before/after installation; initramfs/args/kernel-last committed
+- observed: one exact dev3 banner. High-slot 256-byte SDMA precheck passed at
+  8.337488s (CRC 570ae4eb). Candidate selector initially read `0000000e` at
+  8.354060s; held write expected/readback `00000004` at 8.475748s. RBC release
+  at 8.541136s; terminal `FETCH_GUARD_CHANGED error=-5` at 8.627685s, retained park
+- new finding: later failure snapshot read selector4, `STATUS=2`,
+  `MASTINT_EN=2`, `RBC_RB_CNTL=1101080c`, IB size0 and ring pointers0/0.
+  `VCPU_EN=0x2` alone violates the guard's interrupt-mask clause; both
+  RBC_NO_FETCH and RBC_NO_UPDATE remain set. The combined guard failure is
+  not evidence that ring fetch became enabled. Snapshot reads are later and
+  non-atomic; the exact first failed read and writer are unresolved
+- limits: no printed GPU VM fault or READY_OBSERVED marker in the bounded
+  trace. IRQ-acknowledged faults may escape sampled status; absence of printed
+  faults does not prove fault-free operation or actual requester VMID.
+  STATUS2 is a later set readiness-convention bit, not accepted readiness,
+  firmware-execution, decode, desktop, stability or support evidence
+- recovery: owner reported power indicator fully off/console left off before
+  USB return; one Linux launch and no post-terminal Orbis boot in the slice.
+  No independent cold-start or DMA-quiescence qualification. Host automount
+  triggered a preflight refusal before writes; actual mounts were unmounted,
+  both read-only fscks passed, then native kernel-first/initramfs/args restored.
+  All five native hashes and 41 modules verified; both read-only fscks passed
+  again and actual partitions unmounted. Diagnostic modules/recovery retained
+- UART: completed 11:24:31.810307..11:30:10.289603+06, generation `f2c4b740`,
+  epoch1, bytes3682699..3782646 (99947), 1297 normalized lines, none omitted,
+  zero capture events. Compact context reviewed before targeted raw offsets.
+  Raw SHA256 `a96dfa3497625bd41fccfa1019d36acae596ac6629299dff6e35c66ce5a688a4`;
+  raw evidence stays private under `lab/uvd-2026-10-18/uvd-ready-dev3/runtime`
+- verdict: guarded selector read/write PASS; full readiness-contract FAIL at
+  the interrupt guard. No promotion and no unchanged retry
+- next action: source-only early UVD IRQ routing/acknowledgement review before
+  any guard change. Owner ended hardware work; normal USB restored, no active
+  experiment or next boot scheduled
+
+## EXP-20261018-009 — exact VCPU interrupt guard failure observed
+
+- objective: identify the decisive strict guard sample and selected decoded
+  physical-IH arrivals in the same dev3 startup sequence. PS4 Slim / Baikal B1 /
+  Orbis 12.02; passive observability only, no guard relaxation or decode/ring
+  submission. One launch, terminal/fault or 180-second bound, full power-off
+  and native rollback in one coherent session
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-ready-dev4`, project identity
+  `35b9f37960ba2fbfc8e2fa0ad5077656ceb1dbc2+UNCOMMITTED-dev4-overlay`.
+  All 66 dev3 patches retained; observability patch67
+  `01a6e28cf4c3f41e0f30d442ee2a64498a9ef96423656ff1db3bb49475eec572`.
+  Kernel `2c80660c656549e692a462125faf6a7785066205f73e29a5223e2eb2775dac61`;
+  full matching 41-module archive
+  `2f6ff522db551f7c24be832de70dcdb23af1b91c415f8552fad818fbb05ea49a`.
+  Host/source/compiled REA audits passed. Resolved config changed LOCALVERSION
+  and detected pahole metadata131-to132; BTF stayed disabled. Host checks
+  and adviser agreement are separate from this hardware result
+- install: confirmed Kingston identity, five native rollback hashes and41
+  native modules; full candidate modules and exact previously used diagnostic
+  initramfs/profile staged, backed up and committed kernel-last. Read-only
+  filesystem checks passed before/after; media unmounted before movement
+- observed: exactly one dev4 Linux banner. VMID4 256-byte SDMA precheck passed
+  at8.104355s, CRC32 `570ae4eb`. Selector initial14, held/readback4 and later4.
+  RBC_RELEASE passed at8.116865s. The saved poll decision records
+  `sampled=03 failed=04 rbc=1101080c int=00000002`: RBC fetch/update inhibition
+  passed; `PS4_GUARD_VCPU` rejected VCPU_EN. Only RBC and MASTINT were sampled;
+  printed IB_SIZE/WPTR/RPTR zeros are unread placeholders. The guard message
+  follows existing later snapshots, so its8.556562s print time is not the
+  transition/sample time. A later STATUS sample was2; the full readiness
+  contract still failed. Terminal `FETCH_GUARD_CHANGED error=-5` parked at
+  8.626894s with resources retained
+- IRQ observation: armed physical-IH sources124/146/147 each reported count0,
+  no wrap, EMPTY first record. Reports are separate noncoherent cuts; zero
+  establishes neither event absence nor containment, and the printed cut
+  excludes later unreported park-time arrivals. Unhandled source227 messages
+  and Wi-Fi errors were also present; source227 appeared at51.712186s after
+  the report. No UVD cause is assigned to those messages
+- recovery: owner explicitly confirmed completely off indicator and USB return.
+  Normal native-dev1 kernel-first/initramfs/args restored; all five normal
+  hashes and41 matching modules verified. Both read-only filesystem checks
+  passed before/after rollback, USB unmounted, candidate modules and recovery
+  trees retained. No second Linux launch or quiescence qualification
+- UART: completed22:35:39.487168..23:02:55.077758+06, generation `5c86c877`,
+  epoch1, bytes4651..136687 (132036),1724 normalized lines, none omitted,
+  zero capture events. Compact context read before targeted exact raw checks.
+  Raw SHA256 `fc4b9a29d14047b248b7a32b01a2bc198b38fe2975b8b66aef4db47716456387`.
+  Private evidence and original receipts remain under
+  `lab/uvd-2026-10-18/uvd-observe-dev4/runtime/`; no raw evidence published
+- verdict: diagnostic question ANSWERED; UVD readiness FAIL. The decisive
+  VCPU_EN sample is now known. Its writer/cause/direction, actual instruction
+  fetch, firmware execution, decode, interrupt containment and safe teardown
+  remain unproved. No promotion or unchanged retry
+- next action: source-only coverage audit of reachable CPU register-write
+  paths, including direct BAR, indexed/PCIe access, Atom callbacks and
+  concurrent work, completed against the exact built source. Normal UVD init
+  and ordinary per-device debugfs writers are excluded by this parked lifecycle;
+  no responsible CPU setter was identified. Canonical WREG32-only telemetry
+  misses semantic CIK PCIe targets and normalized address aliases, so it cannot
+  support comprehensive CPU-writer exclusion. Prepare explicitly limited
+  passive CPU-write telemetry covering those paths and caller/issuance/loss
+  state, preserving strict guards and the hardware sequence. Negative records
+  must retain their coverage limits; no autonomous-firmware cause is established.
+  Normal USB restored; continuous UART remains running, no active experiment
+
+## EXP-20261019-001 — readiness observation policy (completed; narrow PASS)
+
+- authority/branch: owner requested the source-reviewed custom-workaround test.
+  It changed only post-release observation policy: admit exact raw MASTINT 0/2
+  and reject other bits or sampled 2-to-0 regression. Device writes, early
+  guards, inhibited fetch, mappings, passive observer and retained park stayed
+  unchanged. Previous CPU-write telemetry remains a conditional investigation
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-poll-dev1`, 68 patches,
+  700 recorded project inputs and 41 matching modules. Kernel SHA256
+  `dc2d5ce91454e6dc36bb953feb496c1ef9fa01f76df8c59586ea6533478ae00a`;
+  module archive `a4460aa6b3a187dc326b60a5cc42311f5ed3ac52a0b16b12a8cf5fce9792a505`.
+  Immutable plan `71125d9e4cc84755744f9f0553cb75c70898b1227a89cce857ea86b8574a80aa`
+- objective/sequence: one exact candidate boot under the changed policy,
+  SDMA precheck and strict release checks, then saved readiness samples or a
+  retained failure. One coherent session covered checked installation, one
+  launch, observation, confirmed full power-off, returned USB and native
+  rollback. Operator timeout was 180 seconds; internal poll deadline two seconds
+- observed: one exact candidate Linux banner. The 256-byte SDMA precheck
+  passed on VMID4 with CRC `570ae4eb`; selector was held at4. RBC release at
+  kernel time8.473461 passed its strict guard. The deciding line at8.515680 was
+  `CONVENTION_OBSERVED status=00000002 mastint=00000002 elapsed_us=42246`.
+  Terminal at8.677997 was `RESULT=READY_CONVENTION_OBSERVED error=0 PARKED`.
+  Elapsed includes software/logging; it is not VCPU startup latency
+- observation limits: ring fetch stayed inhibited, with no submitted command.
+  IRQ sources124/146/147 each had count0/no wrap/EMPTY at the noncoherent cut;
+  later park-time arrivals are outside that cut. Wi-Fi warnings and unhandled
+  sources49/227 are preserved without attributing them to UVD. The owner
+  confirmed the later Orbis startup was manually initiated, not spontaneous.
+  This does not qualify power-off, warm reboot, interrupt containment or DMA drain
+- recovery: all five native boot hashes and 41 native modules verified restored.
+  Both partitions unmounted; read-only filesystem checks passed before/after
+  install and rollback. Desktop automount initially caused rollback to refuse
+  before writes; clean unmount resolved the precondition before the successful
+  rollback. Candidate module and recovery trees retained
+- continuity: completed from2026-10-19T13:02:13.058399+06:00 to
+  13:38:44.455194+06:00, generation `5c86c877`, epoch1,
+  offsets269888..540379, 270491 bytes, zero capture events/continuity errors.
+  All3997 normalized lines retained. Session basename
+  `20261019_130213_058399-exp-20261019-001-600258cb`.
+  Raw SHA256 `070635a7a961a411af1ce87c846e608f1b55f052da8ef524c4e4c11dc8ee2d94`;
+  compact context `eab961343d30d5756b5dab90a6967715b26c1f2b4affdbc839edd2dc61733445`;
+  empty events `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+- verdict: PASS for this single readiness-convention observation/policy
+  checkpoint only. Firmware execution, command transport, decode, lifecycle
+  safety and repeatability remain unproved; no support promotion
+- private evidence: `lab/uvd-2026-10-19/ready-policy/handoff/runtime/RESULT.json`,
+  completed UART artifacts and original install/rollback receipts. Raw evidence
+  remains private. Frozen stage/plan unchanged
+- next action: implement and source-test one separate default-off context-token
+  ring probe using the retained owned mapping, before another hardware test.
+  Normal USB restored; continuous capture running; no active experiment
+
+## EXP-20261019-002 — one context-token transport (completed; narrow PASS)
+
+- objective: after the observed readiness convention, publish one owned ring
+  command and observe token `0x55564432` with raw RPTR16/WPTR16 before250 ms
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-token-dev2`, 69 patches,
+  718 recorded inputs,41 matching modules. Kernel SHA256
+  `15c84048f5f11f905f513a03baa9ee550684e83c53d40ba00e1f6b5084f6db13`;
+  modules `f5c03794e762c413764216da8e509f59816714abf7b3f1d0c149ce4e996edf75`.
+  Reviewed plan `991df8883fe792c9305a25dfd64b7f539d9fc41e1a15b2f991904e7a47615230`.
+  Dev1 was built but never installed. Dev2 corrected its post-fetch STATUS
+  predicate to admit only2/3; held STATUS still requires2. Source, host fixtures,
+  package and compiled/REA checks passed before the hardware test
+- observed: one exact dev2 Linux banner. VMID4 SDMA precheck passed256 bytes,
+  CRC `570ae4eb`. Readiness STATUS2/MASTINT2 observed, elapsed_us27721.
+  Prepared4 KiB owned ring atVA `0x300308000`, packet CRC `8e2d7341`, CPU
+  baseline `0x43505532`, result token `0x55564432`. Exactly one WPTR16
+  publication at8.636797s. Saved core sample at8.646027s had RPTR16/WPTR16,
+  context `0x55564432`, STATUS2, MASTINT2, fault0/reset0/in_reset0.
+  End result `TOKEN_TRANSPORT_OBSERVED`, elapsed_us9244. Terminal at8.739110s:
+  `RESULT=TOKEN_TRANSPORT_OBSERVED error=0 PARKED retained`
+- scope: PASS for this single command transport. Elapsed includes software and
+  logging, not pure hardware latency. Recorded STATUS was2; the extra busy-bit
+  case was not separately exercised. No decoded frame, general ABI, DMA drain,
+  reset/rearm/unload, interrupt containment or repeatability qualification
+- IRQ observation: sources124/146/147 each count0/no wrap/EMPTY at separate
+  noncoherent cuts. Later arrivals and acknowledged transient faults remain
+  outside this evidence. `No irq handler for 0.227` at94.705493s is retained
+  without assigning UVD causation
+- recovery: owner confirmed fully off indicator and USB return after the test.
+  Actual Kingston serial and UUIDs reidentified; desktop mounts cleanly removed.
+  All five native-dev1 boot hashes and41 native modules verified restored;
+  pre/post read-only filesystem checks passed and both partitions unmounted.
+  Candidate modules/recovery copies retained; no second Linux launch
+- continuity: completed2026-10-19T15:00:06.422517+06:00 through
+  15:17:46.784067+06:00, generation `5c86c877`, epoch1,
+  offsets610793..728836,118043 bytes,1519 normalized lines, zero omissions,
+  capture events or continuity errors. Basename
+  `20261019_150006_422517-exp-20261019-002-b058a633`.
+  Raw SHA256 `a030717d273feb94070c1bcda8f257abf7e92fd87008a21ca1de246d987c42fe`
+- private result: `lab/uvd-2026-10-19/token-transport-v2/handoff/runtime/RESULT.json`,
+  SHA256 `a147d71be5631eb1a58618e149dd7db1366bf78b2bef84284c8ecf0289d0e592`.
+  Completed UART slices and original receipts remain private on both hosts
+- next action: source-design one bounded UVD memory-completion/fence transaction
+  with a fresh sequence identity and retained mappings, building on this
+  observed transport. Native USB restored; capture continues, no active experiment
+
+## EXP-20261019-003 — one owned-page UVD writeback (completed; narrow PASS)
+
+- objective: after the observed token transport, observe one fresh UVD result
+  in the retained driver-owned page, with matching context/RPTR/WPTR and intact
+  surrounding words before the 250 ms transport deadline. One launch only;
+  operator timeout180 seconds, expected retained park
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-writeback-dev1`,70 patches,
+  737 recorded inputs and41 matching modules. Kernel SHA256
+  `edd9eff455d0e596d97f2a215566a4af981d53113602bd7e3cc37931497017b5`;
+  modules `71e037aa25c98963ed39f6cf93a4119cba6a10fc0ae7ec69bf8c009a9350aed5`.
+  Plan `42f2840557394984ad5c960c42a7de36c33036b78343762812abf091ca999279`
+- preparation: source review, optimized/sanitizer source fixtures, native build,
+  matching modules and complete source/archive readback passed. All718 prior
+  inputs preserved. Host install/rollback tests passed on both computers
+- review limit: the compiled audit remains incomplete after an automatic-review
+  interruption; parameter metadata reconciliation and final all-input identity
+  reconciliation/signoff are unfinished. Preliminary observations found no
+  concrete defect. The owner was informed and explicitly requested preparing
+  the USB for this bounded development test. No compiled-audit PASS is claimed;
+  Claude was asked only for design/result-interpretation suggestions
+- installation: actual Kingston serial/UUIDs reidentified, candidate boot hashes
+  and55 matching module files verified. Pre/post read-only filesystem checks
+  passed; both partitions unmounted. Native rollback remains available
+- observed: one exact candidate banner; SDMA256-byte precheck CRC `570ae4eb`.
+  Readiness STATUS2/MASTINT2 observed, elapsed_us27837. Ring CRC `26f7b2c2`,
+  fresh baseline `0x43505533`; one WPTR16 publication at8.772153s. Memory
+  report at8.782209s held `0x55564433`, with1023 guard words intact. Saved
+  core sample had context `0x55564433`, raw RPTR16/WPTR16, STATUS2/MASTINT2,
+  fault0/reset0/in_reset0. End elapsed_us10076; terminal at8.910472s was
+  `WRITEBACK_OBSERVED error=0 PARKED`. Elapsed includes logging/software
+- scope: PASS for this one CPU-observed UVD writeback transaction. Guard reads
+  were sequential. No decoded frame, general ABI, outside-page containment,
+  DMA quiescence, reset/unload, lifecycle or repeatability qualification
+- other observations: owner reported a white screen, consistent with the
+  deliberate terminal park. IRQ124/146/147 each count0/no wrap/EMPTY at
+  noncoherent cuts. Wi-Fi warnings and unhandled0.227 before the probe and at
+ 77.190128s after park are retained without attributing UVD causation
+- recovery: owner confirmed PS4 off and USB returned. Desktop mounts were
+  cleanly removed after identity checks. All five native boot hashes and41
+  native modules verified restored; pre/post read-only filesystem checks
+  passed and both partitions unmounted. Candidate/recovery files preserved
+- UART: completed2026-10-19T16:24:26.841419+06:00 through
+ 16:32:44.362366+06:00, generation `5c86c877`, epoch1. Offsets728836..951071,
+  222235 bytes,3254 normalized lines, zero omissions/capture events/continuity
+  errors. Basename `20261019_162426_841419-exp-20261019-003-de4347ac`.
+  Raw SHA256 `b98047ba6a7a7c877ed3dfbe46d121a2268d7d9f7fd7ff170cb22ee9113f23a0`
+- next action: source-review a bounded indirect-command-buffer fetch probe,
+  then firmware message exchange before reference-frame decode. Claude's
+  advice was checked against pinned public Linux source; it adds no hardware
+  acceptance and does not complete the interrupted audit. Native USB
+  restored; continuous capture running; no active hardware experiment
+- private evidence: `lab/uvd-2026-10-19/writeback/handoff/REVIEWED-TEST.json`,
+  `stage/plan.json`, `runtime/install-*.json` and the incomplete compiled status
+  receipt. Final `runtime/RESULT.json` SHA256
+  `b08ce205b2b6e7d5bc8d4c424ea4a1668fa542dde43b323bc55af4da9f5cba31`.
+  Completed slices are saved privately on both hosts; raw UART remains private
+
+## EXP-20261019-004 — UVD indirect-buffer token — COMPLETED, timeout, native restored
+
+- objective: after the observed direct token and writeback, test one fresh
+  context token executed from the separately owned indirect buffer. The main
+  ring contains only the public UVD5 LOW/HIGH/SIZE submission and NOPs
+- candidate: private `7.2.11-psx-ps4-baikal-uvd-ib-fetch-dev1`, 71 patches,
+  756 recorded inputs and 41 matching modules. Kernel SHA256
+  `dc2f1f9ae27623d71c294e82b07eb508dc46e8bedfd7e32265cf6ef3ff728e5e`;
+  modules `2d5b04618cf739f1dec449674ef3171960b8e3afa7407a7deeca7d3ddd1a72fc`.
+  Plan `28dcbdc6d19830f9d24cdc74298caf78f16dde35a6c7289302aa4a0398243a20`
+- preparation: primary and independent source reviews passed. Optimized and
+  ASan/UBSan extracted-source checks passed, including 32 IB events and 16
+  preconditions plus prior modes. Both whole-page images match independent
+  expectations. Native build, all matching modules and complete source/archive
+  readback passed; all 737 prior inputs were preserved. All 55 handoff tests
+  passed on both hosts. The prior compiled audit remains incomplete; no new
+  compiled/decompiler audit or completed verdict is claimed
+- predeclared result: one publication, CPU baseline `0x43505534`, IB-only token
+  `0x55564434`, main CRC `e5b6afa6`, IB CRC `e6268505`. Success requires fresh
+  context, raw RPTR/WPTR16 and all remaining guards before 250 ms. Submitted
+  IB_SIZE is observational. A recorded first token cannot override a final
+  guard failure or timeout. No exact fetch length, decode, coherency, lifecycle
+  or repeatability claim; completed UART continuity is required
+- installation: exact Kingston serial/UUIDs/sizes reidentified. Candidate
+  boot-file hashes and 55 module files verified, native recovery retained.
+  Pre/post read-only filesystem checks passed; both partitions unmounted
+- observed: one exact candidate banner and one publication; both page CRCs
+  matched. SDMA precheck passed, readiness STATUS2/MASTINT2 elapsed_us27909.
+  Final context stayed `0x43505534`, raw RPTR/WPTR16, IB_SIZE16. No fresh token
+  was observed; `IB_FETCH_TIMEOUT` at elapsed_ns250684504, followed by
+  `error=-110 PARKED` at 9.083720s. Saved sample had STATUS2/MASTINT2 and
+  fault0/reset0/in_reset0. Deadline includes software/logging, not device latency
+- conclusion: the predeclared IB-token success criterion was not met. Main-ring
+  pointer advance alone does not establish IB fetch or execution. The result
+  does not distinguish missing fetch from requester/address/visibility issues
+  or unsupported CONTEXT_ID execution inside an IB. No unchanged replay
+- display: owner supplied a photo of full-screen multicoloured pixel noise.
+  Its onset relative to the probe and its cause are unknown. It is retained as
+  an additional symptom, without attributing it to UVD or dismissing it as park
+- interrupts: IRQ124/146/147 each count0/no wrap/EMPTY at observational cuts.
+  Unhandled0.49/0.227 appeared before the probe;0.227 also at84.688125s after
+  park, with rate-limit suppression. No UVD attribution or containment claim
+- recovery: owner confirmed PS4 off and USB returned. Identified desktop
+  mounts were cleanly unmounted. All five native boot hashes and41 native
+  modules verified; pre/post read-only filesystem checks passed. Both USB
+  partitions unmounted; candidate and recovery trees retained
+- UART: completed2026-10-19T17:37:15.495587+06:00 through
+  18:40:29.107672+06:00, generation `5c86c877cdc74dd199ab578d298c5cbc`, epoch1.
+  Offsets951071..1174680,223609 bytes,3251 normalized lines, zero omissions,
+  capture events or continuity errors. Basename
+  `20261019_173715_495587-exp-20261019-004-644858dd`; raw SHA256
+  `09675b45cff65e97eba10cc943367c5b75f6bd663d9e31fa99f9dd09e401a18d`
+- next: source-review the IB submission/control and payload compatibility
+  before selecting one changed diagnostic variable. Firmware messages and
+  decoding remain pending; continuous capture stays running, no active session
+- private evidence: `lab/uvd-2026-10-19/ib-fetch/handoff/REVIEWED-TEST.json`,
+  `EXPERIMENT.json`, `stage/plan.json`, and `runtime/install-*.json`.
+  Final `runtime/RESULT.json` SHA256
+  `883ab0e58ee88dcfb974cf275aa2033637d54a3c7812017ccc4ff698f2ab9f7a`.
+  Raw capture and operator photo remain private. Prior compiled audit remains
+  incomplete; this hardware result does not complete it
+- later advisory request: owner asked Claude in Herdr to review EXP004 and
+  suggest an accurately scoped next-task prompt. Claude reported an automated
+  safety-classifier stop while reading patch0009, with no more specific reason.
+  It supplied neither a technical verdict nor a prompt. Status is preserved in
+  `lab/uvd-2026-10-19/ib-fetch/handoff/CLAUDE-REVIEW-STATUS.json`; no retry or
+  replacement review was performed in response. Hardware result is unchanged
+
+## EXP-20261019-005 — DATA0 main-ring readback control (guard stop)
+
+- status: completed UART continuity; predeclared `DATA_SUBMITTED_GUARD`
+  outcome, no hardware acceptance; native boot restored and USB unmounted
+- objective: qualify a CPU-readable DATA0 marker on the direct main ring before
+  using it to re-evaluate indirect execution. One changed diagnostic payload
+  from EXP002; EXP003/004 patches are not dependencies
+- candidate: `7.2.11-psx-ps4-baikal-uvd-data-control-dev1`,70patches;
+  kernel SHA256 `e28e034566f4295d2469b11ed0738f4c1ac03f8ef4bc6ddd631089adc30c69fb`;
+  complete matching41modules installed, existing opaque initramfs retained
+- expected: DATA0 CPU baseline43504435, ring result55564435; context baseline
+  43504335, ring trailer43545835; oneWPTR16, RPTR/WPTR16 and two consecutive
+  guarded joint observations strictly before250ms. Full ring CRCcadc2d79
+- preparation: narrow two-line fixture matcher correction;205cases optimized
+  and ASan/UBSan on both hosts, six sensitivity controls; source/build/new
+  compiled review and62handoff cases pass. These are preparation evidence only
+- observed: one candidate banner, one WPTR16 publication, one deciding
+  sequential sample. DATA0 `55564435`, context `43545835`, RPTR/WPTR16,
+  IB_SIZE0, MASTINT2 and sampled fault/reset0; STATUS `00010002` tripped
+  guard reg`3daf`, mask`fffffffe`, expected2. Terminal
+  `DATA_SUBMITTED_GUARD error=-5 PARKED`, elapsed_ns27565189
+- interpretation: marker values appeared, but the guard rejected the sample
+  before seen flags, last_rptr or joint confirmations were credited. Zero
+  progress flags are not absence of the printed values. Two guarded
+  confirmations were not obtained; no passing DATA0 control or latency claim
+- UART: one session2026-10-19T21:22:32.424747+06:00 through
+  23:19:21.035427+06:00; generation`5c86c877cdc74dd199ab578d298c5cbc`,epoch1;
+  offsets1174680..1399759,225079bytes, completed, zero continuity errors,
+  logger events or context omissions. Continuous capture remains READY
+- bounded files: `ps4-uart/sessions/20261019_212232_424747-exp-20261019-005-4cf3faf8`
+  with `.raw`, `.events.jsonl` and `.md` suffixes; raw SHA256
+  `fa12be5df2400ff868d7e4aa1f524ecf067b8ecb64ae8102334e0b236780e079`
+- other observations: IRQ124/146/147 counts0 are noncoherent cuts, not absence
+  or containment proof. Unhandled interrupts0.49/0.227 and Wi-Fi errors
+  preceded the probe; Wi-Fi errors and0.227 also occurred after park. No UVD
+  attribution. No EXP005-specific display observation supplied
+- operator outcome: owner confirmed PS4 fully off and USB returned to
+  Omarchynator. Exact serial/UUID/size reidentified, desktop automounts
+  cleanly unmounted, all five native boot hashes and41 modules verified;
+  read-only fscks passed before/after rollback, both partitions unmounted.
+  Native `7.2.11-psx-ps4-baikal-native-dev1` restored; no second launch/reset
+- installation: verified serial/UUID/size against existing poweroff/USB-return
+  report; native five-file recovery created before boot commit. Installed
+  hashes, matching modules, pre/post read-only fsck and unmount checks pass
+- private evidence: `lab/uvd-2026-10-19/data-control/PROGRESS.json`,
+  `compiled-audit/compiled-review.json`, `handoff/REVIEWED-HANDOFF.json`,
+  `handoff/stage/plan.json`, `handoff/runtime/install-*.json`,
+  `handoff/runtime/rollback-*.json`, `handoff/runtime/completed-session.json`,
+  `handoff/runtime/RESULT.json` (SHA256
+  `15e976a0d7f3d902f5ea3759f7a42f62b288f94d891a5116f01bc147f4befa08`)
+- next action: review STATUS bit16 onset/persistence and design a separately
+  reviewed bounded observation. Public UVD7 names the bit RBC_ACCESS_GPCOM;
+  UVD5's VCPU_REPORT mask excludes it. The later-generation name does not
+  establish Liverpool semantics. No mask widening, clear/reset, unchanged
+  replay or IB/message advancement. Public-source note in
+  `data-control/review/STATUS-BIT-PUBLIC-REVIEW.json`; no next experiment active
+- limitations: no decoder/IB/message/general-coherency/lifecycle claim;
+  older writeback compiled audit and Claude IB review remain incomplete.
+  Original automatic-stop records are preserved; no oc2 bypass dispatch
+
+## EXP-20261020-001 — bounded STATUS bit16 observation (completed)
+
+- status: completed UART continuity; scoped class observation recorded,
+  `STOBS_BIT16_PERSISTENT error=0 PARKED`; accepted0, no decoder/support claim
+- objective: observe bit16 onset/persistence relative to DATA0/context/pointers
+  using the identical EXP005 packet, CRC`cadc2d79`, with changed observation
+  procedure; one publication, at most40 records,250ms from fetch-enable
+- candidate: Revision C,71patches,
+  `7.2.11-psx-ps4-baikal-uvd-status-observation-dev1`; kernel SHA256
+  `439a2c593261e1afb7d62c34a7555b048e4f9c0eb91b83c78ee44046886ade92`.
+  Host source202cases/16mutants on both hosts; native build/package,
+  scoped compiled review and40handoff cases on both hosts passed
+- installed: complete41module/55file set, native recovery verified,
+  boot-file readback and pre/post read-only filesystem checks passed,
+  both host partitions unmounted before launch. Owner explicitly authorized
+  installation while PS4 waited inOrbis, USB isolated onOmarchynator;
+  no false current-off assertion. Prior full-off afterEXP005 recorded separately
+- observed: one matching Linux banner, one PREPARED/publication-intent,39REC
+  records. All records had DATA0`55564435`,CONTEXT_ID`43545835`,RPTR/WPTR16.
+  REC0 at19910..19922us had STATUS3/bit16clear; REC1 at20946..20958us
+  had STATUS`00010002`; bit16 remained set throughREC38 at237884..237897us
+  and the terminal core. No marker regressions; final_valid1,sweep_valid1
+- terminal: result/log_class`STOBS_BIT16_PERSISTENT`,error0; elapsed_ns250896317,
+  publish_ns19909960,records39,fine24,sets1,clears0,accepted0. The next sample
+  reached the predeclared deadline before record40; this is a permitted end.
+  Sequential reads do not establish atomic ordering or exact onset latency
+- UART: 2026-10-20T02:49:10.248518+06:00 through2026-10-20T02:55:07.747352+06:00,generation
+  `5c86c877cdc74dd199ab578d298c5cbc`,epoch1; offsets1541332..1652571,
+  111239bytes,1313normalized lines,0omissions,0events,0continuity errors.
+  Raw SHA256`3e1d9daf6b9a701d3077a4bd5fa9a4abe9e88038cfff0febf43f479a0d9da049`; continuous logger retained
+- other observations: IRQ124/146/147 sampled counts0 are noncoherent;
+  generic `No irq handler for0.227` at185.100523 afterpark, cause unassigned.
+  No new operator display observation supplied
+- owner disposition: explicitly requested no native restoration and continued
+  custom-driver development. Current test image retained; native backup remains.
+  No post-test full-off/USB-return confirmation; no additional launch performed
+- private evidence: `lab/uvd-2026-10-19/status-observation/handoff/runtime/`
+  `completed.context.md`, `completed.raw`, `completed.events.jsonl`,
+  `completed-session.json`, `RESULT.json` and `CLOSEOUT.json`.
+  RESULT SHA256`4680fc7362139033b34539f20cff7c8f3ff6eb8cf1a8f16a38d88d9977ef453c`
+- next: oc2 read-only assessment of the next DATA0-marker IB diagnostic using
+  `/workspace/psx/research/ps4` (formerps4-re), public pinnedLinux
+  and this completed result; choose and implement one new diagnostic variable.
+  No active bounded experiment, no native restore requested
+- limitations: indexed-window gap, sequential timing/UART dwell and external
+  activity remain; bit16meaning unknown. No IB/message/decode/coherence,
+  containment or lifecycle qualification. Older incomplete reviews preserved
+
 ## Session-close checklist
 
 - [ ] Bounded UART session stopped or explicitly aborted with reason.
@@ -12558,3 +13156,658 @@ but they are not evidence of a Linux 6.18 boot.
 - [ ] Rollback state recorded and verified when required.
 - [ ] Compatibility ledger updated if evidence changes a claim.
 - [ ] Exactly one next action or an explicit stop condition recorded.
+
+
+## EXP-20261020-002 — IB-only DATA0 marker (completed; marker observed)
+
+- **State:** one operator launch completed with `IBDATA_MARKER_OBSERVED error=0 PARKED`. The saved result qualifies one scoped IB marker observation; hardware acceptance remains false. The owner reported full power-off and USB return to Omarchynator. Bounded UART continuity is completed without errors; continuous capture remains running. The IB image is retained, with no automatic native restore.
+- **Question:** can the existing LOW/HIGH/SIZE request fetch and execute the owned IB, when the fresh DATA0 value is written only by the IB packet? No CPU DATA0 store or main-ring packet writes that result.
+- **One diagnostic change:** move a supported DATA0 marker into the owned IB, retaining the existing UVD5-style prefix/address domain and bounded observation policy. Main/IB VAs are `0x300308000` / `0x30030a000`; raw length, WPTR and final RPTR are 16 DWORDs. No message, CMD, DATA1, fence or trap is submitted.
+- **Expected evidence:** DATA0 baseline `43504442`, IB result `55564442`, CONTEXT_ID baseline `43504342`; main/IB full-page CRCs `e5b6afa6` / `e847443a`. Require two consecutive complete valid samples with fresh DATA0 and RPTR/WPTR 16, ending strictly before 250 ms from fetch enable. One publication; at most 40 records. Endpoint values cannot create success. Every outcome parks with retained resources and `accepted=0`.
+- **Stop/rollback:** one operator launch, 180-second launch timeout; stop on terminal park, kernel fault, unexpected transition or invalid continuity. No unchanged replay. After the result, power off fully before returning media. Owner requested retaining development files; native recovery remains separately preserved and is not automatic.
+- **Candidate:** `7.2.11-psx-ps4-baikal-uvd-ib-data-dev1`, kernel SHA256 `463eae4c081a616714a75a0dc9daf5713828462833af937214126073ea0094fc`, patch `3224518cb9b6b47e3e9d251848c0478841c8099d4208b17fadf0dbcdfe14912b`. Native build/package passed, with 41 matching modules and corresponding source/input archives; baseline preserved.
+- **Verification:** 156 actual-source cases in optimized and ASan/UBSan on Mac and Linux; all eight injected defects rejected by their named witnesses. Handoff tooling: 48 synthetic cases on each host. Scoped compiled review found no must-fix issue; primary reconciled source/object/build/package bindings and key linked control flow. None is hardware acceptance or decoded-frame evidence.
+- **Frozen plan:** `lab/uvd-2026-10-20/ib-data/handoff/stage/plan.json`, SHA256 `e67c5b2034778d826b2e7265cb2de2d3ab4e392159030c9d80480f4ffd30b596`; final handoff `REVIEWED-HANDOFF.json`, SHA256 `162f87f091c1360358429cc0a18bf7ef21aa454a3b4be6f02b4b6124d8b5cc93`; scoped compiled review SHA256 `a6a3ce226967b2765ffe75c31d97337ec7eedca427d8a2d5bb5e38354d0a0918`.
+- **Preparation observations:** Mac full module inspection stopped because `modinfo` is a Linux tool; the unchanged full check ran on Omarchynator. First native preflight stopped at existing desktop mounts. Exact retained-C boot hashes were read before normal unmount; the second preflight passed with both partitions unmounted. Failed/incomplete checks are preserved beside the passing report; no check was weakened and no boot file was changed.
+- **UART:** READY, generation `5c86c877cdc74dd199ab578d298c5cbc`, raw size 1,652,571 bytes (unchanged from completed EXP-20261020-001); no active bounded session. Do not restart capture. A new session starts during the eventual reviewed installation.
+- **Artifacts:** `lab/uvd-2026-10-20/ib-data/{PROGRESS.json,review/,host-tests/,build-preparation/native-01/receipts/,compiled-audit/,handoff/}`. Read-only preflight: `handoff/PRIMARY-NATIVE-PREFLIGHT-02.json`; host unmount: `handoff/HOST-UNMOUNT-01.json`.
+- **Limits:** this can support one scoped IB-marker observation after a qualified future run. Message ABI, decoding, coherence, IRQ behavior, repeated use and lifecycle remain unproved. Older interrupted writeback/IB reviews remain incomplete.
+
+### Preparation revision 2 — detached host USB installation
+
+- The earlier requirement for a current console power-state answer was unnecessary for USB positively identified and isolated on Omarchynator. The owner already authorized preparing the USB without an extra console shutdown. Current power is explicitly `not-observed`; this is not an assertion of power-off or a prior full power cycle. Linux launch is held through installation and verified unmount. The post-test power-off/media-return rule remains.
+- Original tooling, stage and review are preserved. Revised tooling records the absent power report truthfully; device serial/UUID/size/host-root exclusion, complete modules, exact current boot hashes, distinct native recovery, filesystem checks, UART session ordering, readback and unmount checks are unchanged. Primary inspected the production diff, compared function ASTs and rehashed the reports; 54 synthetic cases pass on each host.
+- New stage: `lab/uvd-2026-10-20/ib-data/handoff/revision-2/stage/plan.json`, SHA256 `48fcf16dc9d7a17e67ab1709ce3bf6f7f36bf229d4c408c0cbd28686bac8a538`. Its sibling `REVIEWED-HANDOFF.json` SHA256 `48a98d597dd0fbd5680c4eca6bbbeabde5dd4ed8d386853b66756a972da28ac8`. Only the plan's installation-state contract and tool pins differ; source, kernel, packet, source/build/compiled review, acceptance criteria and all staged payload bytes are unchanged.
+- Native preflight at 2026-10-19T22:43:27Z passed: exact USB serial `REDACTED_USB_SERIAL`, both partitions unmounted, UART READY with the same generation/raw size, no active bounded session. Existing noninteractive sudo works; no privilege change. Actual installation follows under the single bounded EXP-20261020-002 session.
+
+### Verified installation and launch handoff
+
+- Session started 2026-10-20T04:44:08.241202+06:00, generation `5c86c877cdc74dd199ab578d298c5cbc`, epoch1, start offset1,652,571. Continuous capture retained; valid so far, zero new bytes at install completion. The session remains open for the single operator launch.
+- Exact C boot set replaced with IB-DATA kernel `463eae4c…` and arguments `4d08ab79…`; initramfs `cf2102f5…` retained. Complete41module/55file set installed and read back; all four before/after read-only filesystem checks passed; no cleanup errors and both partitions unmounted. Native recovery is `psx-recovery-EXP-20261020-002`, separate from retained C and IB module trees.
+- Receipt SHA256 `74f33c5396538c390ec4ddff3823cc4242c42001e112ac13d931e4ea10a1476a`; completion SHA256 `e7a16284676caa5b16b2ebd450e2ce50bcb4d939ab6cfc3c6ec475e5212b5c86`, under `handoff/revision-2/runtime/`. Power state recorded `not-observed`, no fabricated operator confirmation.
+- Operator instructions: move the already-unmounted USB, launch Linux once after a full-off between test boots, report launch; no desktop expected, root watches for terminal/fault/invalid continuity or180seconds. Fully power off before returning media after the test. Retain development image; no automatic native restore. No IB/decode/hardware acceptance claim before observed evidence.
+
+### Completed hardware observation and closeout
+
+- **Outcome:** `IBDATA_MARKER_OBSERVED`, one publication and 40 consecutive
+  complete valid joint samples. Each recorded DATA0 `55564442`, RPTR/WPTR16
+  and unchanged CONTEXT_ID baseline `43504342`. CPU/main-ring writers of
+  the fresh DATA0 value are excluded by the bound source/packet contract.
+- All sample ends were strictly before 250 ms; confirmation occurred at
+  elapsed19,990,235 ns and the last sample ended at249,940,458 ns.
+  Completion reason was the predeclared40-record budget. These software
+  timestamps include instrumentation and establish no device latency claim.
+- Final direct sample and indexed sweep were valid. STATUS was3 in record0
+  and10002 thereafter. Recorded fault/reset fields remained0. IH sources
+  124/146/147 each reported0; this proves neither absence of faults nor
+  interrupt containment/delivery.
+- **Identity:** exactly one matching Linux boot,
+  `7.2.11-psx-ps4-baikal-uvd-ib-data-dev1`. The saved extractor matched the
+  source/build/compiled-review/stage/actual-install bindings and found no
+  evidence errors. `qualified_marker_observation=true`,
+  `accepted=0`, `hardware_acceptance=false`, `decode_demonstrated=false`.
+- **UART:** session `457dfc6642344207b865c552b5bb8a60`, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`, epoch1, completed at
+  `2026-10-20T11:34:42.370990+06:00`. Fences1,652,571..1,887,219 contain
+  234,648 bytes. Event slice is empty and continuity errors are empty.
+  Continuous logger PID114477 remains READY; no active bounded session.
+- Raw SHA256:
+  `8ec2fdb3ac357cc4d7ce7c9489800c6308dea2052cd9c79d2ea99de4cd5bbda0`.
+  Saved result:
+  `lab/uvd-2026-10-20/ib-data/handoff/revision-2/runtime/RESULT.json`,
+  SHA256 `2b7ffc6300897ba7c5cdddbd4e249e17fbd705d3300ebbbe19832f5b1a62af30`.
+  Exact raw, compact context, index record and empty event slice are under
+  the sibling `closed-session/`; operator report is `OPERATOR-POST-TEST.json`.
+- **Operator/USB:** launch reported, then “PS4 fully off; USB on Omarchynator.”
+  Live read identifies the same serial/partition UUIDs, auto-mounted by the
+  host desktop. No restore was requested or performed.
+- **Conclusion:** the owned IB-only DATA0 command produced its expected
+  observable result in one qualified run. This advances beyond the earlier
+  IB-context-token timeout. It does not diagnose why that different marker
+  test failed, prove general address translation/coherency, establish a
+  firmware message exchange or demonstrate video decoding.
+- **Next action:** prepare a separately reviewed normal-Linux
+  preparation-only boot with retained owned mapping and cached userspace
+  observation. Firmware session/message exchange and a checked decoded
+  frame remain later milestones. No unchanged replay is planned.
+
+## EXP-20261020-003 — retained preparation with normal Linux userspace (completed; frozen parser incomplete)
+
+- **Question:** can the reviewed preparation-only kernel keep its owned VMID4
+  mapping after the completed SDMA proof, continue to normal Linux userspace,
+  and expose matching cached preparation state from that same boot?
+- **Candidate:** `7.2.11-psx-ps4-baikal-uvd-live-prepare-dev1`, kernel
+  `e7abc9a8f4c5d4d19ce12dbab2df9f113a137c61f67497ab5c00ccb31a74cb4f`.
+  Existing native02 build/package and scoped compiled review are unchanged.
+  The separately developed GMC fault-history revisions are not included.
+- **Scope:** one launch, preparation gate and `debugfs=on`; no UVD arm,
+  firmware message, ring submission, GPU reset or decoded-frame claim.
+  Expected evidence is ordered normal-userspace UART plus one bound SSH
+  capture of the cached PREPARED state, matching boot/release/BDF/generation.
+- **Stop:** terminal kernel/GPU fault, reset, unexpected transition, invalid
+  continuity or failure to reach userspace within180seconds of launch.
+  Permit five minutes after userspace for operator/access setup, then one
+  collector invocation with a30second I/O budget. Missing access/evidence
+  is not a pass. Stop before changing diagnostic variables or retrying.
+- **Operator setup:** owner has reported PS4 fully off and USB returned after
+  EXP002. Owner agreed to local sudo for temporary debugfs traversal/cache
+  read permission. The initially proposed directory-only command was corrected
+  to include group read access to the 0400 cache node; complete commands are
+  in the operator plan. No write permission, persistent sudoers/login change,
+  kernel change or automatic rootfs permission change is part of this step.
+- **Plan:** `lab/uvd-2026-10-20/live-prepare/handoff/EXP-20261020-003/stage/plan.json`,
+  SHA256 `73dec42e19eccd12845b23431244872c30e9d42bb058e754ad7e6e4ca960cab7`.
+  Final primary review is the sibling `REVIEWED-HANDOFF.json`,
+  SHA256 `a433dbde2f9c10fc1f9b286db18ca0bbb0fe1dba6ddb2b7eb5ad0b3aaca8a8e8`.
+  `OPERATOR-PLAN.md` records the full sequence and outcome limits.
+- **Preparation:** native host stage passed once; all7 observation tools,
+  41matching modules/55archivefiles and original source/build/bundle inputs
+  matched. Rootfs inspection confirms SSH keys/service and wheel journal ACL
+  configuration; runtime reachability and read access remain unobserved.
+  Returned USB was positively identified and normally unmounted from its
+  host desktop mounts. No new UART session has been started at this entry.
+- **Rollback:** preserve the known native recovery and IB evidence; no
+  automatic restoration. After a fault, owner powers off fully before media
+  return. A positive preparation observation remains `accepted=0` and does
+  not establish working decoding or safe future UVD teardown.
+
+### Verified preparation installation
+
+- Final native preflight passed against the exact stage and physical USB.
+  Additional continuous UART bytes appeared after EXP002 closeout; current
+  console power was therefore recorded `not-observed`, without discarding
+  the owner's prior full-off report or requiring an extra shutdown for the
+  detached host installation.
+- The runner started the single bounded EXP003 session at
+  `2026-10-20T11:52:29.261530+06:00`, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`, epoch1, offset1,990,905.
+  Continuous logger PID114477 remained READY; session bytes were0 at
+  installation completion.
+- Exact IB boot files were replaced with preparation kernel `e7abc9a8…`
+  and arguments `3f638159…`, retaining initramfs `cf2102f5…`.
+  All41matching modules/55files were installed and read back; native and IB
+  module trees and separate native recovery were preserved. All four
+  read-only filesystem checks passed, cleanup succeeded and both partitions
+  were normally unmounted.
+- Install receipt SHA256:
+  `8c69b6a0eb666740ea604584655fca8411e5a58df9444f8efd461679d481d6b2`.
+  Completion SHA256:
+  `b14a6e87398c1260d14861c0c4595522e40d1326df75775b4c8c3a66e3b5250a`.
+  Primary receipt review is `PRIMARY-INSTALL-REVIEW.json` beside the stage.
+- Owner received the USB-ready signal for one launch and normal userspace,
+  followed by the agreed temporary cache read-access step and one SSH
+  capture. No preparation runtime result or hardware acceptance is claimed.
+
+### Runtime and closeout
+
+- Owner reported launch, then “linux booted.” The matching preparation
+  kernel printed MAP at8.283533s and PREPARED at8.299993s. UART reached
+  Multi-User System at17.751568s and Graphical Interface at17.825757s.
+  Linux remains running; owner requested continued development without
+  switching it off. No second launch, restore or GPU operation was performed.
+- One reviewed SSH collector invocation returned complete input at boot ID
+  `REDACTED_BOOT_ID`, release
+  `7.2.11-psx-ps4-baikal-uvd-live-prepare-dev1`, DRM BDF0000:00:01.0.
+  Cached state is PREPARED/error0, selected/attempted/retained1,
+  reservation_seen/allocator_alive_cached/early_fence_init1, VMID4,
+  proof_generation=observed_generation=1, last_event=GART_ENABLE,
+  historical_sdma_proof1, reset_counter_at_proof0 and CRC570ae4eb.
+  The report explicitly says current_hardware_mapping=not-sampled,
+  UVD_setup=never and arm=absent.
+- Frozen extraction returned `UART_OBSERVATION_INCOMPLETE`, not a pass.
+  Its sole UART issue is `MALFORMED_CMDLINE` at raw line1894. Source inspection
+  identifies a classifier defect: the initramfs line starts with
+  `[omarchy-ps4-initramfs] Command line:`, but substring selection sends it
+  to the exact kernel-only command-line regex. Both real kernel command
+  lines and the initramfs echo contain the expected ordered policy.
+  A separate offline correction/review is underway; no raw filtering,
+  frozen-tool change, acceptance promotion or repeated hardware run.
+- Original result:
+  `lab/uvd-2026-10-20/live-prepare/handoff/EXP-20261020-003/runtime/RESULT.json`,
+  SHA256 `4ead4ef079aa6148a124b4b092d60af3d09399e6ac0cca05d201533c062ea92e`.
+  The cache/policy capture evaluator matched with no issues. The frozen
+  extractor returned before its later journal/userspace comparisons;
+  those checks must not be represented as completed by this original result.
+- Session `d99f4110fabe45ae81526d80d722be8b` closed at
+  `2026-10-20T12:06:26.632278+06:00`, completed continuity, errors[].
+  Generation5c86c877cdc74dd199ab578d298c5cbc, epoch1, fences
+  1,990,905..2,171,558 contain180,653bytes. The event slice is empty.
+  Raw SHA256 `d718ca2abb58e26507e7c0ddd06d30575e857099afc05ad78f1b0de6768e20c1`.
+  Exact raw/context/index envelope are in the sibling `closed-session/`.
+  Continuous capture was retained; no bounded experiment remains active.
+- **Access and process deviations:** owner supplied endpoint
+  `developer@192.0.2.4` and explicitly requested persistent passwordless
+  sudo during setup. The owner executed the uploaded script locally; root
+  verified `sudo -n true`, `visudo -c`, and the exact rule
+  `/etc/sudoers.d/90-ps4-development`. This is distinct from Omarchynator's
+  historical temporary rule. Root then granted group read to only the
+  preparation cache and traversal to debugfs; no cache write was granted.
+  See `runtime/OPERATOR-AND-ACCESS.json` and `sudo-and-cache-access.json`.
+- Direct Mac SSH matched the previously known PS4 host key. Omarchynator's
+  direct TCP connection timed out; a temporary loopback-only reverse SSH
+  relay through the Mac carried the one native collector invocation.
+  Relay and the owned native alias were removed afterward. Collection was
+  at approximately523–525seconds uptime, beyond the original five-minute
+  access-setup budget. The original timing plan remains preserved; this is
+  not a claim of full compliance with that predeclared procedure.
+- **Scope:** normal userspace and cached preparation state were observed.
+  This is historical cache evidence, not current MMIO/page-table inspection,
+  live UVD readiness, message exchange, safe teardown or decoding.
+  Hardware acceptance remains false and accepted count remains0.
+
+### Separate saved-evidence correction
+
+- The isolated parser revision `8d2be54c…` recognizes only the exact optional
+  initramfs namespace, requires a complete printable line and validates its
+  ordered tokens against the cached policy. It does not replace either
+  required kernel command-line record. Fault/lifecycle/old-probe scans and
+  other evidence markers on the same line remain checked.
+- The original24 tests and22 new regression tests (93 parser evaluations)
+  pass on Mac and native Linux; the preserved baseline24 tests also pass.
+  Primary read the diff/negative cases and reproduced the actual saved
+  interpretation. Original UART records are unchanged and exactly one
+  validated echo is recorded at line1894.
+- Primary separately executed the frozen binder's remaining saved-data
+  replay, journal and userspace checks without replacing its dependencies.
+  Four current-boot journal records include exact MAP/PREPARED matches;
+  boot ID/release/BDF, PID1, clock/uptime brackets and ordered root mount /
+  normal targets match. The expected root UUID mounted at11.647835s.
+- Supplemental result:
+  `runtime/supplemental-review-01/SUPPLEMENTAL.json` under this handoff,
+  SHA256 `1b78a5e3d0ad144bd26c1295d7156c2aba8e92cf49e7af00f48ca7179c010fc0`,
+  status `SUPPLEMENTAL_PREPARATION_EVIDENCE_MATCHED`.
+  The original frozen result remains byte-identical. This is a retrospective
+  interpretation, not a predeclared-procedure pass, hardware acceptance or
+  another test attempt. Access-budget deviation remains recorded.
+- Next development: finite returning readiness core with explicit operation
+  state and preserved legacy boot wrapper, developed/tested offline. The
+  current kernel's AMDGPU is built in and lacks a PS4 module-client interface;
+  no live arm is added by this experiment. Keep Linux running as requested.
+
+
+## EXP-20261020-005 — fixed-reference H264 first-picture test
+
+- **PASS_FIRST_REFERENCE_FRAME** — one fixed 64×64 H264 IDR picture decoded
+  through Liverpool UVD. CREATE → DECODE → saved pitched target / visible
+  NV12 comparison → DESTROY completed on one cold launch. All 6144 visible
+  NV12 bytes matched the pinned software reference, SHA256
+  `12404191ab945b7478093a852545adfbaa9af44bd32f83ccf24f489e385628df`.
+  The predeclared first-picture gate passed 1/1; this is one observed run.
+- All three phases completed at cumulative WPTR 16/32/48, with two consecutive
+  joint observations per phase before its 2-second deadline. Message words
+  and guards remained unchanged; no fault/reset appeared in the recorded
+  buckets. Fault coverage remains limited to those buckets; no usable global
+  VM-fault counter was available. Later WLAN mailbox/debug warnings remain
+  in the private context and did not initiate another UVD operation.
+- UART session `82645d5ac47d4de4a7af101a59718f91` is **completed**, with no
+  continuity errors, generation `5c86c877cdc74dd199ab578d298c5cbc`, epoch 1,
+  offsets 2330363..2606031, 10:04:36.237625Z–10:10:55.597282Z on 2026-10-20
+  (379.36 seconds of the 900-second bound). `runtime/closed-session/SESSION.json`
+  SHA256 `4f82dee8b8fd9b9efcc732fe920c318bd359f6e7d3f50e3ffadd43439d2bcbdb`;
+  raw/context/event identities were checked separately by the primary.
+- Scope is private final source attempt 05 and matching native build 02:
+  source receipt SHA256
+  `e5dad8a27f8024502d9c3ef1fe0c17ca09b2824e39490a4310edef7bece7826d`,
+  build receipt SHA256
+  `54753c7891349bedf469fa4549d32ad15b08df2d962fb5bd306562162868a6a7`.
+  Kernel `7.2.11-psx-ps4-baikal-uvd-frame-dev1`, SHA256
+  `b5b64c4c083b380b668bee6d2fcc891c40998a769560ef257362f346ddac0e00`,
+  was installed with all 41 matching modules and exact readback. Source/ELF
+  review and complete source/module packaging remain bound by the result;
+  their earlier receipts are unchanged.
+- The owner supplied the powered-off console's identified DataTraveler3.0 USB
+  on Omarchynator, replacing the uncompleted live SSH installation route.
+  Boot/root UUIDs `REDACTED_BOOT_UUID` / `REDACTED_ROOT_UUID`
+  and exact old boot hashes matched. The bounded session covered offline
+  installation, safe eject at 10:07:40Z and the owner's cold Orbis launch;
+  it excludes the preceding owner shutdown. Five preparation boot files,
+  the old module tree and recovery entries were preserved for rollback.
+- Private evidence root: `lab/uvd-2026-10-20/frame/handoff/EXP-20261020-005/`.
+  `runtime/RESULT.json` SHA256
+  `2bc342d256e98e138e9b040c8ba6055d7111c40449a2ca19dbc4561baf64f3fa`;
+  `runtime/INSTALL.json` SHA256
+  `7dd560f9455444a82cf053e5f83717501a68734c2dad229e60389202b8ad699c`;
+  `runtime/readback-01/receipt.json` SHA256
+  `8bde8d67671df55ec777dcaa44a85354da53a5e4150e4de0de83e95080df52fa`;
+  `runtime/readback-01/RENDER.json` SHA256
+  `5e358bb470efb58ce210fe3eca5101beedc22584668d755f19cf2d8ae23d7ebd`.
+  The PNG visualizes UART-recovered NV12; its conversion performs no H264 decode.
+- Black screen was expected: this test intentionally parks before desktop/SSH
+  with mappings retained. No retry, reset, free or rearm occurred. After the
+  result/session, the owner reported full power-off and returned the USB to
+  Omarchynator. Restoration of the exact preparation boot files remains the
+  rollback; no subsequent boot is recorded here.
+- No full-driver/support promotion: normal DRM/VAAPI or player integration,
+  multiple-frame/long-running decode, repeatability across fresh boots,
+  encoding and any first-ever novelty claim remain unestablished.
+
+
+## EXP-20261020-006 — normal UVD runtime / first VAAPI application decode
+
+- **PASS_FIRST_APPLICATION_VAAPI_REFERENCE_CLIP** — normal FFmpeg/VAAPI
+  decoding passed for one 128×96 H264 I/P clip on one cold boot. Owner's Liverpool/Baikal PS4
+  is reported fully off; its external DataTraveler3.0 USB is on Omarchynator.
+  Existing authority: “usb on build-host, load necessary things”.
+- Single question: does the returning UVD runtime backend reach normal Linux
+  userspace and decode the pinned 128×96 H264 I/P clip through FFmpeg/VAAPI?
+  Diagnostic variable is the parked frame kernel → normal runtime backend;
+  initramfs, rootfs/Mesa, firmware and HDMI settings stay at their recorded set.
+- Candidate `7.2.11-psx-ps4-baikal-uvd-runtime-dev1`, kernel SHA256
+  `9c3ec7d27fdfdebfee137684a635301e8dfa259b50e2f5d98ee33cf5f91e6153`.
+  Source06 receipt `6477b996fc28f7d270ba72c10208dc9e1e9fa792504d93ce79ab1c5ae8f0ff1b`;
+  link receipt `feb74149ef3bfcbea88230004d7b35e2cb26e20a86d65cec7bd8dadf9e93c6a9`.
+  Native link, targeted CPU checks and scoped linked-code review passed; these
+  do not establish DMA/concurrency correctness or hardware playback.
+- Private package receipt `9c40f863c4255372c9a74008268b3b22a56a231618ae140aceaa92895838584c`
+  includes complete corresponding source, symbols/config and all 41 matching
+  modules with archive readback. Compiled review receipt
+  `c38a5b6f842a762ed06dd7a901c2ca3c44366ef3c45421825cefe52ef9ab6f0b`
+  is separate; the packaging tool deliberately does not assert that review.
+- Offline plan `lab/uvd-2026-10-20/runtime/handoff/EXP-20261020-006/OFFLINE-PLAN.json`,
+  SHA256 `060aa2c6720b2d487eee32f9fd1d01cbc472bf5e88299a270b9a26482de46f16`.
+  Read-only preflight passed against exact boot/root UUIDs `REDACTED_BOOT_UUID` /
+  `REDACTED_ROOT_UUID`, sizes and five current boot hashes.
+  Reuses the reviewed offline installer with only its experiment ID changed.
+- Sequence: verify continuous capture/start one bounded session; install matching
+  modules and only bzImage/bootargs with five-file backups/readback; unmount both
+  partitions and power off USB; owner moves it to the fully powered-off PS4 and
+  launches the existing Linux loader once; inspect UART/SSH identity, run one
+  forced-VAAPI fixture only if startup is healthy, then conclude.
+- Evidence required: exact banner and `PS4_UVD_RUNTIME QUEUE_READY`, normal
+  userspace access, all 120 hardware-downloaded NV12 frames byte-exactly matching
+  independent software output, no observed fault/timeout/queue closure/reset,
+  and completed uninterrupted bounded UART continuity. Fixture manifest SHA256
+  `8999f750efd20cf71f176efb5b5febb0681c493e23ca1dfb6f0bc7bcf8288626`.
+- Bounds: 30 minutes for the coherent session, five minutes for boot after owner
+  launch, 60 seconds for the single decode invocation. Stop on identity/readback
+  error, terminal GPU/UVD fault or timeout, queue closure or UART invalidity.
+  No automatic retry, reset, unload or repeated launch. The experimental driver
+  retains DMA backing after entry and cannot complete ordinary shutdown/PM.
+- Recovery: full console power-off, then restore the exact preparation boot
+  files from EXP-005's preserved rollback directory and use its retained matching
+  modules. EXP-006 also saves the replaced frame-test files for provenance;
+  those intentionally park and are not the desktop recovery kernel.
+- No hardware acceptance, support promotion, public push/release or VCE claim.
+
+- Installation update: bounded UART started 2026-10-20 11:37:55 UTC, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`, epoch 1, raw offset 2606131. At last check
+  it remained READY/continuity-valid with no new console bytes. Deadline is
+  12:07:55 UTC; no runtime acceptance is inferred from the quiet powered-off PS4.
+- **PASS_OFFLINE_INSTALL_READBACK**: all 41 modules installed, exact candidate
+  kernel/581-byte runtime bootargs read back, previous modules/boot files kept.
+  INSTALL.json SHA256 `fda63dc4a4c75a49cff935f3a00495e0ffea8eedea4b7a724d3d6e544595bc38`.
+  Both partitions cleanly unmounted. Ordinary-user udisks power-off returned 1
+  before its stderr was saved; read-only inspection confirmed unmounted UUIDs,
+  then root-privileged udisks power-off returned 0. USB-EJECT.json preserves this
+  permission/eject deviation separately from driver/build outcomes. Owner was
+  told “USB ready” and given the single-launch/5-minute-black-screen sequence.
+
+- **Conclusion:** the owner reported “linux booted”. The exact runtime-dev1
+  banner and GNU build ID `32bd29522ed3400ff111a8a42a30f7fb468bd738` matched the
+  installed candidate; UART recorded STARTED/QUEUE_READY and normal graphical/SSH
+  startup. One forced FFmpeg VAAPI invocation produced all 120 distinct frames,
+  four I and 116 P, with zero decode errors and exit 0. All 2,211,840 NV12 bytes
+  and all 120 frame hashes exactly match independent software output SHA256
+  `d99b87567601efb735d438e766f34112344a3a31fc1d9e1b4177bfd329bcb491`.
+- The hardware-frame graph requires VAAPI output followed by hwdownload with
+  automatic conversion disabled. Actual log identifies Mesa radeonsi 26.1.7,
+  `pix_fmt: vaapi` and a VAAPI graph input. Primary and an independent saved-data
+  reviewer recomputed the pixels; runner source writes output only from FFmpeg
+  stdout. Its `h264(native)` label is the decoder wrapper, not software fallback.
+- UART session `725b9f3e100a4a6a9434538d5e1c5183` completed, epoch 1, no continuity
+  errors, offsets 2606131..2872535, 266404 bytes, 11:37:55.002186–11:47:36.858074 UTC,
+  581.855888 seconds (<1800). Raw SHA256
+  `4d4279ed430429c684324561ac4647f39545a548aad26bc9b3684a54533bd525`.
+  No runtime CLOSED/RETAINED, GPU fault/reset, UVD timeout or panic was observed;
+  fault coverage remains limited to captured status/history/UART, not a global
+  VM-fault counter. Continuous logger remains running; this bounded session closed.
+- Parent RESULT.json SHA256 `300526d258751c3b0a0be0cef07b510fb2972471c4696dc8acc11a7514fe3d3a`;
+  application receipt `30a42789e704c00c2635d5a6eb9f702346377eb40a6ebf080b27cbaffeb7972c`;
+  independent review `c677d989005a1097112653ed2a1ccdb51e2f45ed60fdc4b51e2a5b3f38e07f43`.
+  Private evidence remains under the plan's workspace path; no raw capture,
+  binary package, firmware or decoded pixels are added to Git.
+- Runner hardware_acceptance=false is intentional: the parent separately binds
+  actual completed UART, installation/running identity and exact pixels. The
+  PREFLIGHT.json FAIL_DECODE value is its pre-run placeholder; final RESULT,
+  EXECUTION, log and output record the pass. This was not another failed attempt.
+- One observed low-resolution Baseline I/P clip is accepted, not general codec,
+  resolution, GUI presentation, seeking/repetition, performance or support.
+  The owner wants local commits then continuation to visible mpv playback.
+  At least three cold boots of the same frozen set plus broader playback gates
+  remain required for promotion. Leave the current Linux running; no reboot,
+  reset, unload or PM was performed. Mesa/VCE remain subsequent work.
+
+
+## EXP-20261020-007 — first visible mpv / Wayland-EGL presentation
+
+- **FAIL_GPU_PRESENTATION_AT_PAUSED_FIRST_FRAME.** Same healthy runtime-dev1
+  boot, Mesa and exact128×96 clip as EXP006. Only the consumer/presentation path
+  changed to mpv with forced vaapi-copy, software fallback disabled and
+  vo=gpu / gpu-api=opengl / gpu-context=wayland. Input initialized paused.
+- IPC confirmed vaapi-copy,128×96 NV12 and configured output. The owner photo
+  showed repeated black horizontal bands, corrupted image and damaged OSD.
+  mpv's video-only128×96 PNG shows the expected pattern without the full-screen
+  bands; the compositor screenshot reproduces the corruption. This points to
+  rendering/presentation, but does not establish the exact Mesa/kernel cause.
+  Offline RGB conversion differs and is not an exact mpv-frame acceptance oracle.
+- The display fault stopped the sequence before unpause; no four-second playback
+  or EOF occurred. One normal IPC quit succeeded; the player exited. Owner then
+  reported “Desktop looks normal”. No blind retry, reset, unload or reboot.
+- UART session `e3eb1f6f61464a97a302783c1611c465` completed, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`, epoch1, errors[], offsets2875406..2876319,
+  913bytes,12:01:21.148086–12:04:37.087734 UTC. No runtime terminal marker was
+  observed. Quiet UART alone does not establish presentation or decode success.
+- Private result/screenshots/owner photo and player IPC/log are under
+  `lab/uvd-2026-10-20/runtime/handoff/EXP-20261020-007/runtime/`.
+  EXP006's independently byte-exact FFmpeg decode remains unchanged.
+- Next diagnostic variable: vo=wlshm (Wayland shared-memory/software scaling)
+  while retaining forced UVD vaapi-copy, same clip and same boot. This bypasses
+  mpv's OpenGL renderer; it does not disable hardware video decoding.
+
+
+## EXP-20261020-008 — same UVD decode with Wayland SHM presentation
+
+- **PARTIAL_CLEAN_INITIAL_PLAYBACK_LATER_SEEK_ERROR.** Presentation backend
+  changed from EXP007's OpenGL/Wayland-EGL to vo=wlshm, preserving same boot,
+  kernel, Mesa, forced vaapi-copy, clip, environment and other player arguments.
+  Primary normalized/compared both recorded argv arrays to verify that change.
+- Owner reported “now, no glitch, shows correctly” and supplied a clean paused
+  image. One scripted unpause then reached EOF in4.026365sec at lastPTS3.966667,
+  hwdec-current=vaapi-copy, with zero reported VO/decoder drops. Owner confirmed
+  “Yes, moving video looked clean”. This accepts the first visible clip and
+  isolates the OpenGL presentation problem; software scales/displays while UVD
+  still decodes. It is not a GPU renderer fix or broader playback qualification.
+- Later the player log contains repeated OSC pause/seek commands and one
+  vaEndPicture/hardware decode error at189.785sec. Owner confirmed “Yes, I used
+  the player controls”. These happened after the initial clean scripted EOF.
+  Raw AnnexB has no timestamps and mpv warned about synthesized PTS, so it is
+  unsuitable as the final seeking test. Exact cause of the VAAPI error remains
+  unresolved; no seeking acceptance. Controls were left active by the test
+  setup; subsequent controlled runs must disable mouse/keyboard OSC bindings.
+- Initial parent PASS assessment was preserved and corrected after full-log
+  review to this partial whole-session outcome. Initial clean playback evidence
+  is retained separately. No runtime CLOSED/RETAINED or GPU reset/fault/panic
+  marker was observed in this UART window; that alone does not prove all state
+  healthy. One normal player quit completed, process exited; no reset/unload/reboot.
+- UART `945dee9dc3cb40cbbac28de3b4ab22a9` completed, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`,epoch1,errors[],offsets2877335..2880608,
+  3273bytes,12:09:46.674599–12:13:49.299251 UTC,242.624652sec of600sec bound.
+  Raw SHA256 `f69302c518775e9a147d314941cbd22279610bc5b4ced860f03e67d7e7953230`.
+- Private evidence: `lab/uvd-2026-10-20/runtime/handoff/EXP-20261020-008/runtime/`.
+  Parent result explicitly separates initial clean playback from later seek error.
+  No raw capture/screenshots/decoded pixels/binary packages are added to Git.
+- Read-only graphics review found source-level Kaveri/Liverpool raster topology
+  mismatch in Mesa; no new runtime shared-GMC/GART geometry defect. Causation
+  for the stripes is still unproven. Further graphics isolation should use saved
+  raw NV12 reference pixels, avoiding a fresh UVD decode until the seek failure
+  has been understood. Preserve this Linux boot and the known rollback.
+
+
+## EXP-20261020-009 — raw reference pixels through the same OpenGL output
+
+- **REPRODUCED_OPENGL_CORRUPTION_WITH_RAW_NV12.** The single diagnostic
+  variable replaces H264/VAAPI input with EXP006's saved software-reference
+  NV12, hwdec=no. Same OpenGL/Wayland-EGL output, boot, kernel and Mesa.
+  Mouse/keyboard/OSC controls disabled as a protocol guard; paused first frame
+  only, no unpause or seeking. IPC confirms rawvideo/NV12 and hwdec-current=no.
+- Owner reported “i see glitches” and “Yes, the same stripes”. The compositor
+  screenshot preserves the corrupted presentation. One normal IPC quit
+  completed and the player exited. No new UVD decode, reset, unload or reboot.
+- This reproduces the rendering fault independently of H264 decoding. It does
+  not identify the exact faulty Mesa/kernel code or remove boot-time UVD
+  initialization from this already-running system. No broad support claim.
+- UART session `0c48205bb1b7479ca1b585c35d5f76b3` completed, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`, epoch1, errors[], offsets2883226..2884515,
+  1289bytes,12:25:28.389938–12:26:57.827429 UTC. Compact context and artifacts
+  are retained privately under `lab/uvd-2026-10-20/runtime/handoff/EXP-20261020-009/`.
+- Next one-variable format discriminator: keep saved NV12 and the same GL
+  renderer, explicitly request an8bit RGB EGL target instead of automatic
+  RGB10/XR30. Then prioritize the source-backed PS4 Mesa family/raster port.
+
+
+## EXP-20261020-010 — explicit8bit EGL target on the failing GL path
+
+- **RGB8_DID_NOT_FIX_OPENGL_CORRUPTION.** Same saved rawNV12 / hwdec=no,
+  renderer, disabled controls, boot, kernel and Mesa as EXP009. Only
+  egl-output-format=rgb8 changed; the actual log selected RGB8/XR24
+  (native visual0x34325258) instead of RGB10/XR30. Paused first frame only.
+- Owner observed “glitches and stripes”; compositor screenshot retained.
+  One normal quit succeeded, player exited; no new UVD decode or reboot.
+  Automatic10bit output alone does not explain the fault. No further format
+  toggles planned; prioritize the source-backed Liverpool Mesa family/raster fix.
+- UART `e7dfd4b5bb534f05910cc96d0c731af7` completed, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`,epoch1,errors[],offsets2885681..2886196,
+  515bytes,12:36:21.678189–12:37:21.774286 UTC. No terminal driver marker
+  observed; quiet UART is not presentation acceptance. Private result and
+  screenshots: `lab/uvd-2026-10-20/runtime/handoff/EXP-20261020-010/`.
+
+
+## EXP-20261020-011 — isolated Mesa26.2.5 Liverpool graphics comparison
+
+- Planned single variable: application Mesa26.1.7/Kaveri to isolated
+  Mesa26.2.5/Liverpool with PS4 graphics setup and AVC-only capability policy.
+  Same boot/kernel/compositor, saved rawNV12, hwdec=no, GL/Wayland settings
+  and disabled controls as EXP009. No new UVD decode or system installation.
+- Official source SHA256 `794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5`,
+  upstream commit `ddaf85e353442d9d7f192fdcf1823e652e3f2ee3`. Native build passed
+  all44 Mesa host tests. Initial run skipped build-by-default:false test helpers
+  because the recipe used no-rebuild; that failure and corrected passing run
+  are retained separately. Graphics/capability source checks also pass; none
+  substitutes for the hardware comparison.
+- Candidate archive SHA256 `e949ddf790c2b6389b6910b5d0a7b236c0b32f2dbbb9db3ec89143a328f02e02`,
+  staged manifest `b8ea4288485b0a06ba5405fc852d73c88be5d15493af2e6a7224f9ef63438cca`.
+- Sequence: continuous UART/start one bounded session; stage only to a private
+  user test directory, verify hashes/dependencies; launch paused; record actual
+  loaded libraries, renderer and window/compositor images plus owner report;
+  normal quit then close. Ten-minute bound,20sec initialization. Stop on
+  terminal fault, invalid continuity, or answered presentation result.
+- Rollback is normal player exit with installed libraries unchanged. On terminal
+  UVD/GPU fault, no reset/unload/rearm; retained full-power-off/preparation recovery.
+  Private plan/evidence: `lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-011/`.
+
+- **PASS_CAPTURED_RAW_NV12_OPENGL_PRESENTATION.** Unmodified compositor
+  screenshot and window capture show clean reference pixels and intact OSD.
+  Primary inspected the screenshot. Monitor-owner confirmation remains pending.
+  Same automatic RGB10/XR30 selection as the failing baseline; no8bit workaround.
+- Actual process maps verify candidate EGL/GLX/Gallium/GBM bytes; no installed
+  Mesa DSOs among those mappings. GL_VERSION=Mesa26.2.5 and renderer=liverpool.
+  All six candidate libraries relocate successfully against console userspace.
+  Normalized mpv arguments match EXP009 exactly apart from output paths.
+- One normal quit completed; no unpause or new UVD decode. This accepts only
+  the captured paused presentation check, not complete desktop/UVD support.
+  Upstream-version and PS4-patch changes were tested together; exact causal
+  hunk is not isolated. Installed libraries/compositor/kernel remain unchanged.
+- UART77a79f60 session completed with uninterrupted epoch1 capture; exact full
+  session ID, offsets/times, raw digest, maps and images are in the private
+  EXP011 RESULT.json. Further UVD decoding is a separate bounded experiment.
+
+
+## EXP-20261020-012 — owner monitor confirmation and new-Mesa AVC regression
+
+- **PASS_CANDIDATE_MONITOR_AND_CANONICAL_UVD.** Owner requested the reference
+  again and confirmed “Yes, clean with no stripes” on the monitor. Same isolated
+  Mesa26.2.5/Liverpool, rawNV12 and OpenGL output as EXP011.
+- Before a new decoder session, INFO-only probe reports UVD4.2 ready,
+  max1/used0 handles, AVC-only1920×1088/level41, no encode. Trusted normal
+  fence processing reports ps4_uvd signaled=emitted0x203; readiness remains
+  positive afterward. No terminal marker observed. This supports one new
+  controlled test; it neither diagnoses nor erases EXP008's later seek error.
+- The original pinned FFmpeg/runner/canonical fixture with only selected Mesa
+  changed passed all120 frames in0.593274sec. Every2,211,840NV12 byte matches
+  the original software oracle SHA256
+  `d99b87567601efb735d438e766f34112344a3a31fc1d9e1b4177bfd329bcb491`.
+  Primary independently recompared saved bytes after transfer. Actual VAAPI
+  graph requires hardware frames and hwdownload; no upload/software substitute.
+- Candidate Gallium SHA256
+  `763ed6e69a955262ba3e475598affa9a3f438b4aac1cb7e0cb7944ca27dd7353`.
+  After normal player/decoder exits, readiness/used0 remain good and
+  ps4_uvd completed=emitted0x27d (122 additional completions). No reset/reboot.
+- UART `18b1bcbcb0894613a3413367b39e4aef` completed, generation
+  `5c86c877cdc74dd199ab578d298c5cbc`,epoch1,errors[],offsets2893949..2895159,
+  1210bytes,13:09:16.982835–13:13:37.536125UTC,260.55329sec of600.
+  Raw SHA256 `4a08d09c3040c84f4d22bc39da71a2413638052f4594770fc72b7f64f5a050b0`.
+- Parent RESULT SHA256
+  `fb8a32b83f371591991b9f3ed38e2c5e4bce34b7e904a8f83b8a25a917153180`,
+  private artifacts `lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-012/runtime/`.
+  Acceptance is this canonical clip and monitor-visible paused graphics on
+  one boot. High resolution, controlled looping, full desktop adoption and
+  repeated cold boots remain pending. Owner requests a1080p30 fractal loop
+  with actual hardware-decoder/fence/drop statistics for a recorded demo.
+
+
+## EXP-20261020-013 — native1080p fractal UVD and monitored recording loop
+
+- Planned coherent workflow changes the input workload to the timestamped
+  30-second1920×1080H264 ConstrainedBaselineL4.1 fractal. Same running kernel,
+  isolated Mesa26.2.5 and boot. Source dimensions/DPB/job limits permit one
+  serial1080p job; sustained throughput is unproved. No clock changes.
+- First one forced FFmpeg VAAPI/hwdownload invocation with decoder/filter/raw
+  encoder threads1 compares all900frameMD5s/bytecounts and total NV12 SHA256
+  without retaining2.8GB raw output. No software/hardware-upload substitute.
+  Clip SHA256 `1ad9dc8b54545775a761628af471099a9d9df7b1b6d3f057feaba0acef10e0e5`;
+  software NV12 SHA256 `a36c73d7acf80b7aedb44f7af75069b1494abbc6c39838e0755db3a4f2a4e48f`.
+- Only after exact decoding and ready/idle checks pass, start one paused mpv
+  with forced vaapi-copy, fallback disabled, one decoder thread, corrected
+  OpenGL output and disabled controls. Verify loaded libraries/frame, unpause
+  once, then observe at least three complete clean30-second cycles. Live OSD
+  shows actual hwdec/sourceFPS/playback speed/drops and UVD completion counters.
+- Fifteen-minute qualification bound; one decode≤180sec, initialization≤20sec.
+  Stop on query/hash/decode/fault/continuity failure; no retry/reset/unload.
+  Normal quit restores the application environment; terminal driver fault uses
+  preserved full-power-off/preparation recovery.
+- Owner explicitly requests indefinite looping for recording. If the bounded
+  prefix passes, close and qualify only that captured prefix, leaving the same
+  healthy player/health monitor looping with continuous UART. Later running
+  time is not independently qualified; monitor quits on decode/fence failure.
+- Private plan: `lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-013/`.
+
+- **PARTIAL_1080P_EXACT_DECODE_PASS_MPV_INITIALIZATION_FAILED.** The forced
+  FFmpeg VAAPI decode matched every900frame size/MD5 and the whole
+  2,799,360,000-byte NV12 SHA256 oracle. Primary independently parsed and
+  compared transferred hashes. Elapsed56.061952sec includes CPU download and
+  hashing; it does not establish real-time playback speed.
+- The one mpv launch aborted before visible playback: CS rejected with
+  errno-28, mpv exit signal6, supervisor IPC timeout. No retry occurred. Its
+  actual log requests four decoder threads despite vd-lavc-threads=1. Official
+  pinned mpv0.41.0 source establishes that hardware decoding overrides this
+  with hwdec-threads (default4); the correct next variable is hwdec-threads=1.
+  Aggregate DPB lease pressure is a hypothesis, not the isolated errno source.
+- After exit, INFO-only query still reports UVD4.2 ready,max1/used0; trusted
+  normal fence read reports completed=emitted0x608. No CLOSED/RETAINED marker
+  observed in the bounded UART context. No reset/unload/rearm/reboot.
+- UART28c08b4f08c3434a9da4ba1836a0966a completed, generation
+  5c86c877cdc74dd199ab578d298c5cbc,epoch1,errors[],offsets2896918..2905930,
+  9012bytes,13:22:02.970277–13:31:47.946804UTC (584.976527sec of900).
+  Raw SHA2568f73224383626d8ff9e11fb970522ac18a9b90a4784686549b677e6f6d5acfdc.
+  Parent RESULT SHA25630c830bf06e83a2380b8b7ea09b0a554f7b5dcc5e85fec990ca9c06d1f8557b7.
+  Private artifacts: lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-013/.
+  Exact1080p decode passes on this boot; live1080p playback/loop remain pending.
+
+
+## EXP-20261020-014 — actual single-thread hardware decoder and1080p loop
+
+- Single variable: add hwdec-threads=1 to the EXP013 mpv configuration;
+  official mpv0.41.0 source and the installed binary establish the separate
+  hardware setting/default4. Same1080p clip, isolated Mesa, kernel and boot.
+  A log guard requires the actual one-thread request before unpause; failed
+  CS messages are now explicit terminal conditions. No quota/kernel change.
+- Confirm ready/idle, one paused launch, verify actual hardware decoder,
+  dimensions/thread count/candidate libraries, then unpause once and observe
+  at least three completed clean loops with live real counters. Capture the
+  compositor/monitor result. Fifteen-minute bound,20sec initialization.
+  Exact900-frame comparison already passed in completed EXP013; no repeat.
+- Stop on decode/fallback/CS/fence/continuity failure, no automatic retry.
+  Normal quit is rollback; terminal driver fault requires manual full power
+  off and retained preparation boot set, with no reset/unload/rearm.
+  Owner requested the healthy qualified loop remain running for filming;
+  only the bounded captured prefix can receive acceptance.
+- Private plan/evidence: lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-014/.
+
+- **PASS_CAPTURED_1080P30_UVD_LOOP_PREFIX.** Actual log requests one hardware
+  thread; IPC confirms vaapi-copy,1920×1080NV12,30fps source, GPU output and
+  selected candidate libraries. All other playback options match EXP013.
+  The bounded prefix contains164samples and five completed30-second loops,
+  zero display/decoder drops throughout, measured PTS/wall speed0.997509x,
+  and5130 additional trusted UVD completions. Three-loop READY was reached
+  at13:38:26UTC. Primary independently reconstructed wraps/counter monotonicity.
+- Compositor image captured during playback is clean, including all live OSD
+  text; primary inspected it. Owner confirmation of this moving1080p clip is
+  pending (earlier EXP012 confirmation was the paused reference). No full
+  desktop/system-wide Mesa claim. Earlier seeking error remains unresolved.
+- UART866f1c41dc244fa5b3c5a611da643b58 completed, generation
+  5c86c877cdc74dd199ab578d298c5cbc,epoch1,errors[],offsets2909106..2911778,
+  2672bytes,13:33:45.989851–13:39:47.296517UTC (361.306666sec of900).
+  Raw SHA2564c03090917188b0527a1d0b19c3ccc3b4c3eacd6a36e2b1a57932a41ee4088f5.
+  No terminal UVD/GPU marker observed in this window; this alone is not proof.
+- Pre-closure snapshot helper stopped on INFO probe exit1 because the sole
+  handle is actively in use; source confirms that probe requires a free handle
+  for its readiness-only PASS. This was an observation-helper assumption,
+  not a driver failure. After closure, saved telemetry was frozen strictly to
+  UART cutoff13:39:47.296517UTC; no post-window sample receives qualification.
+  Supplemental later query reports UVD ready/max1used1, as expected while playing.
+- Parent RESULT SHA256224175b1d84620a2c872fcad7d0f2d679f6b65fb947c4d5dbfa624c31538c0e8.
+  Private artifacts: lab/mesa-uvd-2026-10-20/handoff/EXP-20261020-014/.
+  Same healthy player and supervisor were left looping under the owner's
+  explicit filming request; continuous UART remains running. Later time is
+  unqualified, the monitor normal-quits on failure, and no second decoder,
+  reset/unload/rearm or reboot was attempted.

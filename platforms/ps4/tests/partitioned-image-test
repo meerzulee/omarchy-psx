@@ -1,0 +1,269 @@
+#!/usr/bin/env python3
+"""Synthetic image sizing/input and byte-exact partition-growth tests."""
+import hashlib
+import importlib.machinery
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import struct
+import subprocess
+import sys
+import tarfile
+import tempfile
+import types
+import unittest
+from unittest.mock import patch
+
+sys.dont_write_bytecode = True
+PLATFORM = Path(__file__).resolve().parents[1]
+
+
+def load(name, path):
+    loader = importlib.machinery.SourceFileLoader(name, str(path))
+    spec = importlib.util.spec_from_loader(name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+policy = load('image_policy', PLATFORM / 'packages/omarchy-ps4-provisioning/omarchy-ps4-partitioned-image.py')
+builder = load('image_builder', PLATFORM / 'scripts/build-partitioned-usb-image')
+BASE = 16 * builder.GIB
+LARGE = 64 * builder.GIB
+
+
+def mbr(size=BASE):
+    sector = bytearray(512)
+    sector[:13] = b'boot code/id!'
+    sector[440:444] = b'ID42'
+    for number, (flags, kind, start, length) in enumerate([
+        (0x80, 0x0C, policy.BOOT_START, policy.BOOT_SECTORS),
+        (0, 0x83, policy.ROOT_START, size // 512 - policy.ROOT_START),
+    ]):
+        offset = 446 + 16 * number
+        sector[offset] = flags
+        sector[offset + 4] = kind
+        struct.pack_into('<II', sector, offset + 8, start, length)
+    sector[510:512] = b'\x55\xaa'
+    return bytes(sector)
+
+
+class PartitionGrowth(unittest.TestCase):
+    def test_only_root_length_changes_and_boot_is_byte_identical(self):
+        before = mbr()
+        after = policy.expanded_mbr(before, LARGE // 512, BASE)
+        offset = policy.ROOT_SIZE_OFFSET
+        self.assertEqual(before[:offset], after[:offset])
+        self.assertEqual(before[offset + 4:], after[offset + 4:])
+        self.assertEqual(struct.unpack_from('<I', after, offset)[0], LARGE // 512 - policy.ROOT_START)
+
+    def test_completed_growth_is_idempotent_for_retry(self):
+        after = mbr(LARGE)
+        self.assertEqual(policy.expanded_mbr(after, LARGE // 512, BASE), after)
+
+    def test_reject_corrupt_or_unexpected_layout(self):
+        cases = [(510, b'\x00\x00'), (446, b'\x00'), (450, b'\x83'), (466, b'\x0c'),
+                 (462, b'\x80'), (478, b'\x01')]
+        for offset, replacement in cases:
+            with self.subTest(offset=offset):
+                altered = bytearray(mbr())
+                altered[offset:offset + len(replacement)] = replacement
+                with self.assertRaises(ValueError):
+                    policy.expanded_mbr(bytes(altered), LARGE // 512, BASE)
+        for field, value in [(446 + 8, 0), (446 + 12, policy.BOOT_SECTORS - 1),
+                             (462 + 8, policy.ROOT_START + 1), (462 + 12, 12345)]:
+            with self.subTest(field=field):
+                altered = bytearray(mbr())
+                struct.pack_into('<I', altered, field, value)
+                with self.assertRaises(ValueError):
+                    policy.expanded_mbr(bytes(altered), LARGE // 512, BASE)
+
+    def test_reject_truncation_small_targets_and_mbr_overflow(self):
+        for original, sectors, base in [(b'broken', LARGE // 512, BASE), (mbr(), BASE // 512 - 1, BASE),
+                                         (mbr(), 0x100000000, BASE), (mbr(), LARGE // 512, BASE + 1)]:
+            with self.subTest(sectors=sectors, base=base):
+                with self.assertRaises(ValueError):
+                    policy.expanded_mbr(original, sectors, base)
+
+    def test_writer_rejects_nonroot_and_regular_files_before_io(self):
+        with patch.object(policy.os, 'geteuid', return_value=1000):
+            with self.assertRaisesRegex(ValueError, 'root privileges'):
+                policy.grow('/dev/example', '/dev/example2', BASE, '/tmp/unused')
+        with tempfile.TemporaryDirectory() as directory, patch.object(policy.os, 'geteuid', return_value=0):
+            disk = Path(directory) / 'disk'
+            disk.write_bytes(mbr())
+            with self.assertRaises(ValueError):
+                policy.grow(disk, disk, BASE, Path(directory) / 'backup')
+            self.assertEqual(disk.read_bytes(), mbr())
+            self.assertFalse((Path(directory) / 'backup').exists())
+
+
+class ImageSizing(unittest.TestCase):
+    def test_auto_size_includes_boot_metadata_and_free_space(self):
+        payload = 7_800_000_000
+        size = builder.image_bytes(payload, 2)
+        self.assertEqual(size % builder.GIB, 0)
+        self.assertGreaterEqual(size - builder.ROOT_OFFSET, payload + 3 * builder.GIB)
+        self.assertLess(size, 16 * builder.GIB)
+
+    def test_reject_insufficient_and_excessive_fixed_sizes(self):
+        for size in ('4', '12', '32'):
+            with self.subTest(size=size), self.assertRaises(ValueError):
+                builder.image_bytes(8 * builder.GIB, 2, size)
+
+
+@unittest.skipUnless(shutil.which('zstd'), 'zstd is required for archive fixtures')
+class ImageInputs(unittest.TestCase):
+    def fixture(self, directory, extra=None):
+        root = Path(directory)
+        boot = root / 'boot'
+        boot.mkdir()
+        artifacts = []
+        for number, name in enumerate(builder.BOOT_FILES):
+            data = (b'root=LABEL=OMARCHY-PS4 rootfstype=ext4 omarchy.require_usb=1 omarchy.root_layout=partitioned-usb\n'
+                    if name == 'bootargs.txt' else f'fixture boot file {number}\n'.encode())
+            (boot / name).write_bytes(data)
+            artifacts.append({'name': name, 'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
+        (boot / 'release.json').write_text(json.dumps({'release': {'id': 'fixture-boot'},
+            'target': {'root_layout': 'partitioned-usb'}, 'boot_set': {'artifacts': artifacts}}))
+        expected = {item['name']: item['sha256'] for item in artifacts}
+        profile = root / 'profile.env'
+        profile.write_text('id=fixture\nrelease=fixture-boot\nkernel_release=6.18-fixture\nmodules_sha256=' + 'a' * 64 + '\n'
+            + ''.join(f'{key}={expected[name]}\n' for key, name in [('kernel_sha256', 'bzImage'),
+                      ('initramfs_sha256', 'initramfs.cpio.gz'), ('bootargs_sha256', 'bootargs.txt')]))
+        files = {'etc/passwd': b'root:x:0:0:root:/root:/bin/bash\n', 'etc/shadow': b'root:!:0:0:99999:7:::\n',
+                 'etc/fstab': b'LABEL=PS4BOOT /boot vfat ro,nofail 0 0\n',
+                 'var/lib/omarchy-ps4/provisioning/pending': b'',
+                 'usr/bin/omarchy-ps4-grow-root': (builder.PACKAGE / 'omarchy-ps4-grow-root').read_bytes(),
+                 'usr/lib/omarchy-ps4/partitioned-image.py': (builder.PACKAGE / 'omarchy-ps4-partitioned-image.py').read_bytes()}
+        files.update(extra or {})
+        archive = root / 'root.tar'
+        with tarfile.open(archive, 'w') as output:
+            for name, data in files.items():
+                info = tarfile.TarInfo(name)
+                info.size = len(data)
+                output.addfile(info, io.BytesIO(data))
+        subprocess.run(['zstd', '-q', str(archive)], check=True)
+        compressed = Path(str(archive) + '.zst')
+        Path(str(compressed) + '.manifest').write_text('root_layout=partitioned-usb\nmode=owner-ready-offline-rootfs\n'
+            'kernel_release=6.18-fixture\nmodules_sha256=' + 'a' * 64 + '\n'
+            f'archive_size={compressed.stat().st_size}\narchive_sha256={builder.digest(compressed)}\n')
+        launcher = root / 'launcher.pkg'
+        launcher.write_bytes(b'fixture launcher')
+        return types.SimpleNamespace(rootfs=str(compressed), boot_set=str(boot), boot_profile=str(profile),
+            launcher=str(launcher), launcher_sha256=builder.digest(launcher), root_headroom_gib=2,
+            image_size_gib='auto', release_id='fixture-image')
+
+    def test_matching_inputs_produce_a_measured_plan(self):
+        with tempfile.TemporaryDirectory() as directory:
+            plan = builder.inputs(self.fixture(directory))
+            self.assertTrue(plan['growth_code_current'])
+            self.assertFalse(plan['release_eligible'])
+            self.assertEqual(plan['boot_bytes'], 4 * builder.GIB)
+            self.assertEqual(plan['root_partition_bytes'] + builder.ROOT_OFFSET, plan['uncompressed_size'])
+
+    def test_mismatched_boot_or_launcher_is_rejected(self):
+        for target in ('bzImage', 'launcher'):
+            with self.subTest(target=target), tempfile.TemporaryDirectory() as directory:
+                args = self.fixture(directory)
+                path = Path(args.launcher) if target == 'launcher' else Path(args.boot_set) / target
+                path.write_bytes(b'wrong bytes')
+                with self.assertRaises(ValueError):
+                    builder.inputs(args)
+
+    def test_owner_data_and_archive_traversal_are_rejected(self):
+        for extra in ({'../escape': b'bad'}, {'.dockerenv': b''},
+                      {'var/lib/omarchy-ps4/storage-expanded': b'old'},
+                      {'etc/passwd': b'owner:x:1000:1000:owner:/home/owner:/bin/bash\n'}):
+            with self.subTest(extra=list(extra)), tempfile.TemporaryDirectory() as directory:
+                with self.assertRaises(ValueError):
+                    builder.inputs(self.fixture(directory, extra))
+
+    def test_old_growth_code_is_identified_for_sizing_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            plan = builder.inputs(self.fixture(directory, {'usr/bin/omarchy-ps4-grow-root': b'old script'}))
+            self.assertFalse(plan['growth_code_current'])
+
+    def test_usb_kernel_override_requires_explicit_acknowledgement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.fixture(directory)
+            profile = Path(args.boot_profile)
+            profile.write_text(profile.read_text() + 'launcher_base_release=fixture-base-launcher\n')
+            path = Path(args.boot_set) / 'release.json'
+            document = json.loads(path.read_text())
+            document.update(schema=1, kind='usb-boot-set', release_eligible=False,
+                            launcher={'base_release': 'fixture-base-launcher', 'sha256': args.launcher_sha256})
+            document['boot_set']['storage'] = 'usb-fat'
+            path.write_text(json.dumps(document))
+            with self.assertRaisesRegex(ValueError, 'acknowledgement'):
+                builder.inputs(args)
+            args.allow_development_usb_override = True
+            result = builder.inputs(args)
+            self.assertEqual(result['launcher_boot_policy'], 'development-usb-override')
+            self.assertFalse(result['release_eligible'])
+
+
+@unittest.skipUnless(sys.platform == 'linux' and os.geteuid() == 0 and
+                     all(shutil.which(name) for name in ('mkfs.ext4', 'debugfs', 'setfacl', 'e2fsck')),
+                     'native Linux image tools and root are required for the regular-file fixture')
+class FilesystemMetadata(unittest.TestCase):
+    def test_population_preserves_unix_metadata(self):
+        def acl_entries(raw):
+            version = struct.unpack_from('<I', raw)[0]
+            self.assertIn(version, (1, 2))
+            entries, offset = [], 4
+            while offset < len(raw):
+                tag, permissions = struct.unpack_from('<HH', raw, offset)
+                offset += 4
+                identifier = None
+                if version == 2 or tag in (2, 8):
+                    identifier = struct.unpack_from('<I', raw, offset)[0]
+                    offset += 4
+                # Only named user/group entries use the ID field. libext2fs
+                # normalizes the unused fields differently from getxattr().
+                entries.append((tag, permissions, identifier if tag in (2, 8) else None))
+            return entries
+
+        with tempfile.TemporaryDirectory(prefix='omarchy-metadata-') as directory:
+            stage = Path(directory)
+            root = stage / 'root'
+            root.mkdir()
+            first = root / 'first'
+            first.write_bytes(b'Omarchy metadata fixture\n')
+            first.chmod(0o640)
+            os.chown(first, 123, 456)
+            os.link(first, root / 'second')
+            os.setxattr(first, 'user.omarchy-image', b'preserved')
+            subprocess.run(['setfacl', '-m', 'u:789:r--', str(first)], check=True)
+            image = stage / 'root.img'
+            with image.open('wb') as stream:
+                stream.truncate(64 * 1024 ** 2)
+            subprocess.run(['mkfs.ext4', '-q', '-F', '-d', str(root), str(image)], check=True)
+
+            def debug(command):
+                return subprocess.check_output(['debugfs', '-R', command, str(image)],
+                                               text=True, stderr=subprocess.DEVNULL)
+
+            import re
+            first_stat, second_stat = debug('stat /first'), debug('stat /second')
+            self.assertEqual(re.search(r'Inode: (\d+)', first_stat).group(1),
+                             re.search(r'Inode: (\d+)', second_stat).group(1))
+            self.assertRegex(first_stat, r'User:\s+123\s+Group:\s+456')
+            self.assertRegex(first_stat, r'Mode:\s+0640')
+            for attribute in ('user.omarchy-image', 'system.posix_acl_access'):
+                exported = stage / attribute
+                debug(f'ea_get -f {exported} /first {attribute}')
+                actual, expected = exported.read_bytes(), os.getxattr(first, attribute)
+                if attribute == 'system.posix_acl_access':
+                    self.assertEqual(acl_entries(actual), acl_entries(expected))
+                else:
+                    self.assertEqual(actual, expected)
+            subprocess.run(['e2fsck', '-fn', str(image)], check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+if __name__ == '__main__':
+    unittest.main()

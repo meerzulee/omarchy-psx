@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "researched_on": "2026-10-17",
+  "status": "reference_only; local interface prototype; no runtime adapter or package",
+  "target_firmware": "12.40",
+  "sources": [
+    {
+      "repository": "https://github.com/ps5-payload-dev/launchpad",
+      "commit": "033d2a33df5beadbf3b7f9b80a4cae4369f1dca3",
+      "role": "Home-screen web application and standard ELF loader transport reference",
+      "paths": ["README.md", "docs/elfldr.js", "main.c", "sce_sys/param.json"]
+    },
+    {
+      "repository": "https://github.com/ps5-payload-dev/elfldr",
+      "commit": "02cfe91eb3f9697787460ad77d73ff951f801f50",
+      "role": "Existing payload-loader interface and process lifecycle",
+      "paths": ["README.md"]
+    },
+    {
+      "repository": "https://github.com/ps5-payload-dev/websrv",
+      "commit": "7748df9d2a43822a5ebfda149f43d4f2696d640b",
+      "role": "Homebrew catalogue, browser launcher package and bigapp backend reference",
+      "paths": ["README.md", "param.json", "homebrew/demo/homebrew.js"]
+    },
+    {
+      "repository": "https://github.com/Rufidj/Nativehbl",
+      "commit": "e9488102399de9546d13dd496694c74142abe49f",
+      "role": "Native SDL2 UI and bootstrap; requires Homebrew Launcher package",
+      "paths": ["README.md"]
+    },
+    {
+      "repository": "https://github.com/ps5-payload-dev/sdk",
+      "commit": "f5d40f02770e9b0001dd9e18056eca70b3da8b40",
+      "role": "Payload SDK and application installation sample; no local installation performed",
+      "paths": ["README.md", "samples/install_app/Makefile"]
+    }
+  ],
+  "native_fpkg_12_40": "not_established",
+  "console_actions": [],
+  "binary_outputs": []
+}

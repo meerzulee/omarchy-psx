@@ -1,0 +1,123 @@
+From: Omarchy psX contributors
+Subject: [PATCH] amd: identify Liverpool and Gladius and use PS4 raster layouts
+
+Port the PS4 graphics-family changes from DionKill/ps4-video-archlinux,
+commit 57e0f8ecc7a1df9b9664d682b19fadfe3e336f02 (commit author: froyo),
+to the official Mesa 26.2.5 release. Original patch SHA256:
+f7a78f8b894dc06bb6d210f2d0f9b04cdb51e285e40c2832a6813d4d88f465a9.
+
+The kernel exposes console revisions under FAMILY_KV. Recognize the
+narrow STARSHA/STARSHP revision ranges after the generic SPOOKY match,
+keep the reported backend topology, and emit the console raster layouts.
+Use the existing GFX7 compiler, GS table and cache setup. Place the new
+families after BONAIRE so existing GFX7 range checks remain valid.
+
+The unrelated CLC LLVM change and unused private drm/radeon enum entries
+from the source patch are deliberately excluded. Video compatibility is
+reviewed separately; this patch does not change codec capabilities.
+
+Source: https://github.com/DionKill/ps4-video-archlinux/blob/57e0f8ecc7a1df9b9664d682b19fadfe3e336f02/mesa-ps4/ps4-mesa.patch
+License: MIT; existing per-file notices remain unchanged.
+
+---
+diff --git a/src/amd/addrlib/src/amdgpu_asic_addr.h b/src/amd/addrlib/src/amdgpu_asic_addr.h
+--- a/src/amd/addrlib/src/amdgpu_asic_addr.h
++++ b/src/amd/addrlib/src/amdgpu_asic_addr.h
+@@ -64,6 +64,8 @@
+ 
+ #define AMDGPU_SPECTRE_RANGE    0x01, 0x41 //#   1 <= x < 65
+ #define AMDGPU_SPOOKY_RANGE     0x41, 0x81 //#  65 <= x < 129
++#define AMDGPU_STARSHA_RANGE    0x61, 0x71 //# PS4 Liverpool
++#define AMDGPU_STARSHP_RANGE    0x71, 0x81 //# PS4 Pro Gladius
+ #define AMDGPU_KALINDI_RANGE    0x81, 0xA1 //# 129 <= x < 161
+ #define AMDGPU_GODAVARI_RANGE   0xA1, 0xFF //# 161 <= x < max
+ 
+@@ -140,6 +142,8 @@
+ 
+ #define ASICREV_IS_SPECTRE(r)          ASICREV_IS(r, SPECTRE)
+ #define ASICREV_IS_SPOOKY(r)           ASICREV_IS(r, SPOOKY)
++#define ASICREV_IS_STARSHA(r)          ASICREV_IS(r, STARSHA)
++#define ASICREV_IS_STARSHP(r)          ASICREV_IS(r, STARSHP)
+ #define ASICREV_IS_KALINDI(r)          ASICREV_IS(r, KALINDI)
+ #define ASICREV_IS_KALINDI_GODAVARI(r) ASICREV_IS(r, GODAVARI)
+ 
+diff --git a/src/amd/common/ac_gpu_info.c b/src/amd/common/ac_gpu_info.c
+--- a/src/amd/common/ac_gpu_info.c
++++ b/src/amd/common/ac_gpu_info.c
+@@ -616,6 +616,8 @@
+       case CHIP_VERDE:
+       case CHIP_HAINAN:
+       case CHIP_BONAIRE:
++      case CHIP_LIVERPOOL:
++      case CHIP_GLADIUS:
+       case CHIP_KAVERI:
+       case CHIP_ICELAND:
+       case CHIP_CARRIZO:
+@@ -670,6 +672,9 @@
+       case FAMILY_KV:
+          identify_chip2(SPECTRE, KAVERI);
+          identify_chip2(SPOOKY, KAVERI);
++         /* Console revisions overlap SPOOKY; the narrower match wins. */
++         identify_chip2(STARSHA, LIVERPOOL);
++         identify_chip2(STARSHP, GLADIUS);
+          identify_chip2(KALINDI, KABINI);
+          identify_chip2(GODAVARI, KABINI);
+          break;
+@@ -2247,6 +2252,8 @@
+    case CHIP_PITCAIRN:
+    case CHIP_VERDE:
+    case CHIP_BONAIRE:
++   case CHIP_LIVERPOOL:
++   case CHIP_GLADIUS:
+    case CHIP_HAWAII:
+    case CHIP_TONGA:
+    case CHIP_FIJI:
+@@ -2308,6 +2315,15 @@
+    case CHIP_POLARIS10:
+       raster_config = 0x16000012;
+       raster_config_1 = 0x0000002a;
++      break;
++   /* Console-specific raster layouts. */
++   case CHIP_LIVERPOOL:
++      raster_config = 0x2a00161a;
++      raster_config_1 = 0x00000000;
++      break;
++   case CHIP_GLADIUS:
++      raster_config = 0x2a00161a;
++      raster_config_1 = 0x0000002e;
+       break;
+    /* 4 SEs / 16 RBs */
+    case CHIP_HAWAII:
+diff --git a/src/amd/common/amd_family.c b/src/amd/common/amd_family.c
+--- a/src/amd/common/amd_family.c
++++ b/src/amd/common/amd_family.c
+@@ -18,6 +18,8 @@
+    CASE(OLAND);
+    CASE(HAINAN);
+    CASE(BONAIRE);
++   CASE(LIVERPOOL);
++   CASE(GLADIUS);
+    CASE(KABINI);
+    CASE(KAVERI);
+    CASE(HAWAII);
+@@ -111,6 +113,8 @@
+    case CHIP_HAINAN:
+       return "hainan";
+    case CHIP_BONAIRE:
++   case CHIP_LIVERPOOL:
++   case CHIP_GLADIUS:
+       return "bonaire";
+    case CHIP_KABINI:
+       return "kabini";
+diff --git a/src/amd/common/amd_family.h b/src/amd/common/amd_family.h
+--- a/src/amd/common/amd_family.h
++++ b/src/amd/common/amd_family.h
+@@ -80,6 +80,8 @@
+    CHIP_HAINAN,
+    /* GFX7 (Sea Islands) */
+    CHIP_BONAIRE,
++   CHIP_LIVERPOOL,
++   CHIP_GLADIUS,
+    CHIP_KAVERI,
+    CHIP_KABINI,
+    CHIP_HAWAII,         /* Radeon 290, 390 */

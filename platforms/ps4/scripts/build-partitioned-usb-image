@@ -1,0 +1,370 @@
+#!/usr/bin/env python3
+"""Build a compressed, two-partition USB image using regular files in OrbStack.
+
+The build host uses Docker. The resulting .img.xz is independent of the user's
+computer and can be written by Etcher on Windows, macOS or Linux.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import math
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+
+PLATFORM = Path(__file__).resolve().parents[1]
+PACKAGE = PLATFORM / 'packages/omarchy-ps4-provisioning'
+GIB = 1024 ** 3
+MIB = 1024 ** 2
+BOOT_BYTES = 4 * GIB
+ROOT_OFFSET = BOOT_BYTES + MIB
+BUILDER_IMAGE = 'omarchy-psx-usb-image-builder:20261019'
+BOOT_FILES = ('bzImage', 'initramfs.cpio.gz', 'bootargs.txt', 'vram.txt')
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def digest(path):
+    result = hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for chunk in iter(lambda: stream.read(8 * MIB), b''):
+            result.update(chunk)
+    return result.hexdigest()
+
+
+def env_file(path):
+    result = {}
+    for line in Path(path).read_text().splitlines():
+        if not line or line.startswith('#'):
+            continue
+        key, separator, value = line.partition('=')
+        require(separator and key not in result, f'invalid or duplicate field in {Path(path).name}: {key}')
+        result[key] = value
+    return result
+
+
+def inspect_rootfs(path):
+    """Measure allocated payload and inspect owner/growth contracts in one pass."""
+    total = entries = 0
+    selected = {}
+    wanted = {'etc/passwd', 'etc/shadow', 'etc/fstab',
+              'usr/bin/omarchy-ps4-grow-root', 'usr/lib/omarchy-ps4/partitioned-image.py'}
+    process = subprocess.Popen(['zstd', '-dc', '--', str(path)], stdout=subprocess.PIPE)
+    try:
+        with tarfile.open(fileobj=process.stdout, mode='r|') as archive:
+            for member in archive:
+                name = member.name.removeprefix('./').rstrip('/')
+                require(not name.startswith('/') and '..' not in Path(name).parts,
+                        f'unsafe archive path: {member.name}')
+                require(name != '.dockerenv', 'rootfs still contains a container marker')
+                require(not member.isdev(), f'unexpected device/FIFO in rootfs: {name}')
+                if member.islnk():
+                    require(not member.linkname.startswith('/') and '..' not in Path(member.linkname).parts,
+                            f'unsafe archive hard link: {name}')
+                entries += 1
+                if member.isfile():
+                    total += math.ceil(member.size / 4096) * 4096
+                    if name in wanted:
+                        selected[name] = archive.extractfile(member).read()
+                if name in {'var/lib/omarchy-ps4/provisioning/pending', 'var/lib/omarchy-ps4/storage-expanded'}:
+                    selected[name] = b'present'
+    finally:
+        process.stdout.close()
+        status = process.wait()
+    require(status == 0, 'rootfs decompression failed')
+    require('var/lib/omarchy-ps4/provisioning/pending' in selected, 'rootfs is not awaiting owner setup')
+    require('var/lib/omarchy-ps4/storage-expanded' not in selected, 'rootfs has already completed storage setup')
+    for line in selected.get('etc/passwd', b'').decode().splitlines():
+        fields = line.split(':')
+        require(len(fields) == 7, 'invalid passwd entry')
+        require(not 1000 <= int(fields[2]) < 65534, 'rootfs contains an existing human account')
+    shadow = selected.get('etc/shadow', b'').decode().splitlines()
+    require(any(line.startswith(('root:!', 'root:*')) for line in shadow), 'root account is not locked')
+    require(b'LABEL=PS4BOOT' in selected.get('etc/fstab', b''), 'rootfs does not mount the boot partition')
+    ready = (selected.get('usr/bin/omarchy-ps4-grow-root') == (PACKAGE / 'omarchy-ps4-grow-root').read_bytes()
+             and selected.get('usr/lib/omarchy-ps4/partitioned-image.py') ==
+             (PACKAGE / 'omarchy-ps4-partitioned-image.py').read_bytes())
+    return {'payload_allocated_bytes': total, 'archive_entries': entries, 'growth_code_current': ready}
+
+
+def image_bytes(payload, headroom_gib, requested='auto'):
+    # Reserve 1 GiB for ext4 metadata, small files and reserved blocks, plus
+    # actual user headroom. The completed filesystem is measured again below.
+    minimum = ROOT_OFFSET + payload + GIB + headroom_gib * GIB
+    size = math.ceil(minimum / GIB) * GIB if requested == 'auto' else int(requested) * GIB
+    require(size >= minimum, 'image is too small for this rootfs and requested free space')
+    require(size <= 28 * GIB, 'image exceeds the 32 GB USB capacity contract')
+    return size
+
+
+def inputs(args):
+    rootfs, boot, profile, launcher = map(Path, (args.rootfs, args.boot_set, args.boot_profile, args.launcher))
+    root_meta = env_file(str(rootfs) + '.manifest')
+    boot_meta = env_file(profile)
+    require(root_meta.get('root_layout') == 'partitioned-usb', 'rootfs was not built for partitioned USB')
+    require(root_meta.get('mode') == 'owner-ready-offline-rootfs', 'expected an owner-ready rootfs')
+    require(root_meta.get('kernel_release') == boot_meta.get('kernel_release'), 'rootfs kernel ABI differs from boot profile')
+    require(root_meta.get('modules_sha256') == boot_meta.get('modules_sha256'), 'rootfs modules differ from boot profile')
+    require(rootfs.stat().st_size == int(root_meta['archive_size']) and digest(rootfs) == root_meta['archive_sha256'],
+            'rootfs size or SHA-256 differs from its manifest')
+    release = json.loads((boot / 'release.json').read_text())
+    require(release['release']['id'] == boot_meta['release'], 'boot set belongs to another profile')
+    require(release['target']['root_layout'] == 'partitioned-usb', 'boot set does not select partitioned USB')
+    override = boot_meta.get('launcher_base_release')
+    require(release.get('kind') != 'usb-boot-set' or override,
+            'a development USB boot set must identify its base launcher in the profile')
+    if override:
+        require(getattr(args, 'allow_development_usb_override', False),
+                'this USB boot set deliberately differs from the launcher; explicit development-override acknowledgement is required')
+        require(release.get('kind') == 'usb-boot-set' and release.get('schema') == 1 and
+                release['boot_set'].get('storage') == 'usb-fat' and
+                release.get('release_eligible') is False and
+                release['launcher']['base_release'] == override and
+                release['launcher']['sha256'] == args.launcher_sha256,
+                'development USB override must record its exact base launcher and USB storage policy')
+    expected = {a['name']: a for a in release['boot_set']['artifacts']}
+    require(set(expected) == set(BOOT_FILES), 'expected exactly four boot files')
+    for name in BOOT_FILES:
+        item = expected[name]
+        require((boot / name).stat().st_size == item['size'] and digest(boot / name) == item['sha256'],
+                f'boot file differs from release manifest: {name}')
+        key = {'bzImage': 'kernel_sha256', 'initramfs.cpio.gz': 'initramfs_sha256',
+               'bootargs.txt': 'bootargs_sha256'}.get(name)
+        if key:
+            require(item['sha256'] == boot_meta[key], f'boot file differs from profile: {name}')
+    arguments = (boot / 'bootargs.txt').read_text().split()
+    require({'root=LABEL=OMARCHY-PS4', 'rootfstype=ext4', 'omarchy.root_layout=partitioned-usb',
+             'omarchy.require_usb=1'} <= set(arguments) and not any(x.startswith('omarchy.install=') for x in arguments),
+            'boot arguments do not enforce the partitioned USB contract')
+    require(launcher.is_file() and launcher.stat().st_size > 0 and digest(launcher) == args.launcher_sha256,
+            'launcher SHA-256 differs from the explicitly supplied expected digest')
+    measured = inspect_rootfs(rootfs)
+    size = image_bytes(measured['payload_allocated_bytes'], args.root_headroom_gib, args.image_size_gib)
+    return {**measured, 'schema': 2, 'release_id': args.release_id, 'release_eligible': False,
+            'status': 'development image; real-hardware acceptance pending',
+            'layout': 'partitioned-usb', 'partition_table': 'dos', 'logical_sector_bytes': 512,
+            'boot_bytes': BOOT_BYTES, 'boot_start_sector': 2048, 'root_start_sector': ROOT_OFFSET // 512,
+            'uncompressed_size': size, 'root_partition_bytes': size - ROOT_OFFSET,
+            'minimum_device_bytes': 32_000_000_000, 'auto_grow': True,
+            'root_headroom_bytes': args.root_headroom_gib * GIB,
+            'kernel_release': root_meta['kernel_release'], 'boot_profile': boot_meta['id'],
+            'boot_release': release['release']['id'], 'rootfs_sha256': root_meta['archive_sha256'],
+            'launcher_boot_policy': 'development-usb-override' if override else 'matching-boot-set',
+            'launcher_base_release': override or release['release']['id'],
+            'modules_sha256': root_meta['modules_sha256'], 'launcher_sha256': args.launcher_sha256,
+            'boot_files': {name: expected[name]['sha256'] for name in BOOT_FILES}}
+
+
+def run(*command, **kwargs):
+    subprocess.run([str(x) for x in command], check=True, **kwargs)
+
+
+def filesystem_stats(path):
+    output = subprocess.check_output(['dumpe2fs', '-h', str(path)], text=True, stderr=subprocess.DEVNULL,
+                                     env={**os.environ, 'LC_ALL': 'C'})
+    fields = dict(line.split(':', 1) for line in output.splitlines() if ':' in line)
+    block = int(fields['Block size'])
+    free = int(fields['Free blocks'])
+    return {'root_filesystem_bytes': int(fields['Block count']) * block,
+            'root_used_bytes': (int(fields['Block count']) - free) * block,
+            'root_available_bytes': (free - int(fields['Reserved block count'])) * block}
+
+
+def build(args, plan):
+    require(sys.platform == 'linux' and os.geteuid() == 0, 'build inside the OrbStack image-builder container')
+    require(plan['growth_code_current'], 'rebuild the rootfs with the current provisioning package before creating this image')
+    output = Path(args.output)
+    raw_output = output.with_suffix('')
+    targets = [output, Path(str(output) + '.manifest'), Path(str(output) + '.json')]
+    if args.keep_raw:
+        targets.append(raw_output)
+    require(not any(p.exists() for p in targets), 'refusing to overwrite an image or its metadata')
+    with tempfile.TemporaryDirectory(prefix='omarchy-rootfs-') as root_dir, \
+            tempfile.TemporaryDirectory(prefix='.partitioned-image-', dir=output.parent) as staging:
+        stage, root = Path(staging), Path(root_dir)
+        print('Extracting the verified rootfs into isolated container storage.', flush=True)
+        run('tar', '--extract', '--use-compress-program=zstd', '--file', args.rootfs,
+            '--directory', root, '--numeric-owner', '--same-owner', '--preserve-permissions',
+            '--acls', '--xattrs', '--xattrs-include=*')
+        for name, mode in [('dev', 0o755), ('run', 0o755), ('proc', 0o555), ('sys', 0o555)]:
+            (root / name).mkdir(exist_ok=True)
+            (root / name).chmod(mode)
+        state = root / 'var/lib/omarchy-ps4'
+        (state / 'image-layout').write_text(
+            'schema=2\nlayout=partitioned-usb\nfilesystem=ext4\nlabel=OMARCHY-PS4\n'
+            f'base_image_bytes={plan["uncompressed_size"]}\nboot_bytes={BOOT_BYTES}\n'
+            'auto_grow=1\npartition_growth=1\n')
+        (state / 'image-layout').chmod(0o600)
+        for name in ('storage-expanded', 'storage-before.mbr'):
+            (state / name).unlink(missing_ok=True)
+        receipt = stage / 'usb-image-inputs.json'
+        receipt.write_text(json.dumps(plan, indent=2) + '\n')
+        shutil.copyfile(receipt, root / 'usr/share/omarchy-ps4/release/usb-image-inputs.json')
+        root_image, boot_image, raw = (stage / name for name in ('root.img', 'boot.img', 'disk.img'))
+        with root_image.open('wb') as stream:
+            stream.truncate(plan['root_partition_bytes'])
+        print('Creating ext4 with ownership, hard links, ACLs and extended attributes.', flush=True)
+        run('mkfs.ext4', '-q', '-F', '-b', '4096', '-m', '1', '-L', 'OMARCHY-PS4', '-U', 'random',
+            '-E', 'lazy_itable_init=0,lazy_journal_init=0', '-d', root, root_image)
+        run('e2fsck', '-fn', root_image)
+        plan.update(filesystem_stats(root_image))
+        require(plan['root_available_bytes'] >= plan['root_headroom_bytes'],
+                'completed ext4 has too little free space; select a larger --image-size-gib')
+        # The populated filesystem is now self-contained. Release the extracted
+        # tree before assembling the disk to bound build-host storage use.
+        shutil.rmtree(root)
+        with boot_image.open('wb') as stream:
+            stream.truncate(BOOT_BYTES)
+        run('mkfs.vfat', '-F', '32', '-n', 'PS4BOOT', '-S', '512', '-h', '2048', boot_image)
+        for name in (*BOOT_FILES, 'release.json'):
+            run('mcopy', '-i', boot_image, Path(args.boot_set) / name, f'::/{name}')
+        run('mcopy', '-i', boot_image, args.launcher, '::/omarchy-ps4.pkg')
+        run('mcopy', '-i', boot_image, receipt, '::/usb-image-inputs.json')
+        run('fsck.vfat', '-n', boot_image)
+        with raw.open('wb') as stream:
+            stream.truncate(plan['uncompressed_size'])
+        table = ('label: dos\nunit: sectors\n\n'
+                 'start=2048, size=8388608, type=c, bootable\n'
+                 f'start={ROOT_OFFSET // 512}, size={plan["root_partition_bytes"] // 512}, type=83\n')
+        run('sfdisk', raw, input=table, text=True, stdout=subprocess.DEVNULL)
+        for source, offset in ((boot_image, 1), (root_image, ROOT_OFFSET // MIB)):
+            run('dd', f'if={source}', f'of={raw}', 'bs=1M', f'seek={offset}', 'conv=notrunc,sparse', 'status=none')
+        # Verify both complete byte ranges after assembly, including zero space.
+        with raw.open('rb') as assembled:
+            for source, offset in ((boot_image, MIB), (root_image, ROOT_OFFSET)):
+                assembled.seek(offset)
+                check = hashlib.sha256()
+                remaining = source.stat().st_size
+                while remaining:
+                    chunk = assembled.read(min(8 * MIB, remaining))
+                    require(chunk, 'assembled image is truncated')
+                    check.update(chunk)
+                    remaining -= len(chunk)
+                require(check.hexdigest() == digest(source), f'assembled partition differs: {source.name}')
+        spec = importlib.util.spec_from_file_location('image_policy', PACKAGE / 'omarchy-ps4-partitioned-image.py')
+        policy = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(policy)
+        with raw.open('rb') as stream:
+            mbr = stream.read(512)
+        require(policy.expanded_mbr(mbr, plan['uncompressed_size'] // 512, plan['uncompressed_size']) == mbr,
+                'assembled MBR differs from the expected two-partition layout')
+        plan['uncompressed_sha256'] = digest(raw)
+        # Drop duplicate partition files before compression to bound disk usage.
+        root_image.unlink()
+        boot_image.unlink()
+        compressed = stage / 'disk.img.xz'
+        print(f'Compressing {plan["uncompressed_size"] / GIB:g} GiB with xz; download size will be measured.', flush=True)
+        with compressed.open('wb') as stream:
+            run('xz', '-T2', '-6', '--check=crc64', '--stdout', raw, stdout=stream)
+        print('Checking the complete decompressed image against its raw SHA-256.', flush=True)
+        process = subprocess.Popen(['xz', '-dc', '--', str(compressed)], stdout=subprocess.PIPE)
+        check, count = hashlib.sha256(), 0
+        for chunk in iter(lambda: process.stdout.read(8 * MIB), b''):
+            check.update(chunk)
+            count += len(chunk)
+        process.stdout.close()
+        require(process.wait() == 0 and count == plan['uncompressed_size'] and
+                check.hexdigest() == plan['uncompressed_sha256'], 'compressed image failed full verification')
+        plan['compressed_size'], plan['compressed_sha256'] = compressed.stat().st_size, digest(compressed)
+        plan['builder_packages'] = subprocess.check_output(
+            ['dpkg-query', '-W', '-f=${Package}=${Version}\n', 'e2fsprogs', 'dosfstools', 'mtools', 'fdisk', 'xz-utils', 'zstd'], text=True).splitlines()
+        metadata = stage / 'image.json'
+        metadata.write_text(json.dumps(plan, indent=2) + '\n')
+        manifest = stage / 'image.manifest'
+        values = {key: plan[key] for key in ('schema', 'layout', 'boot_bytes', 'minimum_device_bytes',
+                  'kernel_release', 'uncompressed_size', 'uncompressed_sha256', 'compressed_size', 'compressed_sha256')}
+        values.update(filesystem='ext4', label='OMARCHY-PS4', auto_grow=1, contains_boot_files=1, release_eligible=0)
+        manifest.write_text(''.join(f'{key}={value}\n' for key, value in values.items()))
+        pairs = [(compressed, output), (manifest, targets[1]), (metadata, targets[2])]
+        if args.keep_raw:
+            pairs.append((raw, raw_output))
+        promoted = []
+        try:
+            for source, target in pairs:
+                source.chmod(0o600)
+                os.link(source, target)  # Atomic refusal if another build created the name.
+                promoted.append(target)
+        except OSError:
+            for path in promoted:
+                path.unlink()
+            raise
+    print(json.dumps(plan, indent=2), flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--rootfs', required=True)
+    parser.add_argument('--boot-set', required=True)
+    parser.add_argument('--boot-profile', required=True)
+    parser.add_argument('--launcher', required=True)
+    parser.add_argument('--launcher-sha256', required=True)
+    parser.add_argument('--release-id', required=True)
+    parser.add_argument('--output', required=True)
+    parser.add_argument('--image-size-gib', default='auto', help='auto or an integer; includes both partitions')
+    parser.add_argument('--root-headroom-gib', type=int, default=2)
+    parser.add_argument('--plan', action='store_true', help='measure and verify inputs without building an image')
+    parser.add_argument('--keep-raw', action='store_true')
+    parser.add_argument('--allow-development-usb-override', action='store_true',
+                        help='acknowledge an explicitly recorded USB boot set differing from the base launcher; never release eligible')
+    parser.add_argument('--inside-container', action='store_true', help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    try:
+        require(re.fullmatch(r'[a-z0-9][a-z0-9._-]{2,63}', args.release_id), 'invalid new image release ID')
+        require(re.fullmatch(r'[0-9a-f]{64}', args.launcher_sha256), 'expected a complete launcher SHA-256')
+        require(args.root_headroom_gib >= 1, 'reserve at least 1 GiB for first-owner setup')
+        require(args.image_size_gib == 'auto' or args.image_size_gib.isdecimal(), 'image size must be auto or an integer')
+        output = Path(args.output).absolute()
+        require(output.name.endswith('.img.xz'), 'output must end in .img.xz')
+        args.output = str(output)
+        if args.plan or args.inside_container:
+            plan = inputs(args)
+            if args.plan:
+                print(json.dumps(plan, indent=2))
+            else:
+                build(args, plan)
+            return
+        require(sys.platform == 'darwin', 'use the macOS OrbStack build host for distribution images')
+        require(subprocess.check_output(['orb', 'status'], text=True).strip() == 'Running', 'OrbStack must be running')
+        require(subprocess.check_output(['docker', 'context', 'show'], text=True).strip() == 'orbstack', 'Docker context must be orbstack')
+        require(not any(Path(str(output) + suffix).exists() for suffix in ('', '.json', '.manifest')) and
+                not (args.keep_raw and output.with_suffix('').exists()), 'refusing to overwrite existing outputs')
+        source_paths = [Path(p).resolve(strict=True) for p in (args.rootfs, args.boot_set, args.boot_profile, args.launcher)]
+        require(Path(str(source_paths[0]) + '.manifest').is_file(), 'rootfs manifest is missing')
+        require(all(',' not in str(p) for p in [*source_paths, output.parent, PLATFORM]), 'commas in Docker bind paths are unsupported')
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if subprocess.run(['docker', 'image', 'inspect', BUILDER_IMAGE], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+            with tempfile.TemporaryDirectory(prefix='omarchy-image-context-') as context:
+                run('docker', 'build', '--file', PLATFORM / 'Containerfile.usb-image', '--tag', BUILDER_IMAGE, context)
+        command = ['docker', 'run', '--rm', '--network', 'none', '--cap-drop', 'MKNOD',
+                   '--mount', f'type=bind,src={PLATFORM},dst=/workspace,readonly',
+                   '--mount', f'type=bind,src={output.parent},dst=/out',
+                   '--mount', f'type=bind,src={source_paths[0].parent},dst=/rootfs-input,readonly',
+                   '--mount', f'type=bind,src={source_paths[1]},dst=/boot-input,readonly',
+                   '--mount', f'type=bind,src={source_paths[2]},dst=/boot-profile.env,readonly',
+                   '--mount', f'type=bind,src={source_paths[3]},dst=/launcher.pkg,readonly',
+                   BUILDER_IMAGE, 'python3', '/workspace/scripts/build-partitioned-usb-image', '--inside-container',
+                   '--rootfs', f'/rootfs-input/{source_paths[0].name}', '--boot-set', '/boot-input',
+                   '--boot-profile', '/boot-profile.env', '--launcher', '/launcher.pkg',
+                   '--launcher-sha256', args.launcher_sha256, '--release-id', args.release_id,
+                   '--output', f'/out/{output.name}', '--image-size-gib', args.image_size_gib,
+                   '--root-headroom-gib', str(args.root_headroom_gib)]
+        if args.keep_raw:
+            command.append('--keep-raw')
+        if args.allow_development_usb_override:
+            command.append('--allow-development-usb-override')
+        run(*command)
+    except (ValueError, OSError, KeyError, tarfile.TarError, subprocess.SubprocessError) as error:
+        parser.exit(1, f'build-partitioned-usb-image: {error}\n')
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,86 @@
+From: psX Linux contributors
+Subject: [PATCH 2/2] amd: require kernel-confirmed AVC-only capabilities on PS4
+
+Keep the experimental Liverpool/Gladius UVD path on legacy AVC with NV12.
+A graphics family name is not evidence of additional codecs or encoding.
+Fail closed on absent UVD or video-capability query errors; intersect the
+bounded AVC limits with the kernel and retain smaller kernel limits.
+No UVD messages, register addressing or session layout are changed.
+
+Base: official Mesa 26.2.5 (requires 0001-ps4-graphics-families.patch)
+License: MIT, as the modified Mesa source.
+
+diff --git a/src/amd/common/ac_video.c b/src/amd/common/ac_video.c
+--- a/src/amd/common/ac_video.c
++++ b/src/amd/common/ac_video.c
+@@ -594,9 +594,70 @@
+    cap->out_formats.b10g10r10a2 = 1;
+ }
+ 
++/* The experimental PS4 UVD transport is AVC-only.  Do not infer codec or
++ * encoder support from the graphics family or from a failed kernel query.
++ */
++static void
++ps4_uvd_caps(struct radeon_info *info, struct ac_drm_device *dev)
++{
++   struct {
++      uint32_t valid;
++      uint32_t max_width;
++      uint32_t max_height;
++      uint32_t max_pixels_per_frame;
++      uint32_t max_level;
++      uint32_t pad;
++   } dec_cap[8] = {0}, enc_cap[8] = {0};
++   const unsigned avc = 3; /* AMDGPU_INFO_VIDEO_CAPS_CODEC_IDX_MPEG4_AVC */
++   const uint32_t levels[] = {10, 11, 12, 13, 20, 21, 22, 30, 31, 32, 40, 41};
++   uint32_t level = 0;
++
++   memset(&info->video_caps, 0, sizeof(info->video_caps));
++   if (!info->ip[AMD_IP_UVD].num_queues)
++      return;
++
++   if (ac_drm_query_video_caps_info(dev, AMDGPU_INFO_VIDEO_CAPS_DECODE, sizeof(dec_cap), dec_cap) ||
++       ac_drm_query_video_caps_info(dev, AMDGPU_INFO_VIDEO_CAPS_ENCODE, sizeof(enc_cap), enc_cap))
++      return;
++
++   if (!dec_cap[avc].valid || dec_cap[avc].max_width < 64 ||
++       dec_cap[avc].max_height < 64 || dec_cap[avc].max_level < levels[0])
++      return;
++
++   uint32_t width = MIN2(dec_cap[avc].max_width, 1920);
++   uint32_t height = MIN2(dec_cap[avc].max_height, 1088);
++   if (dec_cap[avc].max_pixels_per_frame < width * height)
++      return;
++
++   while (level + 1 < ARRAY_SIZE(levels) && levels[level + 1] <= dec_cap[avc].max_level)
++      level++;
++
++   info->video_caps.queue[AMD_IP_UVD].dec = 1;
++   info->video_caps.dec[AC_VIDEO_CODEC_AVC] = (struct ac_video_dec_codec_caps) {
++      .supported = true,
++      .ip_type = AMD_IP_UVD,
++      .formats.nv12 = 1,
++      .tiers = AC_VIDEO_DEC_TIER0,
++      .min_width = 64,
++      .min_height = 64,
++      .max_width = width,
++      .max_height = height,
++      .max_level = level, /* STD_VIDEO_H264_LEVEL_IDC_1_0 through _4_1 */
++      .max_dpb_slots = 17,
++      .max_active_refs = 16,
++      .bitstream_size_alignment = 128,
++      .bitstream_address_alignment = 256,
++   };
++}
++
+ void
+ ac_fill_video_info(struct radeon_info *info, struct ac_drm_device *dev)
+ {
++   if (info->family == CHIP_LIVERPOOL || info->family == CHIP_GLADIUS) {
++      ps4_uvd_caps(info, dev);
++      return;
++   }
++
+    if (info->ip[AMD_IP_UVD].num_queues) {
+       struct ac_video_queue_caps *cap = &info->video_caps.queue[AMD_IP_UVD];
+       cap->dec = 1;

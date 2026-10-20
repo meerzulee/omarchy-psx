@@ -60,6 +60,8 @@ grep -Fq 'flag=--disable-gpu' \
 for required in \
   usr/bin/omarchy-ps4-prepare-for-owner \
   usr/bin/omarchy-ps4-provision-owner \
+  usr/lib/omarchy-ps4/timezone-picker.sh \
+  usr/lib/omarchy-ps4/partitioned-image.py \
   usr/bin/omarchy-ps4-finalize-owner \
   usr/bin/omarchy-ps4-grow-root \
   usr/lib/systemd/system/omarchy-ps4-grow-root.service \
@@ -164,9 +166,15 @@ grep -Fq -- "--selected.background '#9ece6a'" \
 grep -Fq -- "--cursor-text.background '#9ece6a'" \
   "$temporary/provisioning/usr/bin/omarchy-ps4-provision-owner" || \
   fail 'owner setup timezone filter lacks a visible focused background'
-grep -Fq "render_setup_step 'TIMEZONE' 'Choose your world region.'" \
+grep -Fq 'source /usr/lib/omarchy-ps4/timezone-picker.sh' \
   "$temporary/provisioning/usr/bin/omarchy-ps4-provision-owner" || \
-  fail 'owner setup does not replace the unstable live timezone filter'
+  fail 'owner setup does not load its GMT/location picker'
+grep -Fq "render_setup_step 'TIMEZONE' 'Choose your world region.'" \
+  "$temporary/provisioning/usr/lib/omarchy-ps4/timezone-picker.sh" || \
+  fail 'owner setup does not retain named-region selection'
+grep -Fq 'omarchy_gmt_timezone_rows' \
+  "$temporary/provisioning/usr/lib/omarchy-ps4/timezone-picker.sh" || \
+  fail 'owner setup has no fixed GMT offset choices'
 grep -Fq 'render_centered_review "$summary"' \
   "$temporary/provisioning/usr/bin/omarchy-ps4-provision-owner" || \
   fail 'owner setup review is not explicitly centered'

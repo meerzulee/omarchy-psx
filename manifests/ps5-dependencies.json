@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "researched_on": "2026-10-18",
+  "purpose": "Pinned reference and boot dependency preparation; no 12.40 payload or bootable image.",
+  "target": {
+    "console": "ps5",
+    "model": "original",
+    "firmware": "12.40",
+    "jailbreak": "working_user_report",
+    "payload_delivery": "working_user_assumption",
+    "jailbreak_name": "Relapse",
+    "elf_loader_version": "unknown_not_a_preparation_blocker"
+  },
+  "sources": [
+    {
+      "id": "byepervisor-reborn",
+      "repository": "https://github.com/PS5Dev/Byepervisor-Reborn",
+      "commit": "ea04f7132b837087f552c57261cb800481a3a910",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/PS5Dev/Byepervisor-Reborn/ea04f7132b837087f552c57261cb800481a3a910/README.md",
+          "bytes": 3857,
+          "sha256": "c8feb31f2271467003024f79ffc13574211996886a263104c6d88888354b9a06"
+        },
+        {
+          "path": "kdlsym.c",
+          "url": "https://raw.githubusercontent.com/PS5Dev/Byepervisor-Reborn/ea04f7132b837087f552c57261cb800481a3a910/kdlsym.c",
+          "bytes": 1644,
+          "sha256": "22881a7cdb179438938a5ce17c8e68646902eff0d36493eb4f0461f10ce6cc66"
+        }
+      ]
+    },
+    {
+      "id": "s3-resume-writeup",
+      "repository": "https://github.com/soniciso1/ps5-hv-writeups",
+      "commit": "e4d8b98390754d7eba7c4ea307a168a7d2e9962d",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "s3-resume-startup_mp-ap-launch.md",
+          "url": "https://raw.githubusercontent.com/soniciso1/ps5-hv-writeups/e4d8b98390754d7eba7c4ea307a168a7d2e9962d/s3-resume-startup_mp-ap-launch.md",
+          "bytes": 6749,
+          "sha256": "55140b0766b9966f6436bbad094105c3efe698f461d50286a04b0c33951f3286"
+        }
+      ]
+    },
+    {
+      "id": "plinux5-ng",
+      "repository": "https://github.com/pLabs5/pLinux5-NG",
+      "commit": "978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/pLabs5/pLinux5-NG/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/README.md",
+          "bytes": 4452,
+          "sha256": "256b585db2b3b397d3f72eae7b5d0d1a868918562febaae59cbf757b0688790a"
+        },
+        {
+          "path": "LICENSE",
+          "url": "https://raw.githubusercontent.com/pLabs5/pLinux5-NG/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/LICENSE",
+          "bytes": 34020,
+          "sha256": "d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee"
+        },
+        {
+          "path": "source/core/utils.c",
+          "url": "https://raw.githubusercontent.com/pLabs5/pLinux5-NG/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/source/core/utils.c",
+          "bytes": 12210,
+          "sha256": "6bd79625515db5fb4bd93e97454dc1deec2a37b8cba2081a9afc2b6b7d9a0f0f"
+        },
+        {
+          "path": "source/offsets/byepervisor/bp_registry.c",
+          "url": "https://raw.githubusercontent.com/pLabs5/pLinux5-NG/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/source/offsets/byepervisor/bp_registry.c",
+          "bytes": 563,
+          "sha256": "60390152be39cefa5ba89b83f81a36aee2e3c3de087c0d13a818492be0ce5a27"
+        }
+      ]
+    },
+    {
+      "id": "ps5-linux-loader",
+      "repository": "https://github.com/ps5-linux/ps5-linux-loader",
+      "commit": "64637c177eaed277fb6ccce394cbb29dd047b893",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/README.md",
+          "bytes": 14156,
+          "sha256": "2962abf7c6b31239ee2b05610225e30912239bae1b8586920f3d4b57ef883351"
+        },
+        {
+          "path": "LICENSE",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/LICENSE",
+          "bytes": 35149,
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+        },
+        {
+          "path": "include/linux.h",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/include/linux.h",
+          "bytes": 3559,
+          "sha256": "cadfc0f3a3364356a7e0e4b1bc6e07442f84b41c16b29fc05c5cee1ec6a0b6c6"
+        },
+        {
+          "path": "include/config.h",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/include/config.h",
+          "bytes": 1520,
+          "sha256": "6cf1173a18aa86330a95873c37119ff1ae60d28bc0455e6383f6a4ba689b70a0"
+        },
+        {
+          "path": "source/loader.c",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/source/loader.c",
+          "bytes": 6307,
+          "sha256": "a766c1ded769100d7f0aa8dc6389afb9929d058a3078a8acf1aebc17a811bfb4"
+        },
+        {
+          "path": "shellcode_hv/boot_linux.c",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-loader/64637c177eaed277fb6ccce394cbb29dd047b893/shellcode_hv/boot_linux.c",
+          "bytes": 6358,
+          "sha256": "f3c238d79a055e54efdd05ab505d55bf4fab7e3ce2828649953c6e62285028de"
+        }
+      ]
+    },
+    {
+      "id": "ps5-linux-patches",
+      "repository": "https://github.com/ps5-linux/ps5-linux-patches",
+      "commit": "753c7936dcb079bfeaaa0bb19dfc495744266500",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-patches/753c7936dcb079bfeaaa0bb19dfc495744266500/README.md",
+          "bytes": 863,
+          "sha256": "20043065ba650631bbd2a690eb2ba5579cb2b275a367d86c8e1c76cb141f16bd"
+        },
+        {
+          "path": ".config",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-patches/753c7936dcb079bfeaaa0bb19dfc495744266500/.config",
+          "bytes": 162596,
+          "sha256": "fdbadbdc952695ea34c7e1ead8cda1e8b375277ef7615fddcfc61d9eff29a1cb"
+        }
+      ]
+    },
+    {
+      "id": "ps5-linux-image",
+      "repository": "https://github.com/ps5-linux/ps5-linux-image",
+      "commit": "52db0a42302e4a6b5420a11fa00a84841ea5db56",
+      "disposition": "reference_only_not_build_input",
+      "files": [
+        {
+          "path": "README.md",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-image/52db0a42302e4a6b5420a11fa00a84841ea5db56/README.md",
+          "bytes": 5264,
+          "sha256": "3c3f99d7786f20ff6f166a2ad310fb8aeb29fa9bea51494fd667c53abda8dafb"
+        },
+        {
+          "path": "boot/cmdline.txt",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-image/52db0a42302e4a6b5420a11fa00a84841ea5db56/boot/cmdline.txt",
+          "bytes": 130,
+          "sha256": "5b14f49b6fc86e617813cec11927b4f046069d07cb08a5e80411c27eb3019fcb"
+        },
+        {
+          "path": "distros/arch/image.yaml",
+          "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-image/52db0a42302e4a6b5420a11fa00a84841ea5db56/distros/arch/image.yaml",
+          "bytes": 5445,
+          "sha256": "01676a400ecc1634de5c5100c639c5533ef218fa21927e105f5e4d4e48643e22"
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "hypervisor",
+      "status": "blocked",
+      "firmwares": [],
+      "reason": "Reviewed official Reborn dispatch has only 13.00, 13.20 and 13.60. No supported 12.40 implementation or official release identified; issue 5 remains work in progress.",
+      "evidence": [
+        "https://github.com/PS5Dev/Byepervisor-Reborn/blob/ea04f7132b837087f552c57261cb800481a3a910/kdlsym.c",
+        "https://github.com/PS5Dev/Byepervisor-Reborn/issues/5#issuecomment-6181127462"
+      ]
+    },
+    {
+      "id": "linux_handoff",
+      "status": "blocked",
+      "firmwares": [],
+      "reason": "Established loader supports enumerated 3.00-7.61 versions. Reviewed pLinux5-NG has neither a Linux entry nor a fallback Byepervisor registry entry for 12.40.",
+      "evidence": [
+        "https://github.com/ps5-linux/ps5-linux-loader/blob/64637c177eaed277fb6ccce394cbb29dd047b893/README.md",
+        "https://github.com/pLabs5/pLinux5-NG/blob/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/source/core/utils.c",
+        "https://github.com/pLabs5/pLinux5-NG/blob/978cfb3a1ff1dd5e6fc6e776c5aae3ed8c5770fd/source/offsets/byepervisor/bp_registry.c"
+      ]
+    },
+    {
+      "id": "kernel",
+      "status": "pending",
+      "firmwares": [],
+      "reason": "The separate linux-psx 7.2-ps5 target compiled locally as 7.2.3-psx-ps5-dev1 with 519 matching modules; all output checksums passed. No hardware acceptance; the 12.40 handoff remains unresolved.",
+      "evidence": [
+        "https://github.com/ps5-linux/ps5-linux-patches/blob/753c7936dcb079bfeaaa0bb19dfc495744266500/.config"
+      ]
+    },
+    {
+      "id": "early_userspace",
+      "status": "pending",
+      "firmwares": [],
+      "reason": "The local RAM-only diagnostic boot set has been built and verified, including pinned BusyBox and every matching module. A complete Omarchy root filesystem, external graphics firmware, usable console and PS5 hardware acceptance remain pending.",
+      "evidence": [
+        "https://github.com/ps5-linux/ps5-linux-image/blob/52db0a42302e4a6b5420a11fa00a84841ea5db56/README.md"
+      ]
+    },
+    {
+      "id": "hardware_acceptance",
+      "status": "pending",
+      "firmwares": [],
+      "reason": "No local PS5 Linux boot experiment or acceptance evidence. Source checks and loadable ELF files do not establish boot support.",
+      "evidence": [
+        "https://github.com/meerzulee/omarchy-psx"
+      ]
+    }
+  ],
+  "boot_contract": {
+    "status": "documented_from_older_supported_loader_not_validated_on_12.40",
+    "reference_source_id": "ps5-linux-loader",
+    "architecture": "x86_64",
+    "kernel_research_workspace_path": "linux-psx/provenance/ps5-research.json",
+    "kernel_research_base": "7.2.3",
+    "artifacts": [
+      {
+        "filename": "bzImage",
+        "required": true,
+        "description": "PS5-enabled x86-64 Linux boot-protocol image; record complete kernel source/config and matching modules."
+      },
+      {
+        "filename": "initrd.img",
+        "required": true,
+        "description": "Initramfs compression supported by selected kernel; supplies early drivers/firmware and mounts agreed root."
+      },
+      {
+        "filename": "cmdline.txt",
+        "required": false,
+        "description": "Explicit single-line command line; upstream reads at most 2047 bytes and cuts at first CR/LF. Root LABEL/UUID must match actual rootfs."
+      },
+      {
+        "filename": "vram.txt",
+        "required": false,
+        "description": "Hexadecimal byte count; reviewed upstream default is 0x20000000 (512 MiB), not a locally validated tuning choice."
+      }
+    ],
+    "search_order": [
+      "/mnt/usb0",
+      "/mnt/usb1",
+      "/mnt/usb2",
+      "/mnt/usb3",
+      "/mnt/usb0/PS5/Linux",
+      "/mnt/usb1/PS5/Linux",
+      "/mnt/usb2/PS5/Linux",
+      "/mnt/usb3/PS5/Linux"
+    ],
+    "staging_note": "Files are resolved independently. Future staging must keep one complete matching set on one chosen medium to avoid mixing duplicate sets. This preparation does not write media.",
+    "runtime_loader_responsibilities": [
+      "Linux boot_params and PS5 platform identification",
+      "Correct physical memory map and reserved regions",
+      "ACPI and console model information",
+      "CPU/device state suitable for Linux entry"
+    ],
+    "module_contract": "Complete matching module tree for the exact kernel release; required early modules/firmware included in initramfs.",
+    "artifact_outputs": []
+  },
+  "supplied_payload_analysis": {
+    "sha256": "a8fa2970f55cd29454211f618aa3145341da7959b4d15a60b8f665cd4a8b112d",
+    "bytes": 177256,
+    "provider": "IDA 9.4 / Hex-Rays 9.4.0.260714 via IDA MCP 3.1.4",
+    "evidence_type": "bounded_static_analysis",
+    "selector_firmwares": [
+      "13.00",
+      "13.20",
+      "13.60"
+    ],
+    "unsupported_branch": "warns_then_falls_through_without_early_return",
+    "evidence_ids": [
+      "IDA-RPC-0006",
+      "IDA-RPC-0007",
+      "IDA-RPC-0008",
+      "IDA-RPC-0010"
+    ],
+    "curated_report": "platforms/ps5/REA-FINDINGS.md",
+    "publisher_provenance": "unverified",
+    "target_executed": false
+  },
+  "local_preparation": {
+    "kernel_target": "7.2-ps5",
+    "kernel_release": "7.2.3-psx-ps5-dev1",
+    "kernel_provenance_workspace_path": "linux-psx/provenance/7.2-ps5.json",
+    "probe_builder": "scripts/build-ps5-probe-initramfs",
+    "userspace_manifest": "manifests/ps5-probe-userspace.json",
+    "guide": "platforms/ps5/FIRST-BOOT.md",
+    "status": "local_kernel_and_ram_probe_built_not_12.40_support",
+    "kernel_output_workspace_path": "linux-psx/output/7.2-ps5",
+    "probe_output_repository_path": "output/ps5-probe/7.2.3-psx-ps5-dev1",
+    "probe_receipt_repository_path": "output/ps5-probe/7.2.3-psx-ps5-dev1/receipt.json",
+    "probe_receipt_sha256": "179f28f5dea0a47abd130bc7778630f516a890655ea035bb55bf07ca614a91ce",
+    "probe_outputs": {
+      "bzImage": {
+        "bytes": 12776448,
+        "sha256": "64162b82cf3f7ac37cdb8b4fe8638b10a1d53907e1bfb1be48383b2c9726c822"
+      },
+      "cmdline-uart.txt": {
+        "bytes": 46,
+        "sha256": "1b533f18e7b667a6fe5788a09012d5c96b3cc8e209278df3b3467d7bc0660a56"
+      },
+      "cmdline.txt": {
+        "bytes": 26,
+        "sha256": "d007a3dd5ef4f7ad93e103b333e9ac42e5102504fb9c37c8b5bee9be7076f921"
+      },
+      "initrd.img": {
+        "bytes": 47963239,
+        "sha256": "435bc67d5bf04c035e89f1e13082b43e5f91d5368f67adf805eea6fcaa8ce8c0"
+      },
+      "vram.txt": {
+        "bytes": 11,
+        "sha256": "bc4642feb06a4cc6d10d5865e321efaad7ab3f3f1d5d025151b79978164310a0"
+      }
+    },
+    "module_count": 519,
+    "verification": "All output SHA256 values passed; independent gzip/newc inspection matched all installed module and metadata bytes, BusyBox, notices and /init.",
+    "hardware_acceptance": "none"
+  }
+}

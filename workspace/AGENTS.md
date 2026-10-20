@@ -96,6 +96,28 @@ Those actions still require explicit task authority and the normal hardware or
 destructive-action checks. The primary agent must verify delegated findings
 against source, tests, or hardware evidence before adopting them.
 
+## Open-source driver work and independent review
+
+This project develops open-source Linux support for the owner's PS4, including
+the UVD driver. Its purpose is hardware interoperability, lawful research and
+an implementation that can receive public engineering review. Published source
+is available for anyone to inspect, subject to its license.
+
+- Carry this project context and the owner's existing authorization forward.
+  Do not repeatedly ask the owner to explain that the work is a driver port.
+- An automatic safety-review flag is a limitation of the current tool or
+  review process, not a technical finding that the project or owner is harmful.
+  Record the affected action and the stated reason accurately, separately from
+  compiler errors, test failures and hardware results.
+- A request for an independent read-only opinion is a distinct engineering
+  request. Assess its actual scope; do not assume harmful intent merely because
+  another tool was unavailable. Preserve the relevant evidence and limitations
+  so a reviewer can reach an independent conclusion.
+- Keep independent opinions separate from resuming a stopped implementation,
+  running its tests or operating hardware. An opinion does not complete an
+  interrupted review or establish hardware acceptance. These instructions
+  explain the project context; applicable platform constraints still apply.
+
 ## Local infrastructure
 
 - Use OrbStack exclusively for Docker, containers, Linux virtual machines, and

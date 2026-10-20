@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-mode="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Omarchy · PS5 launcher preview</title>
+  <link rel="stylesheet" href="launcher.css">
+  <script src="assets/themes.js" defer></script>
+  <script src="launcher.js" defer></script>
+</head>
+<body>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8l-5-5Zm0 0v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="shuffle" viewBox="0 0 24 24"><path d="M3 6h3c5 0 7 12 12 12h3m-4-4 4 4-4 4M3 18h3c2 0 3-2 4-4m4-4c1-2 2-4 4-4h3m-4-4 4 4-4 4"/></symbol>
+  </defs></svg>
+  <div class="backdrop" aria-hidden="true"></div>
+  <div class="shell">
+    <header class="chrome">
+      <a class="wordmark" href="#home" aria-label="Omarchy home"></a>
+      <span class="preview-tag"><i></i>Interface preview</span>
+    </header>
+    <main id="app">
+      <section id="home-view" class="view home-layout" aria-labelledby="home-title">
+        <div class="launch-area">
+          <p class="eyebrow">LINUX ON PLAYSTATION</p>
+          <h1 id="home-title">Omarchy for PS5.</h1>
+          <p class="lede">Your Linux desktop, powered by Linux psX.</p>
+          <p class="pending-line"><i></i>12.40 Linux loader pending</p>
+          <div class="flow-actions">
+            <button data-nav class="flow-button primary" id="open-omarchy"><span>Omarchy</span><small>View status</small><svg><use href="#arrow"/></svg></button>
+            <button data-nav class="flow-button" data-view="library"><span>Custom payloads</span><small id="library-count">Local files</small><svg><use href="#arrow"/></svg></button>
+          </div>
+          <div class="link-row"><button data-nav class="link-button" data-appearance>Theme &amp; wallpaper <span>›</span></button></div>
+        </div>
+        <aside class="system-check" aria-labelledby="system-title">
+          <p class="eyebrow" id="system-title">SYSTEM PROFILE</p>
+          <dl><div><dt>Console</dt><dd>Original PS5</dd></div><div><dt>System software</dt><dd>12.40</dd></div><div><dt>Jailbreak</dt><dd class="good">Ready <small>reported</small></dd></div><div><dt>ELF delivery</dt><dd>Available <small>assumed</small></dd></div></dl>
+          <p class="system-note">Selected setup · local preview</p>
+        </aside>
+      </section>
+
+      <section id="library-view" class="view library-view" aria-labelledby="library-title" hidden>
+        <div class="view-heading"><div><p class="eyebrow">LOCAL COLLECTION</p><h1 id="library-title">Custom payloads</h1></div><button data-nav class="button primary" data-import><svg><use href="#plus"/></svg>Add files</button></div>
+        <p class="lede compact">Inspect your ELF files. Your library stays in this session.</p>
+        <div id="drop-zone" class="drop-zone"><svg><use href="#file"/></svg><div><strong>Drop files here</strong><p>Or choose “Add files” · up to 64 MB each</p></div></div>
+        <div class="payload-grid" id="payload-library"></div>
+        <div id="empty-library" class="empty-library"><p>No payloads added yet.</p><span>Your files will appear here.</span></div>
+        <div class="link-row"><button data-nav class="link-button" data-view="home">‹ Back to launcher</button></div>
+      </section>
+
+      <section id="appearance-view" class="view appearance-view" aria-labelledby="appearance-title" hidden>
+        <div class="view-heading"><div><p class="eyebrow">OMARCHY THEMES</p><h1 id="appearance-title">Appearance</h1></div><span class="previewing-label">Previewing changes</span></div>
+        <p class="lede compact">Your theme. Your wallpaper.</p>
+        <div class="appearance-layout">
+          <div class="theme-grid" id="theme-options" role="group" aria-label="Choose a theme"></div>
+          <div class="wallpaper-panel"><div class="wallpaper-frame"><img id="wallpaper-preview" alt="Selected theme wallpaper"><span id="wallpaper-count"></span></div><div class="wallpaper-caption"><strong id="wallpaper-theme"></strong><span id="wallpaper-name"></span></div></div>
+        </div>
+        <div class="appearance-actions"><button data-nav class="button" id="shuffle-wallpaper"><svg><use href="#shuffle"/></svg>Shuffle preview</button><div><button data-nav class="button primary" id="apply-appearance">Apply</button><button data-nav class="button" id="cancel-appearance">Cancel</button></div></div>
+        <p class="appearance-note">Your theme is remembered. Each launch starts with its default wallpaper.</p>
+      </section>
+    </main>
+    <footer class="controls"><span><kbd>↑ ↓ ← →</kbd> Move</span><span><kbd>↵ / ×</kbd> Select</span><span><kbd>esc / ○</kbd> Back</span><span><kbd>O / OPTIONS</kbd> Appearance</span></footer>
+  </div>
+  <input type="file" id="file-input" accept=".elf,application/octet-stream" multiple hidden>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-header"><p class="eyebrow" id="detail-eyebrow">OMARCHY FOR PS5</p><button data-nav class="close-button" data-close aria-label="Close details">×</button></div>
+    <h2 id="detail-title">Linux handoff</h2><p id="detail-description" class="detail-description"></p>
+    <dl id="payload-details" class="payload-details" hidden></dl>
+    <div class="dialog-actions"><button data-nav id="remove-payload" class="link-button" hidden>Remove from library</button><button data-nav class="button primary" data-close>Back</button></div>
+  </dialog>
+</body>
+</html>

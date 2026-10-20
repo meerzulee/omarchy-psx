@@ -5,6 +5,7 @@ set -euo pipefail
 usage() {
   printf '%s\n' \
     'Usage: build-package-snapshot [--output DIRECTORY] [--package-source DIRECTORY] [--cache DIRECTORY]' \
+    '       [--base-snapshot DIRECTORY]' \
     '' \
     'Build a complete offline Omarchy PS4 developer package snapshot in OrbStack.'
 }
@@ -24,6 +25,7 @@ source_date_epoch=1787184000
 output=''
 package_source=''
 download_cache=''
+base_snapshot=''
 
 while (( $# > 0 )); do
   case "$1" in
@@ -40,6 +42,11 @@ while (( $# > 0 )); do
     --cache)
       (( $# >= 2 )) || fail '--cache requires a directory'
       download_cache=$2
+      shift 2
+      ;;
+    --base-snapshot)
+      (( $# >= 2 )) || fail '--base-snapshot requires a directory'
+      base_snapshot=$2
       shift 2
       ;;
     -h|--help)
@@ -96,19 +103,40 @@ cleanup() {
 trap cleanup EXIT
 
 cp "${native_packages[@]}" "$local_repo/"
+base_snapshot_sha256=''
+network_args=()
+if [[ -n $base_snapshot ]]; then
+  base_snapshot=$(cd -- "$base_snapshot" && pwd)
+  "$project_dir/tests/package-snapshot-test" "$base_snapshot"
+  grep -Fxq "upstream_commit=$omarchy_commit" "$base_snapshot/RELEASE.env" || \
+    fail 'base snapshot uses another upstream Omarchy commit'
+  grep -Fxq "arch_snapshot=$arch_snapshot" "$base_snapshot/RELEASE.env" || \
+    fail 'base snapshot uses another Arch snapshot date'
+  while IFS=$'\t' read -r name _version _arch _repo file _size _sha; do
+    case $name in omarchy-ps4|omarchy-ps4-settings|omarchy-ps4-provisioning) continue ;; esac
+    [[ $file != */* && $file == *.pkg.tar.zst ]] || fail 'invalid filename in base package lock'
+    # repo-add only reads archives. Hard links retain the original immutable
+    # package bytes without copying the complete multi-gigabyte cache.
+    ln "$base_snapshot/repo/$file" "$local_repo/$file" 2>/dev/null || \
+      cp "$base_snapshot/repo/$file" "$local_repo/$file"
+  done <"$base_snapshot/manifest/packages.lock"
+  base_snapshot_sha256=$(shasum -a 256 "$base_snapshot/SHA256SUMS" | awk '{print $1}')
+  network_args=(--network none)
+fi
 mkdir -p "$download_cache"
-docker run --rm --platform linux/amd64 \
+docker run --rm --network none --platform linux/amd64 \
   -v "$local_repo:/repo" \
   -w /repo \
   archlinux@sha256:345a872f6c95e082d4b8c050af637eebb57402c6e2177b411c3acf7df84eb33b \
   bash -lc 'repo-add omarchy-ps4-local.db.tar.gz ./*.pkg.tar.zst' >/dev/null
 
 printf 'Resolving and downloading the pinned offline snapshot.\n'
-docker run --rm --platform linux/amd64 \
+docker run --rm "${network_args[@]}" --platform linux/amd64 \
   -e "ARCH_SNAPSHOT=$arch_snapshot" \
   -e "OMARCHY_COMMIT=$omarchy_commit" \
   -e "OMARCHY_RELEASE=$release" \
   -e "SOURCE_DATE_EPOCH=$source_date_epoch" \
+  -e "OFFLINE_BASE_SHA256=$base_snapshot_sha256" \
   -v "$project_dir:/workspace:ro" \
   -v "$local_repo:/localrepo:ro" \
   -v "$staging:/snapshot" \

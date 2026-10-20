@@ -58,12 +58,26 @@ LightDM requires this owner unit and is ordered after it. The owner unit keeps
 control of tty1 even when storage expansion or setup fails. Its clean terminal
 surface centers the pinned green Omarchy ASCII logo and every interactive
 prompt; raw service errors go to the journal instead of being painted through
-the form. Timezone selection uses separate region and location lists instead
-of a live filter that repaints unreliably on the Linux virtual console. The
-final review and confirmation are centered; Yes remains Omarchy green and No
+the form. Timezone selection first offers every fixed whole-hour GMT offset
+from GMT-12:00 through GMT+14:00. Labels use the familiar sign; the picker maps
+them to tzdata internally and the final review shows the chosen GMT label.
+Choose a city or region for daylight-saving rules or half/quarter-hour zones.
+All lists scroll with Up/Down; they do not use a live filter that repaints
+unreliably on the Linux virtual console. Selection is offline and does not
+perform a location lookup. The final review and confirmation are centered; Yes remains Omarchy green and No
 remains neutral gray. A branded `OWNER-SETUP` support screen replaces an empty
 login prompt on failure. UART receives only lifecycle stages and storage
 evidence; usernames, passwords and prompt input are never mirrored to it.
+
+Flashable partitioned candidates use image-layout schema 2. They retain the
+existing 4 GiB `PS4BOOT` geometry and authorize growing partition 2 and ext4 on
+the first boot. The growth helper checks the running USB root, MBR, original
+image length and device identity, saves the original MBR, changes only the
+second partition's length, checks its read-back and kernel size, then permits
+ext4 growth. A stopped attempt can resume before owner setup completes.
+Historical schema-1 partitioned installations still require a full-size root
+and never authorize a partition-table write. Their initramfs and boot-profile
+hashes are unchanged. These new source paths require real-hardware acceptance.
 
 After successful setup, the provisioner creates the PAM-required system
 `autologin` group when absent and adds the owner to it. LightDM uses a

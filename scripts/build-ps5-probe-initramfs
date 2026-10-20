@@ -1,0 +1,412 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Meerzulee
+"""Build a deterministic RAM-probe archive from explicitly selected local inputs.
+
+Inputs are parsed as data. Only the host zstd decompressor runs; BusyBox, kernel
+and modules are never executed. No device discovery, mounts or media writes.
+"""
+from __future__ import annotations
+
+import argparse
+import gzip
+import hashlib
+import io
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import shutil
+import stat
+import struct
+import subprocess
+import sys
+import tarfile
+import tempfile
+
+MIB = 1024 * 1024
+MAX_ARCHIVE = 256 * MIB
+MAX_UNPACKED = 1024 * MIB
+MAX_MEMBER = 64 * MIB
+MAX_MEMBERS = 30000
+HEX256 = re.compile(r"[0-9a-f]{64}")
+RELEASE = re.compile(r"7\.2\.\d+-psx-ps5-[A-Za-z0-9._+-]+")
+REPO = Path(__file__).resolve().parents[1]
+
+
+class ProbeError(ValueError):
+    pass
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def read_regular(path: Path, maximum: int) -> bytes:
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    try:
+        before = os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode) or not 0 < before.st_size <= maximum:
+            raise ProbeError(f"expected a nonempty bounded regular file: {path}")
+        with os.fdopen(fd, "rb", closefd=False) as stream:
+            data = stream.read(maximum + 1)
+        after = os.fstat(fd)
+        if (len(data) != before.st_size or len(data) > maximum
+                or (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns)):
+            raise ProbeError(f"input changed or exceeded size bound: {path}")
+        return data
+    finally:
+        os.close(fd)
+
+
+def assignments(data: bytes, description: str) -> dict[str, str]:
+    result = {}
+    for line in data.decode("utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise ProbeError(f"invalid {description} assignment")
+        key, value = line.split("=", 1)
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key) or key in result:
+            raise ProbeError(f"duplicate or invalid {description} key: {key}")
+        result[key] = value
+    return result
+
+
+def elf_header(data: bytes, description: str) -> tuple:
+    if len(data) < 64 or data[:7] != b"\x7fELF\x02\x01\x01":
+        raise ProbeError(f"{description} must be ELF64 little-endian")
+    header = struct.unpack_from("<16sHHIQQQIHHHHHH", data)
+    if header[2] != 62 or header[3] != 1 or header[8] != 64:
+        raise ProbeError(f"{description} must be x86-64 ELF version 1")
+    return header
+
+
+def bounded_slice(data: bytes, offset: int, size: int) -> bytes:
+    if offset < 0 or size < 0 or offset + size > len(data):
+        raise ProbeError("ELF range exceeds input")
+    return data[offset:offset + size]
+
+
+def validate_busybox(data: bytes) -> None:
+    h = elf_header(data, "BusyBox")
+    if h[1] not in (2, 3) or h[4] == 0 or h[9] != 56 or not 0 < h[10] <= 128:
+        raise ProbeError("BusyBox must have executable ELF program headers")
+    headers = bounded_slice(data, h[5], h[9] * h[10])
+    executable_entry = False
+    for offset in range(0, len(headers), 56):
+        kind, flags, pos, address, _, size, memory_size, _ = struct.unpack_from("<IIQQQQQQ", headers, offset)
+        if size > memory_size:
+            raise ProbeError("invalid BusyBox segment sizes")
+        segment = bounded_slice(data, pos, size)
+        if kind == 3:
+            raise ProbeError("BusyBox must be static: PT_INTERP is forbidden")
+        if kind == 1 and flags & 1 and address <= h[4] < address + memory_size:
+            executable_entry = True
+        if kind == 2:
+            if size % 16:
+                raise ProbeError("invalid BusyBox dynamic segment")
+            for index in range(0, size, 16):
+                tag, _ = struct.unpack_from("<qQ", segment, index)
+                if tag == 0:
+                    break
+                if tag == 1:
+                    raise ProbeError("BusyBox must be static: DT_NEEDED is forbidden")
+    if not executable_entry:
+        raise ProbeError("BusyBox entry is not in an executable load segment")
+
+
+def validate_module(data: bytes, release: str) -> None:
+    h = elf_header(data, "kernel module")
+    if h[1] != 1 or h[11] != 64 or not 0 < h[12] <= 8192 or not 0 < h[13] < h[12]:
+        raise ProbeError("kernel module has unsupported ELF section headers")
+    headers = bounded_slice(data, h[6], 64 * h[12])
+    sections = [struct.unpack_from("<IIQQQQIIQQ", headers, index * 64) for index in range(h[12])]
+    names_section = sections[h[13]]
+    names = bounded_slice(data, names_section[4], names_section[5])
+    vermagic = []
+    for section in sections:
+        if section[0] >= len(names):
+            raise ProbeError("kernel module has invalid section name")
+        name = names[section[0]:].split(b"\0", 1)[0]
+        if name == b".modinfo":
+            info = bounded_slice(data, section[4], section[5])
+            vermagic.extend(value[9:].split(b" ", 1)[0] for value in info.split(b"\0")
+                            if value.startswith(b"vermagic="))
+    if vermagic != [release.encode()]:
+        raise ProbeError("kernel module vermagic does not match the selected release")
+
+
+def validate_kernel(output: Path) -> tuple[dict, dict[str, bytes], dict[str, str]]:
+    release = read_regular(output / "version.txt", 256).decode().strip()
+    if not RELEASE.fullmatch(release):
+        raise ProbeError("version.txt is not a PS5 7.2 development release")
+    names = {"bzImage", "config", "System.map", "manifest.txt", "version.txt", f"modules-{release}.tar.zst"}
+    sums = {}
+    for line in read_regular(output / "SHA256SUMS", 8192).decode().splitlines():
+        match = re.fullmatch(r"([0-9a-f]{64}) [ *]([A-Za-z0-9._+-]+)", line)
+        if not match or match[2] in sums:
+            raise ProbeError("invalid or duplicate SHA256SUMS entry")
+        sums[match[2]] = match[1]
+    if set(sums) != names:
+        raise ProbeError("SHA256SUMS must cover the complete six-file raw kernel output")
+    limits = {"config": MIB, "manifest.txt": 16384, "version.txt": 256, "bzImage": 128 * MIB,
+              "System.map": 128 * MIB, f"modules-{release}.tar.zst": MAX_ARCHIVE}
+    files = {name: read_regular(output / name, limits[name]) for name in sorted(names)}
+    for name, data in files.items():
+        if digest(data) != sums[name]:
+            raise ProbeError(f"SHA256 mismatch: {name}")
+    manifest = assignments(files["manifest.txt"], "build manifest")
+    required = {"target", "platform", "kernel_release", "base_repo", "base_ref", "base_commit",
+                "series_sha256", "patchset_sha256", "config_sha256", "active_patch_count", "compiler",
+                "builder_image", "builder_image_id", "source_date_epoch", "kbuild_identity",
+                "kbuild_version", "embedded_firmware"}
+    if not required <= manifest.keys() or any(not manifest[key] for key in required):
+        raise ProbeError("incomplete raw build manifest")
+    if (manifest["target"], manifest["platform"], manifest["kernel_release"], manifest["embedded_firmware"]) != (
+            "7.2-ps5", "ps5", release, "false"):
+        raise ProbeError("build manifest must identify the firmware-free PS5 target")
+    if (manifest["config_sha256"] != sums["config"]
+            or not re.fullmatch(r"[0-9a-f]{40}", manifest["base_commit"])
+            or not all(HEX256.fullmatch(manifest[key]) for key in ("series_sha256", "patchset_sha256"))):
+        raise ProbeError("invalid build provenance/config digest")
+    if not all(re.fullmatch(r"[0-9]+", manifest[key]) for key in
+               ("source_date_epoch", "active_patch_count", "kbuild_version")):
+        raise ProbeError("invalid build provenance numeric value")
+    version, suffix = release.split("-", 1)
+    if manifest["base_ref"] != "v" + version:
+        raise ProbeError("base version does not match kernel release")
+    config = assignments(files["config"], "kernel config")
+    for key in ("X86_64", "X86_PS5", "BLK_DEV_INITRD", "RD_GZIP", "BINFMT_ELF", "BINFMT_SCRIPT",
+                "MODULES", "DEVTMPFS", "PROC_FS", "SYSFS"):
+        if config.get("CONFIG_" + key) != "y":
+            raise ProbeError("missing required kernel setting: CONFIG_" + key + "=y")
+    if config.get("CONFIG_X86_PS4", "n") != "n" or any(
+            key.startswith("CONFIG_PS4") and value in ("y", "m") for key, value in config.items()):
+        raise ProbeError("PS4 must not be active in the PS5 kernel config")
+    if config.get("CONFIG_EXTRA_FIRMWARE") != '""':
+        raise ProbeError("embedded device firmware must be empty")
+    if config.get("CONFIG_LOCALVERSION") != json.dumps("-" + suffix):
+        raise ProbeError("kernel config local version does not match release")
+    image = files["bzImage"]
+    if (len(image) < 0x240 or image[0x1fe:0x200] != b"\x55\xaa" or image[0x202:0x206] != b"HdrS"
+            or struct.unpack_from("<H", image, 0x206)[0] < 0x20c
+            or not struct.unpack_from("<H", image, 0x236)[0] & 1):
+        raise ProbeError("bzImage lacks the expected x86-64 Linux boot header")
+    setup_size = ((image[0x1f1] or 4) + 1) * 512
+    body_size = struct.unpack_from("<I", image, 0x1f4)[0] * 16
+    if not body_size or setup_size + body_size > len(image):
+        raise ProbeError("bzImage has invalid setup/body sizes")
+    version_pos = 512 + struct.unpack_from("<H", image, 0x20e)[0]
+    if not 0x240 <= version_pos < min(setup_size, len(image)):
+        raise ProbeError("bzImage has an invalid kernel version pointer")
+    if image[version_pos:version_pos + 256].split(b"\0", 1)[0].split(b" ", 1)[0] != release.encode():
+        raise ProbeError("bzImage kernel release does not match version.txt")
+    return manifest, files, sums
+
+
+def safe_module_name(name: str, release: str) -> str:
+    name = name.rstrip("/")
+    path = PurePosixPath(name)
+    prefix = f"lib/modules/{release}"
+    if (not re.fullmatch(r"[A-Za-z0-9._+/-]{1,4096}", name) or path.is_absolute() or ".." in path.parts
+            or str(path) != name or not (name in ("lib", "lib/modules", prefix) or name.startswith(prefix + "/"))):
+        raise ProbeError(f"unsafe or wrong-release module path: {name}")
+    if any(name == prefix + "/" + part or name.startswith(prefix + "/" + part + "/") for part in ("build", "source")):
+        raise ProbeError("module build/source paths are forbidden")
+    return name
+
+
+def read_modules(compressed: bytes, release: str) -> dict[str, tuple[int, bytes]]:
+    zstd = shutil.which("zstd")
+    if not zstd:
+        raise ProbeError("host zstd decompressor is required")
+    with tempfile.TemporaryFile() as source, tempfile.TemporaryFile() as unpacked, tempfile.TemporaryFile() as errors:
+        source.write(compressed)
+        source.seek(0)
+        process = subprocess.Popen([zstd, "-dq", "-c"], stdin=source, stdout=subprocess.PIPE, stderr=errors)
+        try:
+            total = 0
+            while chunk := process.stdout.read(MIB):
+                total += len(chunk)
+                if total > MAX_UNPACKED:
+                    raise ProbeError("decompressed module archive exceeds bound")
+                unpacked.write(chunk)
+            if process.wait() != 0:
+                raise ProbeError("invalid zstd module archive")
+        finally:
+            process.stdout.close()
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+        unpacked.seek(0)
+        return read_module_tar(unpacked, release)
+
+
+def read_module_tar(stream, release: str) -> dict[str, tuple[int, bytes]]:
+    result = {}
+    count = total = 0
+    prefix = f"lib/modules/{release}/"
+    with tarfile.open(fileobj=stream, mode="r:") as archive:
+        for member in archive:
+            count += 1
+            if count > MAX_MEMBERS or not 0 <= member.size <= MAX_MEMBER:
+                raise ProbeError("module member count/size exceeds bound")
+            name = safe_module_name(member.name, release)
+            if (name in result or member.type not in (tarfile.DIRTYPE, tarfile.REGTYPE, tarfile.AREGTYPE)
+                    or member.sparse is not None):
+                raise ProbeError("duplicate module path or forbidden archive member type")
+            if member.isdir():
+                result[name] = (stat.S_IFDIR | 0o755, b"")
+                continue
+            total += member.size
+            if total > MAX_UNPACKED:
+                raise ProbeError("module contents exceed bound")
+            data = archive.extractfile(member).read(MAX_MEMBER + 1)
+            if len(data) != member.size:
+                raise ProbeError("truncated module archive member")
+            if name.endswith(".ko"):
+                validate_module(data, release)
+            elif not (name.startswith(prefix + "modules.") and "/" not in name[len(prefix):]):
+                raise ProbeError("expected raw .ko or release-level module metadata")
+            result[name] = (stat.S_IFREG | 0o644, data)
+        end = archive.offset
+    stream.seek(end)
+    while tail := stream.read(MIB):
+        if any(tail):
+            raise ProbeError("nonzero data after module tar archive")
+    for required in ("modules.dep", "modules.alias", "modules.builtin", "modules.order"):
+        if prefix + required not in result or not stat.S_ISREG(result[prefix + required][0]):
+            raise ProbeError("missing module metadata: " + required)
+    modules = {name[len(prefix):] for name in result if name.endswith(".ko")}
+    dependencies = set()
+    for line in result[prefix + "modules.dep"][1].decode().splitlines():
+        if ":" not in line:
+            raise ProbeError("invalid modules.dep")
+        module, deps = line.split(":", 1)
+        if module in dependencies or module not in modules or any(dep not in modules for dep in deps.split()):
+            raise ProbeError("module dependency references are incomplete or invalid")
+        dependencies.add(module)
+    if not modules or dependencies != modules:
+        raise ProbeError("modules.dep does not cover the complete raw module set")
+    for name in result:
+        for parent in PurePosixPath(name).parents:
+            if str(parent) != "." and (str(parent) not in result or not stat.S_ISDIR(result[str(parent)][0])):
+                raise ProbeError("module path has a missing or non-directory parent")
+    return result
+
+
+def newc_record(name: str, mode: int, data: bytes, inode: int, device=(0, 0)) -> bytes:
+    encoded = name.encode() + b"\0"
+    fields = (inode, mode, 0, 0, 2 if stat.S_ISDIR(mode) else 1, 0, len(data),
+              0, 0, device[0], device[1], len(encoded), 0)
+    header = b"070701" + b"".join(f"{value:08x}".encode() for value in fields) + encoded
+    header += b"\0" * (-len(header) % 4)
+    record = header + data
+    return record + b"\0" * (-len(record) % 4)
+
+
+def make_initrd(modules, busybox: bytes, notice: bytes, license_text: bytes, init: bytes) -> bytes:
+    entries = dict(modules)
+    for directory in ("bin", "dev", "proc", "sys", "tmp", "usr", "usr/share", "usr/share/doc", "usr/share/doc/busybox"):
+        entries[directory] = (stat.S_IFDIR | (0o1777 if directory == "tmp" else 0o755), b"")
+    entries["init"] = (stat.S_IFREG | 0o755, init)
+    entries["bin/busybox"] = (stat.S_IFREG | 0o755, busybox)
+    entries["usr/share/doc/busybox/copyright"] = (stat.S_IFREG | 0o644, notice)
+    entries["usr/share/doc/busybox/LICENSE"] = (stat.S_IFREG | 0o644, license_text)
+    for applet in ("sh", "mount", "mkdir", "uname", "cat", "ls", "sleep", "modprobe", "dmesg", "lsmod", "setsid", "cttyhack"):
+        entries["bin/" + applet] = (stat.S_IFLNK | 0o777, b"busybox")
+    devices = {"dev/console": (5, 1), "dev/tty": (5, 0), "dev/null": (1, 3)}
+    for name in devices:
+        entries[name] = (stat.S_IFCHR | (0o600 if name == "dev/console" else 0o666), b"")
+    buffer = io.BytesIO()
+    with gzip.GzipFile(filename="", fileobj=buffer, mode="wb", mtime=0, compresslevel=9) as output:
+        size = 0
+        for inode, name in enumerate(sorted(entries), 1):
+            mode, data = entries[name]
+            record = newc_record(name, mode, data, inode, devices.get(name, (0, 0)))
+            output.write(record)
+            size += len(record)
+        trailer = newc_record("TRAILER!!!", 0, b"", len(entries) + 1)
+        output.write(trailer)
+        output.write(b"\0" * (-(size + len(trailer)) % 512))
+    return buffer.getvalue()
+
+
+def publish(output: Path, files: dict[str, bytes]) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.mkdir()  # Atomic no-replace check, including an existing symlink.
+    created = []
+    try:
+        for name, data in files.items():
+            with (output / name).open("xb") as stream:
+                created.append(output / name)
+                stream.write(data)
+    except BaseException:
+        for path in created:
+            path.unlink()
+        try:
+            output.rmdir()
+        except OSError:
+            pass
+        raise
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--kernel-output", required=True, type=Path)
+    parser.add_argument("--busybox", required=True, type=Path)
+    parser.add_argument("--busybox-sha256", required=True)
+    parser.add_argument("--busybox-notice", required=True, type=Path)
+    parser.add_argument("--busybox-license", required=True, type=Path)
+    parser.add_argument("--output", required=True, type=Path, help="New local directory; never overwritten")
+    args = parser.parse_args(argv)
+    try:
+        if args.output.exists() or args.output.is_symlink():
+            raise ProbeError("output already exists; choose a new directory")
+        if not HEX256.fullmatch(args.busybox_sha256):
+            raise ProbeError("--busybox-sha256 must be a full lowercase SHA256")
+        manifest, kernel, sums = validate_kernel(args.kernel_output)
+        busybox = read_regular(args.busybox, 16 * MIB)
+        if digest(busybox) != args.busybox_sha256:
+            raise ProbeError("BusyBox SHA256 mismatch")
+        validate_busybox(busybox)
+        notice = read_regular(args.busybox_notice, MIB)
+        license_text = read_regular(args.busybox_license, MIB)
+        init = read_regular(REPO / "platforms/ps5/rootfs/probe-init", 65536)
+        release = manifest["kernel_release"]
+        modules = read_modules(kernel[f"modules-{release}.tar.zst"], release)
+        files = {"bzImage": kernel["bzImage"],
+                 "initrd.img": make_initrd(modules, busybox, notice, license_text, init),
+                 "cmdline.txt": b"console=tty0 rdinit=/init\n",
+                 "cmdline-uart.txt": b"console=tty0 console=ttyTitania0 rdinit=/init\n",
+                 "vram.txt": b"0x20000000\n"}
+        receipt = {
+            "schema": 1, "purpose": "PS5 RAM-only console probe; no 12.40 boot qualification",
+            "target": "7.2-ps5", "platform": "ps5", "kernel_release": release,
+            "kernel_build_manifest": manifest, "kernel_input_sha256": sums,
+            "busybox_sha256": digest(busybox), "busybox_notice_sha256": digest(notice),
+            "busybox_license_sha256": digest(license_text),
+            "probe_init_sha256": digest(init), "builder_sha256": digest(read_regular(Path(__file__), MIB)),
+            "module_count": sum(name.endswith(".ko") for name in modules),
+            "module_archive_entries": len(modules), "complete_module_archive": True,
+            "embedded_firmware": False, "external_firmware_included": False, "kernel_included": True,
+            "automatic_module_requests": ["hid_generic", "usbhid"],
+            "console_and_keyboard": "unqualified; tty0 output and HID input are not guaranteed",
+            "uart_cmdline": "explicit alternative; no UART connection is assumed",
+            "root_filesystem": "none; /init does not mount block storage",
+            "outputs": {name: {"bytes": len(data), "sha256": digest(data)} for name, data in files.items()},
+        }
+        files["receipt.json"] = (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode()
+        files["SHA256SUMS"] = "".join(f"{digest(data)}  {name}\n" for name, data in sorted(files.items())).encode()
+        publish(args.output, files)
+        print(json.dumps({"output": str(args.output), "kernel_release": release,
+                          "initrd_sha256": digest(files["initrd.img"]), "module_count": receipt["module_count"]}))
+    except (OSError, ValueError, tarfile.TarError, struct.error) as error:
+        print(f"ps5-probe-initramfs: FAIL: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

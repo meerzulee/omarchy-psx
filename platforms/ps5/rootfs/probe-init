@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Local RAM probe only. Console visibility and keyboard input are unqualified.
+PATH=/bin
+export PATH
+
+mount -t proc proc /proc || echo "probe: proc mount failed"
+mount -t sysfs sysfs /sys || echo "probe: sysfs mount failed"
+mount -t devtmpfs devtmpfs /dev || echo "probe: using archive device nodes"
+exec </dev/console >/dev/console 2>&1
+
+echo "Omarchy PS5 RAM probe: kernel entered /init"
+uname -r
+echo "Kernel command line:"
+cat /proc/cmdline
+echo "Console output and USB keyboard input require hardware qualification."
+echo "Loading only the two declared HID modules, once each."
+modprobe hid_generic || echo "probe: hid_generic unavailable"
+modprobe usbhid || echo "probe: usbhid unavailable"
+
+echo "Observed block devices (not mounted):"
+cat /proc/partitions
+echo "Observed DRM connector state (no GPU module requested):"
+ls /sys/class/drm
+for item in /sys/class/drm/card*/status /sys/class/drm/card*/enabled; do
+    [ -r "$item" ] || continue
+    echo "$item"
+    cat "$item"
+done
+
+echo "Rescue shell. No root filesystem, network or installer was started."
+while :; do
+    setsid cttyhack sh -i </dev/console >/dev/console 2>&1
+    echo "probe: shell exited; opening another shell (no automatic reboot)."
+    sleep 1
+done

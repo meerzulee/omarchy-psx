@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Fetch only the pinned text references for PS5 dependency research."""
+import argparse
+import hashlib
+import importlib.machinery
+import importlib.util
+import json
+import os
+from pathlib import Path
+import tempfile
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def checker():
+    loader = importlib.machinery.SourceFileLoader(
+        "ps5_compatibility", str(ROOT / "scripts/check-ps5-compatibility"))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def verify(path, record):
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(f"Reference must be a regular, non-symlink file: {path}")
+    if path.stat().st_size != record["bytes"]:
+        raise ValueError(f"Reference size differs: {path}")
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != record["sha256"]:
+        raise ValueError(f"Reference SHA256 differs: {path}")
+    data.decode("utf-8")
+
+
+def fetch(record, destination, open_url=urllib.request.urlopen):
+    if not 0 < record["bytes"] <= 2 * 1024 * 1024:
+        raise ValueError("Only text references up to 2 MiB are accepted")
+    if any(p.is_symlink() for p in (destination, *destination.parents)):
+        raise ValueError(f"Symlink reference destination refused: {destination}")
+    if destination.exists():
+        verify(destination, record)
+        return
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".ps5-reference-", dir=destination.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output, open_url(record["url"], timeout=30) as source:
+            data = source.read(record["bytes"] + 1)
+            if len(data) != record["bytes"]:
+                raise ValueError("Reference download length differs")
+            output.write(data)
+        verify(temporary, record)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=ROOT / "cache/ps5-references")
+    args = parser.parse_args()
+    try:
+        manifest = json.loads((ROOT / "manifests/ps5-dependencies.json").read_text())
+        checker().validate_manifest(manifest)
+        output = args.output.absolute()
+        count = 0
+        for source in manifest["sources"]:
+            for record in source["files"]:
+                fetch(record, output / source["id"] / record["path"])
+                count += 1
+        print(f"Verified {count} pinned text references in {output}")
+        print("Reference material only. No binaries, builds, patches or console actions.")
+        return 0
+    except (OSError, ValueError, KeyError) as error:
+        parser.exit(1, f"PS5 reference acquisition refused: {error}\n")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

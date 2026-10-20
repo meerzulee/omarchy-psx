@@ -1,0 +1,453 @@
+{
+  "schema": 1,
+  "researched_on": "2026-10-18",
+  "destination": "platforms/ps5/launcher/preview/assets",
+  "omarchy": {
+    "repository": "https://github.com/omacom/omarchy",
+    "commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+    "release": "4.0.0",
+    "source_version": "4.0.0.alpha",
+    "selection": "Same official v4.0.0 tag as the original omarchy-ps4 launcher.",
+    "fontconfig_path": "default/fontconfig/conf.avail/50-omarchy.conf"
+  },
+  "themes": [
+    {
+      "id": "tokyo-night",
+      "name": "Tokyo Night",
+      "palette": "palettes/tokyo-night.toml",
+      "wallpapers": [
+        "0-winding-road.jpg",
+        "2-swirl-buck.jpg",
+        "4-omakub.jpg"
+      ]
+    },
+    {
+      "id": "last-horizon",
+      "name": "Last Horizon",
+      "palette": "palettes/last-horizon.toml",
+      "wallpapers": [
+        "1-eyes-wide.jpg",
+        "2-blink.jpg",
+        "3-bokeh.jpg",
+        "4-new-horizons.jpg"
+      ]
+    },
+    {
+      "id": "lupine",
+      "name": "Lupine",
+      "palette": "palettes/lupine.toml",
+      "wallpapers": [
+        "01-cherry-blossom-bokeh.jpg",
+        "02-cherry-blossom-white.jpg",
+        "03-pastel-clouds.jpg",
+        "04-elegant-blue-wave.jpg",
+        "05-abstract-wave.jpg"
+      ]
+    },
+    {
+      "id": "solitude",
+      "name": "Solitude",
+      "palette": "palettes/solitude.toml",
+      "wallpapers": [
+        "1-on-pole.jpg",
+        "2-wreakage.jpg",
+        "3-climb.jpg",
+        "4-ether.jpg",
+        "5-eyed.jpg"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "brand/logo.png",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/default/plymouth/logo.png",
+      "bytes": 3072,
+      "sha256": "ba8f1547a02ab5db64fe3923d0b834a220e2c3798c1674374a0eb92a18dfddfb",
+      "source_path": "default/plymouth/logo.png",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "fonts/omarchy.ttf",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/default/fonts/omarchy/omarchy.ttf",
+      "bytes": 4228,
+      "sha256": "a769b90d966c79b99ec17963b55bb714e5ce4cfe7522c4eafa3a9d0d4fc26f2b",
+      "source_path": "default/fonts/omarchy/omarchy.ttf",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "notices/omarchy-font-README.md",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/default/fonts/omarchy/README.md",
+      "bytes": 686,
+      "sha256": "00f7bd254244230c72ff825b27070947706aaabaedf679b88024cbc565631411",
+      "source_path": "default/fonts/omarchy/README.md",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "notices/50-omarchy.conf",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/default/fontconfig/conf.avail/50-omarchy.conf",
+      "bytes": 3492,
+      "sha256": "d572d3dc9c31b9ca127f2ee32550fad9e9e5932bb2b7d718a997624e9f806516",
+      "source_path": "default/fontconfig/conf.avail/50-omarchy.conf",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "notices/Omarchy-LICENSE",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/LICENSE",
+      "bytes": 1063,
+      "sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+      "source_path": "LICENSE",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "palettes/tokyo-night.toml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/tokyo-night/colors.toml",
+      "bytes": 593,
+      "sha256": "8b5f53ba35b9305aafa72776dd56ea2029faaf29015e2e42db5e19ef698a8e0e",
+      "source_path": "themes/tokyo-night/colors.toml",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/tokyo-night/0-winding-road.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/tokyo-night/backgrounds/0-winding-road.jpg",
+      "bytes": 4445106,
+      "sha256": "37746404ae9a4357442e520c34ea105780232ac3d08a9f289f00156e49f37c4e",
+      "source_path": "themes/tokyo-night/backgrounds/0-winding-road.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/tokyo-night/2-swirl-buck.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/tokyo-night/backgrounds/2-swirl-buck.jpg",
+      "bytes": 2941090,
+      "sha256": "4a4ce5ba6c228771c89439710bfa81005791d3c4f76a62481e4d00939b702e3c",
+      "source_path": "themes/tokyo-night/backgrounds/2-swirl-buck.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/tokyo-night/4-omakub.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/tokyo-night/backgrounds/4-omakub.jpg",
+      "bytes": 2319559,
+      "sha256": "c04a61df9928f1c1b078050078648bd9d717326e5cc19fc9de6228989af01f24",
+      "source_path": "themes/tokyo-night/backgrounds/4-omakub.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "palettes/last-horizon.toml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/last-horizon/colors.toml",
+      "bytes": 724,
+      "sha256": "2e03df6d3283409061b959851f0e5cb2bb4e6acc56628fd5debad37741a9751b",
+      "source_path": "themes/last-horizon/colors.toml",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/last-horizon/1-eyes-wide.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/last-horizon/backgrounds/1-eyes-wide.jpg",
+      "bytes": 486426,
+      "sha256": "f0d11e6c6a8f2f2749ac9f67d9bc51e6c7f5885587b0d38a241dc5da807eedcf",
+      "source_path": "themes/last-horizon/backgrounds/1-eyes-wide.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/last-horizon/2-blink.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/last-horizon/backgrounds/2-blink.jpg",
+      "bytes": 704033,
+      "sha256": "9225adfa3205d857d314cbf932c33e51c2dc358d41cf92630efc06cf79bdf5b5",
+      "source_path": "themes/last-horizon/backgrounds/2-blink.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/last-horizon/3-bokeh.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/last-horizon/backgrounds/3-bokeh.jpg",
+      "bytes": 213078,
+      "sha256": "4b392e8b56bea0b96cfa5439f36dbaf8ac15ee63f8817c55c0bbbf35b4b77782",
+      "source_path": "themes/last-horizon/backgrounds/3-bokeh.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/last-horizon/4-new-horizons.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/last-horizon/backgrounds/4-new-horizons.jpg",
+      "bytes": 1293016,
+      "sha256": "6b13ec842e3617d7c9c113612664f56b8ffec5fb76d0613bb1c84914f12feb5f",
+      "source_path": "themes/last-horizon/backgrounds/4-new-horizons.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "palettes/lupine.toml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/colors.toml",
+      "bytes": 594,
+      "sha256": "c3ffc08fe854a1488dc47eddca43dc43aaada2e89c2a747afb72fed4519120bd",
+      "source_path": "themes/lupine/colors.toml",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/lupine/01-cherry-blossom-bokeh.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/backgrounds/01-cherry-blossom-bokeh.jpg",
+      "bytes": 2418875,
+      "sha256": "f9a6966daa88c821d31bf8630b2a1d98804f929aa6bb5facb3f44f0e0b356071",
+      "source_path": "themes/lupine/backgrounds/01-cherry-blossom-bokeh.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/lupine/02-cherry-blossom-white.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/backgrounds/02-cherry-blossom-white.jpg",
+      "bytes": 5360348,
+      "sha256": "f4553841b1d78d3d6655deb68f162694d11a18fbf975689e5c94ff928ab1fb7d",
+      "source_path": "themes/lupine/backgrounds/02-cherry-blossom-white.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/lupine/03-pastel-clouds.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/backgrounds/03-pastel-clouds.jpg",
+      "bytes": 3110883,
+      "sha256": "d125cc3c25e6f4bd655956ec2220a2ca993571090e2ef350bbb32a91acbd0089",
+      "source_path": "themes/lupine/backgrounds/03-pastel-clouds.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/lupine/04-elegant-blue-wave.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/backgrounds/04-elegant-blue-wave.jpg",
+      "bytes": 626432,
+      "sha256": "aa592cf40a1be6de7e8b19a56f6dcc6dce7a843f0042d196e2a0bc195f959ae1",
+      "source_path": "themes/lupine/backgrounds/04-elegant-blue-wave.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/lupine/05-abstract-wave.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/lupine/backgrounds/05-abstract-wave.jpg",
+      "bytes": 431716,
+      "sha256": "ea91d0dc8682b90d6875755ee06730c2ac82f8cff255ec5a1e5952b65a77669b",
+      "source_path": "themes/lupine/backgrounds/05-abstract-wave.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "palettes/solitude.toml",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/colors.toml",
+      "bytes": 721,
+      "sha256": "7307db1d52dfc396f6d185c5447517b7a66cea20db9f39158eb56a2a1f2c3ef4",
+      "source_path": "themes/solitude/colors.toml",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/solitude/1-on-pole.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/backgrounds/1-on-pole.jpg",
+      "bytes": 1796693,
+      "sha256": "988aa9e2e1d1ec5af1e9fcf69f8571fe1c53c31cd1f8053cafa1def6700505ad",
+      "source_path": "themes/solitude/backgrounds/1-on-pole.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/solitude/2-wreakage.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/backgrounds/2-wreakage.jpg",
+      "bytes": 1340633,
+      "sha256": "b10814d6233f5ec9266d4a7cc9345f7844e62bece8d9508b773d1abcb7aedcf3",
+      "source_path": "themes/solitude/backgrounds/2-wreakage.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/solitude/3-climb.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/backgrounds/3-climb.jpg",
+      "bytes": 2510503,
+      "sha256": "aa7a31ba7f87b6b0a88ff3c9e57241672a71f862251e9ba5659ffa004cda66b7",
+      "source_path": "themes/solitude/backgrounds/3-climb.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/solitude/4-ether.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/backgrounds/4-ether.jpg",
+      "bytes": 978945,
+      "sha256": "bc267be456b844fa63f2348757238a665f1c362356392ef3c591ed3c2cf5ec3e",
+      "source_path": "themes/solitude/backgrounds/4-ether.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "wallpapers/solitude/5-eyed.jpg",
+      "url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/themes/solitude/backgrounds/5-eyed.jpg",
+      "bytes": 2178852,
+      "sha256": "eb88ed0233f58f4427ea96879469393751126ac115ed06f2bc1aaa1f9b6f22c6",
+      "source_path": "themes/solitude/backgrounds/5-eyed.jpg",
+      "project": "omacom/omarchy"
+    },
+    {
+      "path": "fonts/LiberationSans-Regular.ttf",
+      "archive": {
+        "url": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz",
+        "bytes": 2385008,
+        "sha256": "7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0"
+      },
+      "member": "liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf",
+      "bytes": 410712,
+      "sha256": "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8",
+      "version": "2.1.5",
+      "license": "OFL-1.1",
+      "project": "Liberation Fonts"
+    },
+    {
+      "path": "fonts/LiberationSans-Bold.ttf",
+      "archive": {
+        "url": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz",
+        "bytes": 2385008,
+        "sha256": "7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0"
+      },
+      "member": "liberation-fonts-ttf-2.1.5/LiberationSans-Bold.ttf",
+      "bytes": 414456,
+      "sha256": "788abee4c806d660e8aee46689dd8540cd4bb98da03dcc9d171ce3efd99a9173",
+      "version": "2.1.5",
+      "license": "OFL-1.1",
+      "project": "Liberation Fonts"
+    },
+    {
+      "path": "fonts/JetBrainsMonoNerdFont-Regular.ttf",
+      "archive": {
+        "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/JetBrainsMono.tar.xz",
+        "bytes": 6371912,
+        "sha256": "0227b220360a6f819b9ead92343e8112b34733054782561af50cfba1e8afab63"
+      },
+      "member": "JetBrainsMonoNerdFont-Regular.ttf",
+      "bytes": 2533532,
+      "sha256": "1767e08e6b207eb57c114e833b817e26c6a7625bbcf474e3b4dd0f73c10e5bdc",
+      "version": "3.5.0",
+      "license": "OFL-1.1-no-RFN",
+      "project": "Nerd Fonts / JetBrains Mono"
+    },
+    {
+      "path": "notices/Liberation-LICENSE.txt",
+      "archive": {
+        "url": "https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz",
+        "bytes": 2385008,
+        "sha256": "7191c669bf38899f73a2094ed00f7b800553364f90e2637010a69c0e268f25d0"
+      },
+      "member": "liberation-fonts-ttf-2.1.5/LICENSE",
+      "bytes": 4414,
+      "sha256": "93fed46019c38bbe566b479d22148e2e8a1e85ada614accb0211c37b2c61c19b",
+      "project": "Font license / attribution"
+    },
+    {
+      "path": "notices/JetBrainsMono-OFL.txt",
+      "archive": {
+        "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/JetBrainsMono.tar.xz",
+        "bytes": 6371912,
+        "sha256": "0227b220360a6f819b9ead92343e8112b34733054782561af50cfba1e8afab63"
+      },
+      "member": "OFL.txt",
+      "bytes": 4399,
+      "sha256": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad",
+      "project": "Font license / attribution"
+    },
+    {
+      "path": "notices/NerdFonts-JetBrainsMono-README.md",
+      "archive": {
+        "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/JetBrainsMono.tar.xz",
+        "bytes": 6371912,
+        "sha256": "0227b220360a6f819b9ead92343e8112b34733054782561af50cfba1e8afab63"
+      },
+      "member": "README.md",
+      "bytes": 4037,
+      "sha256": "ae5e71149d654ec83a4e35893c0c42aace8f0aa31f76df4d82ce17ead4fca07c",
+      "project": "Font license / attribution"
+    }
+  ],
+  "usage": "Local launcher preview. Original binary assets stay ignored; source identities and notices retained. No public package or redistribution performed.",
+  "font_reference": {
+    "fontconfig": {
+      "commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+      "fontconfig_path": "default/fontconfig/conf.avail/50-omarchy.conf",
+      "source_url": "https://raw.githubusercontent.com/omacom/omarchy/f0020448ca87329199de7cb12f2015ebc4a3e5e7/default/fontconfig/conf.avail/50-omarchy.conf",
+      "file_sha256": "d572d3dc9c31b9ca127f2ee32550fad9e9e5932bb2b7d718a997624e9f806516",
+      "system_ui_family": "Liberation Sans",
+      "monospace_family": "JetBrainsMono Nerd Font"
+    },
+    "jetbrains_package": {
+      "name": "ttf-jetbrains-mono-nerd-basic",
+      "version": "3.5.0-1",
+      "source_commit": "bb66b9dafc2eaa10cde9280e0094aed9382b9b0b",
+      "recipe_url": "https://raw.githubusercontent.com/omacom-io/omarchy-pkgs/bb66b9dafc2eaa10cde9280e0094aed9382b9b0b/pkgbuilds/ttf-jetbrains-mono-nerd-basic/PKGBUILD",
+      "recipe_sha256": "72cca0aaf6a7d7640ae5e24a0fcda6f0da717fbee25a3493fabdff7fff57153d",
+      "packaged_families": [
+        "JetBrainsMono Nerd Font"
+      ],
+      "packaged_weights": [
+        "Regular",
+        "Bold",
+        "Italic",
+        "BoldItalic"
+      ],
+      "upstream_archive_url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.0/JetBrainsMono.zip",
+      "recipe_archive_sha256": "9577de1ae84ec523df16fc69bac5338b89497a5b4fb91489e2dcb79dc06ac2b5",
+      "acquisition_note": "Fetched the smaller official tar.xz from the same v3.5.0 release, extracting only Regular and notices. ZIP archive checksum is retained from the pinned recipe; ZIP itself was not downloaded or verified."
+    },
+    "fonts": [
+      {
+        "destination": "LiberationSans-Regular.ttf",
+        "version": "2.1.5",
+        "license": "OFL-1.1",
+        "font_metadata": {
+          "family": [
+            "Liberation Sans"
+          ],
+          "style": [
+            "Regular"
+          ],
+          "full_name": [
+            "Liberation Sans"
+          ],
+          "font_version": [
+            "Version 2.1.5"
+          ],
+          "postscript_name": [
+            "LiberationSans"
+          ]
+        },
+        "adaptations": "none; exact archive member bytes"
+      },
+      {
+        "destination": "LiberationSans-Bold.ttf",
+        "version": "2.1.5",
+        "license": "OFL-1.1",
+        "font_metadata": {
+          "family": [
+            "Liberation Sans"
+          ],
+          "style": [
+            "Bold"
+          ],
+          "full_name": [
+            "Liberation Sans Bold"
+          ],
+          "font_version": [
+            "Version 2.1.5"
+          ],
+          "postscript_name": [
+            "LiberationSans-Bold"
+          ]
+        },
+        "adaptations": "none; exact archive member bytes"
+      },
+      {
+        "destination": "JetBrainsMonoNerdFont-Regular.ttf",
+        "version": "3.5.0",
+        "license": "OFL-1.1-no-RFN",
+        "font_metadata": {
+          "family": [
+            "JetBrainsMono NF"
+          ],
+          "style": [
+            "Regular"
+          ],
+          "full_name": [
+            "JetBrainsMono NF Regular"
+          ],
+          "font_version": [
+            "Version 2.304; ttfautohint (v1.8.4.7-5d5b);Nerd Fonts 3.5.0"
+          ],
+          "postscript_name": [
+            "JetBrainsMonoNF-Regular"
+          ],
+          "typographic_family": [
+            "JetBrainsMono NF",
+            "JetBrainsMono Nerd Font"
+          ]
+        },
+        "adaptations": "none; exact archive member bytes"
+      }
+    ]
+  }
+}

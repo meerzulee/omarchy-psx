@@ -2,7 +2,7 @@
 
 pkgname=omarchy-ps4-provisioning
 pkgver=4.0.0
-pkgrel=22
+pkgrel=24
 pkgdesc='External-root first-boot owner setup for Omarchy PS4'
 arch=('any')
 url='https://github.com/meerzulee/omarchy-ps4'
@@ -15,9 +15,11 @@ depends=(
   'gum'
   'omarchy-ps4=4.0.0-10'
   'openssh'
+  'python'
   'shadow'
   'sudo'
   'systemd'
+  'tzdata'
   'util-linux'
   'xdg-user-dirs'
   'xdg-utils'
@@ -28,6 +30,8 @@ backup=('etc/sudoers.d/10-omarchy-ps4-wheel')
 source=(
   'omarchy-ps4-prepare-for-owner'
   'omarchy-ps4-provision-owner'
+  'omarchy-ps4-timezone-picker'
+  'omarchy-ps4-partitioned-image.py'
   'omarchy-ps4-finalize-owner'
   'omarchy-ps4-grow-root'
   'omarchy-ps4-provision-owner.service'
@@ -40,16 +44,18 @@ source=(
 )
 sha256sums=(
   '7b498b28492229bd0afe3b149db032572073ca335202601d2713a16d1fc7bcba'
-  'b3ed1360096ea10cd2d0e5054f6fac8eb2215ce55e1de3efb9ddac1914d8cfc6'
+  'f28e092adbf9d03ea1b22a9847d5684caa4c9804e709d51167d6fa53e6905a8e'
+  '7e41565aa185c972230edc2dc05198b015b164331ed9bb7901200e5f88c2ea65'
+  'c1ccb24b33815c9a00d15e83c1be7137278972638010d1bf7cfc8a516dde2f89'
   '6897efd828b217193d4a6c577b6f328ba4a6bb4b6dd2b927f7d1bc23ea5cbbf9'
-  '2056909a239a32992e6ac8e48988d143a152e9f8daf2269d36004fd38e60062a'
+  '0240f7060e0c933ac85b017b0b35e47f322db5c58dc9b98133c2e33b6f1c00d7'
   'b22f4c56b00417c9230c48288fa0563fa9023444e130b9390b3cc57c03cd17ad'
-  'ef93c9e865c1a8b3ff06c04a08d382480dd65ca2abc6fa01a79ec22ca619168e'
+  '984ef0aa3cf80b4dfe1bca6bcf8f66c5d1685d0302e226d236bb63201847c143'
   '488e8eb05273a9fbeaec36b09fb85ea1f77a3dbf3f2a29a2807caeef44eeaba2'
   'a9a961dc37981b6727c881a822f78ad9d256f247d03d4d27ec088a2b91687dd0'
   '707ade3a8e8c3543a603248afb58da57552ff51891c752b9b502516f62205511'
   '65ae53cdc6fd4d323e8bab7796c0f743744d181897a349bccdc2e4259cf60cfc'
-  'fc1526d2a4a000bccb14e91518eb5a9aa3d6e1bed3c8ff9c05f310d9919e7802'
+  'de729d79a1eb221ee11c8459c479e1cbeed409250c2702a363c97784c25723fb'
 )
 
 package() {
@@ -57,6 +63,10 @@ package() {
     "$pkgdir/usr/bin/omarchy-ps4-prepare-for-owner"
   install -Dm755 omarchy-ps4-provision-owner \
     "$pkgdir/usr/bin/omarchy-ps4-provision-owner"
+  install -Dm644 omarchy-ps4-timezone-picker \
+    "$pkgdir/usr/lib/omarchy-ps4/timezone-picker.sh"
+  install -Dm644 omarchy-ps4-partitioned-image.py \
+    "$pkgdir/usr/lib/omarchy-ps4/partitioned-image.py"
   install -Dm755 omarchy-ps4-finalize-owner \
     "$pkgdir/usr/bin/omarchy-ps4-finalize-owner"
   install -Dm755 omarchy-ps4-grow-root \

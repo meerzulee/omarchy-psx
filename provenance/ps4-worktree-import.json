@@ -478,7 +478,7 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "4eacba77d959a6274309f53214bec7c2595e2a21eca54eb41cf1a56b9780e6b3",
+      "destination_sha256": "5e80e067e15b6be12eda852d62bd56722b933765bdc1e713e2067f821d2413e9",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
@@ -495,7 +495,11 @@
         "2026-10-18: update the current resume point and append completed EXP-20261018-001 first Linux 7.2 Baikal boot and EXP-20261018-002 Bluetooth service/panel plus one-device audio observations; retain untested cold-load/reconnect/reboot limits and original source hashes.",
         "2026-10-18: refresh the Linux 7.2 resume point and record EXP-003 guarded native-kernel installation followed by an operator-identified jailbreak/Orbis reboot fault before candidate execution; Ethernet remains inconclusive, with fresh EXP-004 after jailbreak recovery. Original source hash and historical verdicts unchanged.",
         "2026-10-18: record completed EXP-004 after jailbreak recovery, one native 7.2 boot with DHCP/default route and verified wired traffic; preserve unclassified RX-drop, cold-load/cycle/stability limits and original source hash.",
-        "2026-10-18: append the separate desktop-only Ethernet-icon follow-up, supported local clone and shell restart, rendered glyph and owner confirmation; no extra hardware experiment or kernel acceptance."
+        "2026-10-18: append the separate desktop-only Ethernet-icon follow-up, supported local clone and shell restart, rendered glyph and owner confirmation; no extra hardware experiment or kernel acceptance.",
+        "2026-10-20: retain prior October 19\u201320 UVD experiment history and append EXP-005 first exact frame plus EXP-006 first normal 120-frame VAAPI decode with narrow acceptance, immutable evidence hashes and limits; preserve the original import hash and earlier verdicts. Keep personal host/path/LAN identifiers redacted by role/documentation examples.",
+        "2026-10-20: append EXP007-010 presentation diagnostics and corrected EXP008 later-seek limitation; source lineage and original historical hashes preserved.",
+        "Record completed EXP20261020-007 through014 presentation discrimination, isolated Mesa26.2.5, exact AVC regression/1080p decode, failed four-thread mpv initialization and bounded five-loop one-thread playback; preserve limits and private evidence boundaries.",
+        "2026-10-20 publication export: redact actual USB serial, filesystem UUIDs and running boot identity; preserve source hash, scoped verdicts and immutable evidence digests. Original private local commits retained separately."
       ]
     },
     {
@@ -1266,24 +1270,29 @@
       "source": "packages/omarchy-ps4-provisioning/PKGBUILD",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/PKGBUILD",
       "source_sha256": "587a70b46f1054ec5867c61009f3f7eec2b4bdfe96c6197b0bb71b02c54ff7b3",
-      "destination_sha256": "a021b76c20f36c9a4e4f84bac06666533d20b39db6c0ce7301bfe5f67065485c",
+      "destination_sha256": "49d25f2a238bf26b2e958c42f6883076ad81b21be17c22ac1ae67eb534274894",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M packages/omarchy-ps4-provisioning/PKGBUILD",
       "adaptations": [
         "2026-10-18: provisioning release 21 pins runtime release 9 for the Bluetooth-default package chain.",
-        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix.",
+        "2026-10-19: Provisioning 4.0.0-23 packages the timezone helper, explicitly depends on tzdata and pins updated source checksums.",
+        "2026-10-20: Provisioning 4.0.0-24 ships the guarded partition expansion helper and Python dependency with updated source digests."
       ]
     },
     {
       "source": "packages/omarchy-ps4-provisioning/README.md",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/README.md",
       "source_sha256": "fc1526d2a4a000bccb14e91518eb5a9aa3d6e1bed3c8ff9c05f310d9919e7802",
-      "destination_sha256": "fc1526d2a4a000bccb14e91518eb5a9aa3d6e1bed3c8ff9c05f310d9919e7802",
+      "destination_sha256": "de729d79a1eb221ee11c8459c479e1cbeed409250c2702a363c97784c25723fb",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M packages/omarchy-ps4-provisioning/README.md",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-19: Document all 27 whole-hour GMT offsets, named fractional/DST zones, scrolling and offline selection.",
+        "2026-10-20: Document schema-2 partitioned image growth and preservation of historical schema-1 behavior."
+      ]
     },
     {
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-autologin",
@@ -1309,21 +1318,25 @@
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
       "source_sha256": "2056909a239a32992e6ac8e48988d143a152e9f8daf2269d36004fd38e60062a",
-      "destination_sha256": "2056909a239a32992e6ac8e48988d143a152e9f8daf2269d36004fd38e60062a",
+      "destination_sha256": "0240f7060e0c933ac85b017b0b35e47f322db5c58dc9b98133c2e33b6f1c00d7",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-20: Authorize partition-2 growth only for schema-2 images; validate the USB and geometry before the helper, then verify size and grow ext4."
+      ]
     },
     {
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root.service",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-grow-root.service",
       "source_sha256": "ef93c9e865c1a8b3ff06c04a08d382480dd65ca2abc6fa01a79ec22ca619168e",
-      "destination_sha256": "ef93c9e865c1a8b3ff06c04a08d382480dd65ca2abc6fa01a79ec22ca619168e",
+      "destination_sha256": "984ef0aa3cf80b4dfe1bca6bcf8f66c5d1685d0302e226d236bb63201847c143",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-20: Describe both USB layouts and allow the verified expansion operation to finish before owner setup."
+      ]
     },
     {
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-prepare-for-owner",
@@ -1339,11 +1352,13 @@
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
       "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
       "source_sha256": "b3ed1360096ea10cd2d0e5054f6fac8eb2215ce55e1de3efb9ddac1914d8cfc6",
-      "destination_sha256": "b3ed1360096ea10cd2d0e5054f6fac8eb2215ce55e1de3efb9ddac1914d8cfc6",
+      "destination_sha256": "f28e092adbf9d03ea1b22a9847d5684caa4c9804e709d51167d6fa53e6905a8e",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-19: Use the packaged static GMT/location picker and show the friendly GMT label in owner review."
+      ]
     },
     {
       "source": "packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner.service",
@@ -2038,11 +2053,13 @@
       "source": "scripts/build-package-snapshot",
       "destination": "platforms/ps4/scripts/build-package-snapshot",
       "source_sha256": "6c76d402a9972ef57d8c4c3110b53ed03bd2d123b93e905105ede29a4c67dbcc",
-      "destination_sha256": "6c76d402a9972ef57d8c4c3110b53ed03bd2d123b93e905105ede29a4c67dbcc",
+      "destination_sha256": "af5698be07b334ecb799eeed8494a01de399caf4b381c7ab345d5a67b8933eae",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "tracked-clean",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-20: Accept a verified matching base snapshot to resolve current project packages entirely offline; preserve original package archives."
+      ]
     },
     {
       "source": "scripts/build-usb-image",
@@ -2110,13 +2127,15 @@
       "source": "scripts/configure-gift-rootfs-container",
       "destination": "platforms/ps4/scripts/configure-gift-rootfs-container",
       "source_sha256": "3ac80f6ed289a609ac4bf811a2c222789f3aa6dfe7f36df4f7fb5e4a8633ff13",
-      "destination_sha256": "892aa8b9e6b9015b49f7ac8de48282c7f668c8ba2e60de195d9cc1f20c404f37",
+      "destination_sha256": "94fedf85c8e3f1eeca335c04e2d5dbdb347c0404e2ada59de3a8a95cbb327655",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M scripts/configure-gift-rootfs-container",
       "adaptations": [
         "2026-10-18: enable bluetooth.service offline without starting it and require provisioning release 21 in partitioned images; preserve the remaining image policy.",
-        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix.",
+        "2026-10-19: Advance the exact partitioned-root provisioning pin to the reviewed 4.0.0-23 source candidate.",
+        "2026-10-20: Pin provisioning 4.0.0-24 for newly built partitioned roots."
       ]
     },
     {
@@ -2205,11 +2224,13 @@
       "source": "scripts/package-snapshot-container",
       "destination": "platforms/ps4/scripts/package-snapshot-container",
       "source_sha256": "96a5a7a1391d48fe3c53b5ba1d0a2ff376c9d9ca02889de065a4c12ef282d8d2",
-      "destination_sha256": "96a5a7a1391d48fe3c53b5ba1d0a2ff376c9d9ca02889de065a4c12ef282d8d2",
+      "destination_sha256": "2295cc3307e9f03b894f1b043cb104a1f696d1c83915e627f93a8b07e6539a2f",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M scripts/package-snapshot-container",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-20: For an explicitly fingerprinted offline base, resolve only local verified archives and record the base identity."
+      ]
     },
     {
       "source": "scripts/partitioned-usb-policy",
@@ -2319,13 +2340,15 @@
       "source": "scripts/validate-gift-rootfs-container",
       "destination": "platforms/ps4/scripts/validate-gift-rootfs-container",
       "source_sha256": "edb49b8a43c35e065bbe947ade96ad48b344e068d2f508d9adb7e898b1b8c895",
-      "destination_sha256": "0e2009dab9a2cd54ba1b202eaaf0a3aa00b55d333c1a7cb96065b36c0f8be1e4",
+      "destination_sha256": "83240861b0c64ff0fbe83f44118fd96ac36240f87021c871802491b316823e99",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M scripts/validate-gift-rootfs-container",
       "adaptations": [
         "2026-10-18: require bluetooth.service enabled and the matching provisioning release 21; no device operation is performed by this policy check.",
-        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix."
+        "2026-10-18: advance runtime to 4.0.0-10 and provisioning to 4.0.0-22 with matching source checksum, dependency pins and rootfs guards for the wired-icon fix.",
+        "2026-10-19: Validate the matching 4.0.0-23 provisioning package for newly composed partitioned roots.",
+        "2026-10-20: Validate provisioning 4.0.0-24 in newly built partitioned roots."
       ]
     },
     {
@@ -2548,11 +2571,14 @@
       "source": "tests/package-content-test",
       "destination": "platforms/ps4/tests/package-content-test",
       "source_sha256": "68b0c4a6c8fb3bd2b18486324fa15e864ebc3c2be67d93df49c88cb8effe0f11",
-      "destination_sha256": "68b0c4a6c8fb3bd2b18486324fa15e864ebc3c2be67d93df49c88cb8effe0f11",
+      "destination_sha256": "45138599045a702bb5b032203c4870629320034b0f53f2d6612f61034c8fc588",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "M tests/package-content-test",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-19: Require the packaged GMT/location helper and its owner-setup integration.",
+        "2026-10-20: Require the packaged partitioned-image growth helper as well as the timezone picker."
+      ]
     },
     {
       "source": "tests/package-snapshot-test",
@@ -2588,11 +2614,13 @@
       "source": "tests/partitioned-usb-resume-test",
       "destination": "platforms/ps4/tests/partitioned-usb-resume-test",
       "source_sha256": "ef6f7ea4cfe1dedf5a0bef782faf272822d8978367f71e972fa17a9a19b83a6b",
-      "destination_sha256": "ef6f7ea4cfe1dedf5a0bef782faf272822d8978367f71e972fa17a9a19b83a6b",
+      "destination_sha256": "028c69dc72621dd01ddb07688fb12d0a551f53123e3be6db99bd7e2bc4d82e0b",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "?? tests/partitioned-usb-resume-test",
-      "adaptations": []
+      "adaptations": [
+        "Publication cleanup: replace historical real-looking boot/root UUID fixtures with consistent synthetic examples; preserve all guard/control-flow code and source import digest."
+      ]
     },
     {
       "source": "tests/portable-bundle-test",
@@ -2638,11 +2666,13 @@
       "source": "tests/storage-layout-test",
       "destination": "platforms/ps4/tests/storage-layout-test",
       "source_sha256": "efba3de4482d3072fa63b6461baeaffec5b5d53656b74cfd09769149e2934363",
-      "destination_sha256": "efba3de4482d3072fa63b6461baeaffec5b5d53656b74cfd09769149e2934363",
+      "destination_sha256": "44f9ff75dbd2e9fa0302169b6a091669efac66785a813c26c093fb1a914386b9",
       "source_mode": "0o755",
       "destination_mode": "0o755",
       "source_state": "?? tests/storage-layout-test",
-      "adaptations": []
+      "adaptations": [
+        "2026-10-20: Add synthetic schema-2 expansion and failure/authorization fixtures while retaining historical layout tests."
+      ]
     },
     {
       "source": "tests/usb-image-artifact-test",
@@ -2734,9 +2764,13 @@
     },
     {
       "destination": "platforms/ps4/scripts/check-source",
-      "sha256": "5b2ba482ec1ddf4d73fadb73291aa9ebe16ec47eb1a88a792722a1f990ac761a",
+      "sha256": "0dc67780a1a1ea88c39f909a4fa9a514520a242be2ee080bcbd538b9f89fbf39",
       "mode": "0o755",
-      "purpose": "Container-free source/fixture test runner with explicit prerequisite skips."
+      "purpose": "Container-free source/fixture test runner with explicit prerequisite skips.",
+      "adaptations": [
+        "2026-10-19: include the offline timezone picker behavioral fixtures in source checks.",
+        "2026-10-20: Run the partitioned-image source and regular-file fixtures alongside the existing suite."
+      ]
     },
     {
       "destination": "platforms/ps4/tests/migration-guards-test",
@@ -2749,6 +2783,42 @@
       "sha256": "ea461ab81756dac7aee11696ccdbd7482a2b856f7d52a4a361c0fd4186fa317f",
       "mode": "0o755",
       "purpose": "Read-only kernel/version/whole-module checksum and build-manifest validation, including frozen beta identity pins."
+    },
+    {
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-timezone-picker",
+      "sha256": "7e41565aa185c972230edc2dc05198b015b164331ed9bb7901200e5f88c2ea65",
+      "mode": "0o644",
+      "purpose": "Offline fixed-GMT and full named-location prompts; readable GMT labels map to the correct tzdata sign."
+    },
+    {
+      "destination": "platforms/ps4/tests/timezone-picker-test",
+      "sha256": "0996bf653b992c2e1784ad19a974122765d98a98339feefb7252db185da8947b",
+      "mode": "0o755",
+      "purpose": "Synthetic behavioral coverage for all GMT offsets/signs, cancellation, long/nested city lists, fractional zones and package checksums."
+    },
+    {
+      "destination": "platforms/ps4/Containerfile.usb-image",
+      "sha256": "191e0df0f8f6bc0c7794ddeaefb4b98f5717959cce09d7d288f3769beddcb4a4",
+      "mode": "0o644",
+      "purpose": "Pinned Debian base and native file-only filesystem/image tools for the OrbStack builder."
+    },
+    {
+      "destination": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-partitioned-image.py",
+      "sha256": "c1ccb24b33815c9a00d15e83c1be7137278972638010d1bf7cfc8a516dde2f89",
+      "mode": "0o644",
+      "purpose": "Validate the exact USB MBR and running root before changing only partition 2 length, retaining and verifying an MBR backup."
+    },
+    {
+      "destination": "platforms/ps4/scripts/build-partitioned-usb-image",
+      "sha256": "61e1b8c56de2204369da41acd4ad076a68b18819e0e22395390aec96c9d4e611",
+      "mode": "0o755",
+      "purpose": "Verify matching inputs, measure rootfs, construct FAT32/ext4 in regular files and verify the complete compressed candidate."
+    },
+    {
+      "destination": "platforms/ps4/tests/partitioned-image-test",
+      "sha256": "516365d75991c38cf96227c3a611202111c39b29366bf4fa0c4e033799199f20",
+      "mode": "0o755",
+      "purpose": "Synthetic MBR byte-preservation, sizing, input-matching and native regular-file Unix-metadata fixtures."
     }
   ],
   "validation": {
@@ -2792,10 +2862,10 @@
   },
   "summary": {
     "source_files_imported": 252,
-    "source_files_adapted": 59,
-    "source_files_byte_identical": 193,
+    "source_files_adapted": 75,
+    "source_files_byte_identical": 177,
     "source_files_excluded": 6,
-    "new_platform_files": 4,
+    "new_platform_files": 10,
     "source_files_retired": 8
   },
   "retired": [

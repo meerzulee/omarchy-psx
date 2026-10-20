@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "omarchy-psx",
+  "account_id": "83791e53c0962d36e545aec2a88c3319",
+  "compatibility_date": "2026-10-19",
+  "workers_dev": true,
+  "preview_urls": false,
+  "build": {
+    "command": "npm run check && SITE_URL=https://omarchy.mrz.sh SITE_BASE=/ npm run build"
+  },
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "force-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "omarchy.mrz.sh", "custom_domain": true }
+  ]
+}

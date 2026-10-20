@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Acquire pinned BusyBox data for the PS5 RAM probe; never install or execute it."""
+import argparse
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import tarfile
+import tempfile
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+LIMIT = 8 * 1024 * 1024
+
+
+def target(directory, name):
+    if not isinstance(name, str) or name in ("", ".", "..") or Path(name).name != name:
+        raise ValueError("Cache destinations must be simple filenames")
+    path = directory / name
+    if any(p.is_symlink() for p in (path, *path.parents)):
+        raise ValueError(f"Symlink destination refused: {path}")
+    return path
+
+
+def verify_bytes(data, record):
+    if (not isinstance(record["bytes"], int) or not 0 < record["bytes"] <= LIMIT
+            or not re.fullmatch(r"[0-9a-f]{64}", record["sha256"])):
+        raise ValueError("Invalid pinned size or SHA256")
+    if len(data) != record["bytes"] or hashlib.sha256(data).hexdigest() != record["sha256"]:
+        raise ValueError(f"Size/SHA256 differs: {record['destination']}")
+
+
+def verify_file(path, record):
+    if path.is_symlink() or not path.is_file() or path.stat().st_size != record["bytes"]:
+        raise ValueError(f"Missing or different regular file: {path}")
+    data = path.read_bytes()
+    verify_bytes(data, record)
+    return data
+
+
+def publish(path, data, record):
+    verify_bytes(data, record)
+    if path.exists():
+        verify_file(path, record)
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".ps5-userspace-", dir=path.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output:
+            output.write(data)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, path)  # Atomic publication; never replaces existing bytes.
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def ar_member(data, wanted):
+    if not data.startswith(b"!<arch>\n"):
+        raise ValueError("Invalid Debian ar signature")
+    pos, matches = 8, []
+    while pos < len(data):
+        header = data[pos:pos + 60]
+        if len(header) != 60 or header[58:60] != b"`\n":
+            raise ValueError("Invalid or truncated ar header")
+        size = int(header[48:58].strip())
+        name = header[:16].decode("ascii").rstrip().removesuffix("/")
+        start, end = pos + 60, pos + 60 + size
+        if size < 0 or end + size % 2 > len(data):
+            raise ValueError("Truncated ar member")
+        if name == wanted:
+            matches.append(data[start:end])
+        pos = end + size % 2
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly one ar member: {wanted}")
+    return matches[0]
+
+
+def extract_member(data, record):
+    if record.get("ar_member"):
+        data = ar_member(data, record["ar_member"])
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as archive:
+        matches = [m for m in archive.getmembers() if m.name == record["member"]]
+        if len(matches) != 1 or not matches[0].isfile():
+            raise ValueError(f"Expected exactly one regular tar member: {record['member']}")
+        if matches[0].size != record["bytes"]:
+            raise ValueError("Tar member size differs")
+        data = archive.extractfile(matches[0]).read(record["bytes"] + 1)
+    verify_bytes(data, record)
+    return data
+
+
+def acquire(manifest, directory, check=False, open_url=urllib.request.urlopen):
+    if manifest["schema"] != 1:
+        raise ValueError("Unsupported userspace manifest schema")
+    downloads = {r["id"]: r for r in manifest["downloads"]}
+    records = manifest["downloads"] + manifest["members"]
+    if len(downloads) != len(manifest["downloads"]) or len({r["destination"] for r in records}) != len(records):
+        raise ValueError("Duplicate manifest IDs or destinations")
+    for record in records:
+        path = target(directory, record["destination"])
+        if check or path.exists():
+            verify_file(path, record)
+    if check:
+        return len(records)
+    for record in manifest["downloads"]:
+        path = target(directory, record["destination"])
+        if not path.exists():
+            if not record["url"].startswith("https://") or not 0 < record["bytes"] <= LIMIT:
+                raise ValueError("Invalid download URL or size")
+            with open_url(record["url"], timeout=30) as source:
+                data = source.read(record["bytes"] + 1)
+            publish(path, data, record)
+    for record in manifest["members"]:
+        path = target(directory, record["destination"])
+        if not path.exists():
+            source = downloads[record["source_id"]]
+            data = verify_file(target(directory, source["destination"]), source)
+            publish(path, extract_member(data, record), record)
+    return len(records)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="verify existing files offline; write nothing")
+    args = parser.parse_args()
+    try:
+        manifest = json.loads((ROOT / "manifests/ps5-probe-userspace.json").read_text())
+        directory = ROOT / "cache/ps5-probe-userspace"
+        count = acquire(manifest, directory, check=args.check)
+        print(f"Verified {count} pinned userspace/source files in {directory}")
+        print("Data only: no package scripts, host installation, target execution or console actions.")
+    except (OSError, ValueError, KeyError, tarfile.TarError) as error:
+        parser.exit(1, f"PS5 probe userspace acquisition refused: {error}\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Materialize pinned Omarchy themes and fonts for the local PS5 preview."""
+import argparse
+import hashlib
+import io
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import tarfile
+import tempfile
+import urllib.request
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "manifests/ps5-launcher-assets.json"
+MAX_BYTES = 64 * 1024 * 1024
+ROLES = {"darker": "darker_background", "dark": "dark_background",
+         "background": "background", "panel": "lighter_background",
+         "selection": "selection", "foreground": "foreground",
+         "bright": "bright_foreground", "accent": "accent",
+         "green": "green", "yellow": "yellow", "red": "red"}
+
+
+def checked_path(root, name):
+    if not isinstance(name, str) or not name or PurePosixPath(name).is_absolute():
+        raise ValueError("Asset path must be relative")
+    if any(part in ("", ".", "..") for part in name.split("/")) or "\\" in name:
+        raise ValueError("Invalid asset path")
+    path = root / name
+    if any(p.is_symlink() for p in (path, *path.parents)):
+        raise ValueError(f"Symlink asset path refused: {path}")
+    return path
+
+
+def verify(data, record):
+    if len(data) != record["bytes"] or hashlib.sha256(data).hexdigest() != record["sha256"]:
+        raise ValueError(f"Asset identity differs: {record.get('path', record.get('url'))}")
+
+
+def read_verified(path, record):
+    if path.is_symlink() or not path.is_file() or path.stat().st_size != record["bytes"]:
+        raise ValueError(f"Existing asset differs; preserving {path}")
+    with path.open("rb") as source:
+        data = source.read(record["bytes"] + 1)
+    verify(data, record)
+    return data
+
+
+def publish(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".omarchy-asset-", dir=path.parent)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "wb") as output:
+            output.write(data)
+        os.chmod(temporary, 0o644)
+        os.link(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def download(record):
+    if not isinstance(record["bytes"], int) or not 0 < record["bytes"] <= MAX_BYTES:
+        raise ValueError("Asset exceeds bounded acquisition size")
+    if not re.fullmatch(r"[a-f0-9]{64}", record["sha256"]) or not record["url"].startswith("https://"):
+        raise ValueError("Asset needs an HTTPS URL and pinned SHA256")
+    with urllib.request.urlopen(record["url"], timeout=45) as source:
+        data = source.read(record["bytes"] + 1)
+    verify(data, record)
+    return data
+
+
+def palette(path):
+    values = dict(re.findall(r'^([a-z_]+)\s*=\s*"([^"\n]*)"\s*$', path.read_text(), re.M))
+    mode = values.get("mode")
+    if mode not in ("light", "dark"):
+        raise ValueError("Theme needs an explicit light/dark mode")
+    colors = {role: values[key] for role, key in ROLES.items()}
+    if any(not re.fullmatch(r"#[A-Fa-f0-9]{6}", color) for color in colors.values()):
+        raise ValueError("Theme role is not an upstream six-digit color")
+    return mode, colors
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="verify all local assets without network or writes")
+    args = parser.parse_args()
+    try:
+        manifest = json.loads(MANIFEST.read_text())
+        if manifest["schema"] != 1:
+            raise ValueError("Unsupported asset manifest")
+        destination = checked_path(ROOT, manifest["destination"])
+        archives = {}
+        for record in manifest["files"]:
+            path = checked_path(destination, record["path"])
+            if path.exists() or path.is_symlink():
+                read_verified(path, record)
+                continue
+            if args.check:
+                raise ValueError(f"Missing asset: {path}; run without --check")
+            if "archive" in record:
+                archive = record["archive"]
+                digest = archive["sha256"]
+                if digest not in archives:
+                    archives[digest] = download(archive)
+                with tarfile.open(fileobj=io.BytesIO(archives[digest]), mode="r:*") as tar:
+                    member = tar.getmember(record["member"])
+                    if not member.isfile() or member.size != record["bytes"]:
+                        raise ValueError("Pinned archive member differs")
+                    with tar.extractfile(member) as source:
+                        data = source.read(record["bytes"] + 1)
+            else:
+                data = download(record)
+            verify(data, record)
+            publish(path, data)
+        themes = {}
+        for theme in manifest["themes"]:
+            mode, colors = palette(checked_path(destination, theme["palette"]))
+            themes[theme["id"]] = {"name": theme["name"], "mode": mode, "colors": colors,
+                "wallpapers": [{"name": name, "file": f"assets/wallpapers/{theme['id']}/{name}"}
+                               for name in theme["wallpapers"]]}
+        generated = ("// Generated from pinned Omarchy colors.toml files.\n"
+                     "window.OMARCHY_THEMES = " + json.dumps(themes, indent=2) + ";\n").encode()
+        output = destination / "themes.js"
+        if output.exists() or output.is_symlink():
+            read_verified(output, {"bytes": len(generated), "sha256": hashlib.sha256(generated).hexdigest()})
+        elif args.check:
+            raise ValueError("Missing generated themes.js; run without --check")
+        else:
+            publish(output, generated)
+        print(f"Verified {len(manifest['files'])} pinned assets, {len(themes)} Omarchy themes and generated theme data.")
+        print(f"Preview assets: {destination}")
+        print("Local files only; no system fonts installed and no console actions.")
+    except (OSError, ValueError, KeyError, tarfile.TarError) as error:
+        parser.exit(1, f"Omarchy asset preparation refused: {error}\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -44,7 +44,8 @@ for command_name in awk blkid blockdev date dumpe2fs findmnt lsblk readlink resi
   command -v "$command_name" >/dev/null 2>&1 || fail "required command is missing: $command_name"
 done
 
-[[ $(layout_value schema) == 1 ]] || fail 'unsupported image-layout schema'
+schema=$(layout_value schema)
+[[ $schema == 1 || $schema == 2 ]] || fail 'unsupported image-layout schema'
 layout=$(layout_value layout)
 case $layout in
   whole-device-filesystem|partitioned-usb) ;;
@@ -53,12 +54,24 @@ esac
 [[ $(layout_value filesystem) == ext4 ]] || fail 'image filesystem is not ext4'
 [[ $(layout_value label) == OMARCHY-PS4 ]] || fail 'image root label is not OMARCHY-PS4'
 if [[ $layout == whole-device-filesystem ]]; then
+  [[ $schema == 1 ]] || fail 'whole-device images require the historical schema'
   [[ $(layout_value auto_grow) == 1 ]] || fail 'image does not authorize automatic growth'
   base_image_bytes=$(layout_value base_image_bytes)
   [[ $base_image_bytes =~ ^[0-9]+$ ]] || fail 'base image size is invalid'
 else
-  [[ $(layout_value auto_grow) == 0 ]] || fail 'partitioned USB must not authorize automatic growth'
   [[ $(layout_value boot_bytes) == 4294967296 ]] || fail 'boot size must be 4 GiB'
+  if [[ $schema == 1 ]]; then
+    [[ $(layout_value auto_grow) == 0 ]] || fail 'historical partitioned USB must not authorize automatic growth'
+  else
+    [[ $(layout_value auto_grow) == 1 && $(layout_value partition_growth) == 1 ]] || \
+      fail 'flashable image does not authorize partition and filesystem growth'
+    base_image_bytes=$(layout_value base_image_bytes)
+    [[ $base_image_bytes =~ ^[0-9]+$ ]] && (( base_image_bytes > 8390656 * 512 && base_image_bytes % 512 == 0 )) || \
+      fail 'base partitioned image size is invalid'
+    for command_name in python3 partx; do
+      command -v "$command_name" >/dev/null 2>&1 || fail "required command is missing: $command_name"
+    done
+  fi
 fi
 
 root_source=$(findmnt -nro SOURCE --target /)
@@ -106,7 +119,12 @@ else
   root_sectors=$(cat "/sys/class/block/$root_name/size")
   disk_sectors=$(cat "$parent_sysfs/size")
   [[ $root_sectors =~ ^[0-9]+$ && $disk_sectors =~ ^[0-9]+$ ]] || fail 'invalid disk geometry'
-  (( root_sectors + 8390656 == disk_sectors )) || fail 'system partition does not consume the remaining USB'
+  if [[ $schema == 1 ]]; then
+    (( root_sectors + 8390656 == disk_sectors )) || fail 'system partition does not consume the remaining USB'
+  else
+    (( disk_sectors * 512 >= 32000000000 && disk_sectors * 512 >= base_image_bytes &&
+       root_sectors + 8390656 <= disk_sectors )) || fail 'flashed system does not fit the physical USB'
+  fi
 fi
 root_transport=$(lsblk -dnro TRAN "$parent_device" 2>/dev/null | awk 'NF { print; exit }')
 [[ $root_transport == usb ]] || fail "root transport is ${root_transport:-unknown}; expected usb"
@@ -127,8 +145,17 @@ touch "$log_file"
 chmod 0600 "$log_file"
 log "verified $root_device: filesystem=$before_bytes device=$device_bytes"
 
-if [[ $layout == whole-device-filesystem ]] && (( device_bytes - before_bytes >= minimum_growth_bytes )); then
-  log 'expanding ext4 to the physical USB size'
+if [[ $layout == partitioned-usb && $schema == 2 ]]; then
+  log 'expanding only partition 2; retaining the boot partition and root start'
+  python3 /usr/lib/omarchy-ps4/partitioned-image.py \
+    --disk "$parent_device" --root "$root_device" --base-image-bytes "$base_image_bytes" \
+    --backup "$state_dir/storage-before.mbr"
+  device_bytes=$(blockdev --getsize64 "$root_device")
+  (( device_bytes + 8390656 * 512 == disk_sectors * 512 )) || fail 'system partition did not fill the USB'
+fi
+
+if [[ $layout == whole-device-filesystem || $schema == 2 ]] && (( device_bytes - before_bytes >= minimum_growth_bytes )); then
+  log 'expanding ext4 to the available root-device size'
   resize2fs "$root_device"
   sync
 fi

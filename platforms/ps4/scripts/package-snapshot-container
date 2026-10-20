@@ -38,6 +38,15 @@ printf '%s\n' \
   '[omarchy-ps4-local]' \
   'SigLevel = Optional TrustAll' \
   'Server = file:///localrepo' \
+  >"$pacman_config"
+
+if [[ -n ${OFFLINE_BASE_SHA256:-} ]]; then
+  [[ $OFFLINE_BASE_SHA256 =~ ^[0-9a-f]{64}$ ]] || fail 'base snapshot fingerprint is invalid'
+  # The host verified the base's complete SHA256SUMS. Resolve exclusively from
+  # those archives plus the newly built project packages, with networking off.
+  sed -i 's/^SigLevel = Optional TrustAll$/SigLevel = Never/' "$pacman_config"
+else
+  printf '%s\n' \
   '' \
   '[core]' \
   "Server = https://archive.archlinux.org/repos/$arch_snapshot/\$repo/os/\$arch" \
@@ -51,7 +60,8 @@ printf '%s\n' \
   '[omarchy]' \
   'SigLevel = Optional TrustAll' \
   "Server = https://pkgs.omarchy.org/stable/\$arch" \
-  >"$pacman_config"
+  >>"$pacman_config"
+fi
 
 package_lines() {
   sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$1"
@@ -184,11 +194,22 @@ printf '%s\n' \
   'kernel_policy=external-linux-ps4-release-artifact' \
   >"$snapshot/RELEASE.env"
 
+if [[ -n ${OFFLINE_BASE_SHA256:-} ]]; then
+  printf 'base_snapshot_sha256=%s\n' "$OFFLINE_BASE_SHA256" >>"$snapshot/RELEASE.env"
+fi
+
 printf '%s\n' \
   "Arch Linux Archive: $arch_snapshot" \
   "Omarchy packages: https://pkgs.omarchy.org/stable/\$arch" \
   'Omarchy PS4 packages: local source build' \
   >"$manifest/repositories.txt"
+
+if [[ -n ${OFFLINE_BASE_SHA256:-} ]]; then
+  printf '%s\n' 'Offline base snapshot: verified immutable package archives' \
+    "Base snapshot SHA256SUMS: $OFFLINE_BASE_SHA256" \
+    'Omarchy PS4 packages: current local source build; no network resolution' \
+    >"$manifest/repositories.txt"
+fi
 
 (
   cd "$snapshot"

@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "repository": "https://github.com/meerzulee/linux-psx.git",
-  "revision": "1bf12af390ebaba41bf3c4f77daa7895ca29457e",
-  "revision_status": "Pushed master commit adding native Ethernet autoload (6.18.44-psx-ps4-baikal2). Its CI build is not boot-tested; the identical patch set passed two boots as a local build (EXP-20261017-019/020). Not acceptance.",
+  "revision": "2993a2601bb6622d46db527e68778dcc21dd57d5",
+  "revision_status": "Experimental source checkpoint with scoped Liverpool UVD1080p evidence. Default6.18Baikal target unchanged; CI/default kernel is not the tested experimental runtime binary.",
   "target": "6.18-ps4-baikal",
   "kernel_release": "6.18.44-psx-ps4-baikal2",
   "artifacts_schema": 1,

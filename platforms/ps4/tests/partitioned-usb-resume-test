@@ -15,8 +15,8 @@ import unittest
 
 REPO = Path(__file__).resolve().parents[1]
 SERIAL = "OMARCHY_TEST_123"
-ROOT_UUID = "e5145501-a845-4698-bf6f-355bb544b52c"
-BOOT_UUID = "A3C7-0617"
+ROOT_UUID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+BOOT_UUID = "11111111-2222-4333-8444-555555555555"
 
 MOCK = r'''#!/usr/bin/env python3
 import json,os,sys,shutil
@@ -51,7 +51,7 @@ elif tool=='swapon':pass
 elif tool=='blkid':
     key=args[args.index('-s')+1]; boot=args[-1].endswith('1')
     if key=='UUID':
-        value='A3C7-0617' if boot else 'e5145501-a845-4698-bf6f-355bb544b52c'
+        value='11111111-2222-4333-8444-555555555555' if boot else 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
         if scenario=='wrong-uuid' and not boot:value='00000000-0000-0000-0000-000000000000'
         print(value)
     elif key=='TYPE':print('vfat' if boot else 'ext4')

@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "candidate_status": "source-and-host-validated; hardware-unqualified",
+  "checked_on": "2026-10-20",
+  "upstream": {
+    "project": "Mesa",
+    "version": "26.2.5",
+    "git_tag": "mesa-26.2.5",
+    "release_date": "2026-10-14",
+    "latest_stable_as_of": "2026-10-20",
+    "latest_stable_evidence": [
+      "https://mesa3d.org/news/",
+      "https://docs.mesa3d.org/release-calendar.html",
+      "https://archive.mesa3d.org/"
+    ],
+    "release_notes": "https://docs.mesa3d.org/relnotes/26.2.5.html",
+    "archive_url": "https://archive.mesa3d.org/mesa-26.2.5.tar.xz",
+    "archive_bytes": 68652756,
+    "archive_sha256": "794b3d1729075dae7ebd47c7283b7ca0cdb5dec668f7f11cc0a5d82f6138a0a5",
+    "archive_sha512": "08c7d7ea426ddfb0f7bc51b06e18c363a4d31cf1a8b203828bb455eda0189e41d2215eb9f627585ed11e0d0f231a6a8c9f0c7176238760cd76b62e20c35ccd6a",
+    "signature_url": "https://archive.mesa3d.org/mesa-26.2.5.tar.xz.sig",
+    "signature_sha256": "fe0bd0436c7e4a2375cf8bf48768fe75c9e8e5aceb7b24f2cc6a8a7660f0e13e",
+    "verification": "archive SHA256 and SHA512 match official HTTPS release notes; detached signature downloaded but not cryptographically verified by this port task"
+  },
+  "imported_graphics_patch": {
+    "repository": "https://github.com/DionKill/ps4-video-archlinux",
+    "commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
+    "commit_author_name": "froyo",
+    "path": "mesa-ps4/ps4-mesa.patch",
+    "url": "https://github.com/DionKill/ps4-video-archlinux/blob/57e0f8ecc7a1df9b9664d682b19fadfe3e336f02/mesa-ps4/ps4-mesa.patch",
+    "raw_url": "https://raw.githubusercontent.com/DionKill/ps4-video-archlinux/57e0f8ecc7a1df9b9664d682b19fadfe3e336f02/mesa-ps4/ps4-mesa.patch",
+    "git_blob_sha1": "896e5203d77865e09ef8724af1cc1158096fd219",
+    "sha256": "f7a78f8b894dc06bb6d210f2d0f9b04cdb51e285e40c2832a6813d4d88f465a9",
+    "bytes": 5525,
+    "license": "MIT; original per-file Mesa/AMD notices remain unchanged",
+    "accompanying_license_url": "https://raw.githubusercontent.com/DionKill/ps4-video-archlinux/57e0f8ecc7a1df9b9664d682b19fadfe3e336f02/mesa-ps4/LICENSE",
+    "accompanying_license_file": "LICENSE.ps4-mesa",
+    "accompanying_license_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2"
+  },
+  "ported_patch": {
+    "path": "0001-ps4-graphics-families.patch",
+    "sha256": "b3cf0f24fd00f156bbba12be0c270189ad30c274646b5e86298890e4cb4829cc",
+    "bytes": 4386,
+    "files": [
+      {
+        "path": "src/amd/addrlib/src/amdgpu_asic_addr.h",
+        "upstream_sha256": "e0785d0fcf66edc740afd2aca1072b7373f7c449d7b02b3bc36c5633d4727d49",
+        "candidate_sha256": "4a74432891697c327865d5444adbffddeaae0f8a7493efc46d10d480b21d5164"
+      },
+      {
+        "path": "src/amd/common/ac_gpu_info.c",
+        "upstream_sha256": "0cede344881cdac51dcdc2f3ca5ba1ffc7bdf6ee1a89d5eed4c90b0b37fc15e1",
+        "candidate_sha256": "38330c7137f0bcfe1ad0d9d5ef79fe5e6532982fa04eb5d3489407e0c977e870"
+      },
+      {
+        "path": "src/amd/common/amd_family.c",
+        "upstream_sha256": "6baf842a1797c826a1809779f29def1819e3dce471b104f7dbe9f2c81a2546de",
+        "candidate_sha256": "3a0052e440d9e4cd16f6e09fc0a04837adb7a0c52362912667f9bf73c577438b"
+      },
+      {
+        "path": "src/amd/common/amd_family.h",
+        "upstream_sha256": "96a987f4c6f38e3c413070884b0ba0617233eaff7216e9ec8da51dac7bef287a",
+        "candidate_sha256": "52978886bce5e7ed893a88f945f4517dd1145454f1b34d1a5af16f37bee8c4ea"
+      }
+    ],
+    "adaptations": [
+      "Port discovery changes to ac_identify_chip and cache changes to ac_fill_memory_info in the refactored 26.2.5 source.",
+      "Place shared family enum values after BONAIRE and before KAVERI, preserving the existing GFX7 lower bound without redundant comparisons.",
+      "Retain independent FAMILY_KV generic-then-console revision matching; narrow console revisions intentionally override SPOOKY.",
+      "Use the pinned source raster values, GS depth 32, 128 KiB per TCC cache classification, family names and Bonaire LLVM processor target.",
+      "Exclude the unrelated CLC/LLVM compatibility edit and unused private drm/radeon surface enum additions.",
+      "Do not change video capabilities or serializer; the independently owned 0002 capability patch is outside this provenance entry."
+    ]
+  },
+  "focused_validation": {
+    "apply": "git apply --check and patch -F0 dry run/application succeeded on official-source files; post-apply hashes match listed candidate hashes.",
+    "host": "Apple Clang 21: optimized O2 and ASan+UBSan builds each pass 1579 assertions; four targeted mutants are rejected.",
+    "coverage": [
+      "Actual complete ac_identify_chip and amd_family.c helpers, actual GS/raster functions.",
+      "Actual complete cache switch and backend-override block.",
+      "Every FAMILY_KV external revision 1..254, SI/CI/VI controls, GFX7/LLVM/name/GS/cache/raster/backend expectations."
+    ],
+    "boundaries": "Minimal host query structs stand in for DRM storage; register macros are generated from exact official register databases. This is not an ioctl, installed-DSO, GPU execution or visual validation. Full native Mesa build is primary-owned.",
+    "private_receipts": "lab/mesa-uvd-2026-10-20/graphics-port/{APPLY-CHECK.json,host-check-02/RESULT.json}",
+    "host_receipt_sha256": "acd7d74162a57844b6e2c13f5f137f953d9b6dbc8cb94eaf022add82c229eaa1"
+  },
+  "limitations": [
+    "Candidate addresses the confirmed source family/raster mismatch; it is not a guaranteed fix for observed GL stripes.",
+    "Liverpool and Gladius raster constants come from the pinned PS4 port; neither console is hardware-qualified by these host checks.",
+    "No binary package import, system library installation, console action, commit or publication occurred."
+  ]
+}

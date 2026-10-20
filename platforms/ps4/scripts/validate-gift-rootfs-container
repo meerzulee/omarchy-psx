@@ -92,7 +92,7 @@ case $root_layout in
   partitioned-usb)
     grep -Fxq 'LABEL=PS4BOOT  /boot  vfat  ro,nofail,umask=0077  0  0' /etc/fstab || \
       fail 'partitioned USB boot filesystem contract is missing'
-    [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-22 ]] || \
+    [[ $(pacman -Q omarchy-ps4-provisioning | awk '{print $2}') == 4.0.0-24 ]] || \
       fail 'partitioned USB provisioning package does not match'
     ;;
   *) fail 'unsupported root layout' ;;

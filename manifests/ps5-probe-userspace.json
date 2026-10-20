@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "purpose": "Pinned data-only userspace input for a local PS5 RAM probe; no hardware qualification.",
+  "package": {
+    "name": "busybox-static",
+    "distribution": "Debian trixie",
+    "architecture": "amd64",
+    "version": "1:1.37.0-6+b9",
+    "source_version": "1:1.37.0-6",
+    "binary_format": "statically linked x86-64 ELF",
+    "license": "GPL-2.0-only",
+    "binary_checksum_authority": "https://packages.debian.org/trixie/amd64/busybox-static/download",
+    "source_checksum_authority": "https://deb.debian.org/debian/pool/main/b/busybox/busybox_1.37.0-6.dsc",
+    "upstream": "https://busybox.net/",
+    "debian_source_repository": "https://salsa.debian.org/installer-team/busybox",
+    "verification_scope": "Pinned sizes and SHA256; the .dsc OpenPGP signature and binary reproducibility have not been independently verified.",
+    "source_bundle_status": "Source archives and notices retained locally; no distribution-ready source bundle or publication prepared."
+  },
+  "downloads": [
+    {
+      "id": "debian-binary",
+      "destination": "busybox-static_1.37.0-6+b9_amd64.deb",
+      "url": "https://deb.debian.org/debian/pool/main/b/busybox/busybox-static_1.37.0-6%2Bb9_amd64.deb",
+      "bytes": 955316,
+      "sha256": "598a3fd92bdafc34cd81196b2952ad36e910e47a4ecf162f8ce5e8e262598e53"
+    },
+    {
+      "id": "upstream-source",
+      "destination": "busybox_1.37.0.orig.tar.bz2",
+      "url": "https://deb.debian.org/debian/pool/main/b/busybox/busybox_1.37.0.orig.tar.bz2",
+      "bytes": 2565764,
+      "sha256": "3311dff32e746499f4df0d5df04d7eb396382d7e108bb9250e7b519b837043a4"
+    },
+    {
+      "id": "debian-source-metadata",
+      "destination": "busybox_1.37.0-6.dsc",
+      "url": "https://deb.debian.org/debian/pool/main/b/busybox/busybox_1.37.0-6.dsc",
+      "bytes": 2279,
+      "sha256": "3ba2c096eef0c391f744f093edbe0df7b21ab118652487cc076818e92cb57e8e"
+    },
+    {
+      "id": "debian-source-changes",
+      "destination": "busybox_1.37.0-6.debian.tar.xz",
+      "url": "https://deb.debian.org/debian/pool/main/b/busybox/busybox_1.37.0-6.debian.tar.xz",
+      "bytes": 65032,
+      "sha256": "10b2cd64b41c26ae134e1cd6135b68575bbe79356c20985f35e32f32a1746c34"
+    }
+  ],
+  "members": [
+    {
+      "source_id": "debian-binary",
+      "ar_member": "data.tar.xz",
+      "member": "./usr/bin/busybox",
+      "destination": "busybox",
+      "bytes": 2024544,
+      "sha256": "7ae95c260622412ceba6eb9f45d68f616cdc091a1d71d6c0a08b5875bb2c31dd"
+    },
+    {
+      "source_id": "debian-binary",
+      "ar_member": "data.tar.xz",
+      "member": "./usr/share/doc/busybox-static/copyright",
+      "destination": "copyright",
+      "bytes": 1110,
+      "sha256": "336d995e819d3a7a3fdbf3f5041c07094f75ee849acb3bb742b7503d45786329"
+    },
+    {
+      "source_id": "upstream-source",
+      "member": "busybox-1.37.0/LICENSE",
+      "destination": "GPL-2.txt",
+      "bytes": 18348,
+      "sha256": "bbfc9843646d483c334664f651c208b9839626891d8f17604db2146962f43548"
+    }
+  ]
+}
