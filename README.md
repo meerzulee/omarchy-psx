@@ -43,7 +43,7 @@ Each console will use its own selected Linux psX kernel and matching modules.
 
 | Console | Project status |
 | --- | --- |
-| **PlayStation 4** | Existing distribution source, pending partitioned-USB work and curated research migrated under `platforms/ps4/`. Linux psX `6.18.44-psx-ps4-baikal2` adds native Baikal Ethernet. New psX boot sets require validation. |
+| **PlayStation 4** | Linux 7.2.11 hybrid boot verified on one Baikal B1 Slim: USB Omarchy root, internal SATA test image at `/mnt/internal`, native Ethernet, and clean 44.1 kHz HDMI audio. Internal-root installation, repeat/stress qualification, WiFi/Bluetooth firmware, UVD-in-default-boot and Blu-ray remain open. |
 | **PlayStation 5** | Planned port, using the Linux psX kernel foundation. |
 | **Future PlayStation consoles** | Long-term exploration as hardware access and public research become available. |
 
@@ -59,6 +59,25 @@ package profiles have not been switched to it.
 See [Mesa source and test tools](platforms/ps4/experiments/mesa-uvd/README.md)
 and the [curated experiment ledger](platforms/ps4/experiments/SESSIONS.md).
 The kernel transport remains in the sibling Linux psX project.
+
+## Current PS4 verification
+
+A 2026-10-22 hybrid check on a PS4 Slim Baikal B1 recorded:
+
+- Linux `7.2.11-psx-ps4-baikal-sata-phy-dev1`
+- USB Omarchy root, internal ext4 test image RW at `/mnt/internal`
+- native Ethernet `psx0`, DHCP, gateway and DNS
+- 64 MiB internal write/read and 256 MiB direct read without ATA errors
+- clean HDMI audio at 44.1 kHz
+- no failed systemd units
+- current default boot uses software H.264 decode; the UVD runtime is a
+  separate experimental profile
+- WiFi/Bluetooth firmware is not present in the current root
+- no optical/Blu-ray device detected
+
+No Orbis system partition was written. This is one verified boot, not hardware
+acceptance; repeat boots and sustained I/O remain required. See the sanitized
+[Baikal Linux 7 hybrid record](platforms/ps4/experiments/BAIKAL-LINUX7-HYBRID-20261022.md).
 
 ## USB installation flow
 
