@@ -1,9 +1,9 @@
 # PS5 target — dependency preparation
 
 This directory owns PS5 distribution preparation. A separate kernel candidate
-now lives in sibling `linux-psx`; the kernel and local RAM-only diagnostic
-initramfs have been built and their contents verified. There is no completed
-PS5 Omarchy rootfs or hardware acceptance.
+lives in sibling `linux-psx`. The kernel, RAM-only diagnostic initramfs and
+Omarchy desktop rootfs have been built locally. Console boot and desktop
+hardware acceptance remain pending.
 
 The original PS5 on firmware **12.40** is the current preparation target.
 Jailbreak and arbitrary ELF delivery are assumed working. The reviewed public
@@ -39,3 +39,10 @@ profiles as proof that they apply to PS5.
 The kernel repository records the candidate in `provenance/7.2-ps5.json` and
 `docs/PS5.md`. [FIRST-BOOT.md](FIRST-BOOT.md) describes diagnostic preparation
 and the remaining path to an Omarchy desktop.
+
+## Desktop image development
+
+The shared console package recipes and native regular-file image builder are
+now implemented. See [IMAGE.md](IMAGE.md) for the pinned inputs, owner setup,
+GPT/FAT contract, build command and unfinished release features. This work
+does not change the historical probe records or claim a successful PS5 boot.

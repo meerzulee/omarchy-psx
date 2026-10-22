@@ -1,0 +1,150 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Meerzulee
+# Diagnostic adaptation of rootfs/initramfs/init (Omarchy psX, MIT).
+# The original init and its exact patch are retained by build-initramfs.
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH
+
+say() {
+  # This console uses an early MMIO bootconsole, not an available ttyS0.
+  # A printk record reaches that bootconsole even with console=null.
+  printf '<6>PS4_SATA_DIAG %s\n' "$*" > /dev/kmsg 2>/dev/null || \
+    printf 'PS4_SATA_DIAG %s\n' "$*"
+}
+
+hold() {
+  # Remain PID1. Never launch desktop, networking, a rescue shell or rootfs code.
+  while :; do sleep 30; done
+}
+
+fail() {
+  say "phase=failed reason=$*"
+  hold
+}
+
+mount -t proc proc /proc || hold
+mount -t sysfs sysfs /sys || hold
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
+mkdir -p /run /newroot
+mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run || fail mount_run
+
+say "phase=init version=1 kernel=$(uname -r) uptime=$(cat /proc/uptime)"
+
+ROOT_SPEC=LABEL=OMARCHY-PS4
+ROOT_FSTYPE=ext4
+ROOT_LAYOUT=
+REQUIRE_USB=0
+DIAGNOSTIC=0
+for parameter in $(cat /proc/cmdline); do
+  case "$parameter" in
+    root=*) ROOT_SPEC=${parameter#root=} ;;
+    rootfstype=*) ROOT_FSTYPE=${parameter#rootfstype=} ;;
+    omarchy.root_layout=*) ROOT_LAYOUT=${parameter#omarchy.root_layout=} ;;
+    omarchy.require_usb=1) REQUIRE_USB=1 ;;
+    omarchy.sata_diag=1) DIAGNOSTIC=1 ;;
+    omarchy.install=*) fail installer_parameter ;;
+  esac
+done
+[ "$DIAGNOSTIC" = 1 ] || fail diagnostic_opt_in_missing
+[ "$ROOT_SPEC" = LABEL=OMARCHY-PS4 ] || fail root_label_parameter
+[ "$ROOT_FSTYPE" = ext4 ] || fail root_filesystem_parameter
+[ "$ROOT_LAYOUT" = partitioned-usb ] || fail root_layout_parameter
+[ "$REQUIRE_USB" = 1 ] || fail usb_constraint_parameter
+
+snapshot() {
+  say "phase=snapshot tag=$1 uptime=$(cat /proc/uptime)"
+  for function in 0000:00:14.2 0000:00:14.7; do
+    device=/sys/bus/pci/devices/$function
+    say "pci=$function driver=$(readlink "$device/driver" 2>/dev/null)"
+    for attribute in vendor device irq dma_mask_bits consistent_dma_mask_bits; do
+      [ -r "$device/$attribute" ] || continue
+      say "pci=$function $attribute=$(cat "$device/$attribute")"
+    done
+  done
+  # These are cached sysfs/proc values, not device opens or commands.
+  for path in /sys/class/ata_link/*/sata_spd \
+              /sys/class/ata_device/*/xfer_mode \
+              /sys/class/ata_device/*/spdn_cnt; do
+    [ -r "$path" ] || continue
+    say "cached=$path value=$(cat "$path")"
+  done
+  while IFS= read -r line; do
+    case "$line" in *xhci*|*ahci*|*ata*|*bpcie*) say "interrupt=$line" ;; esac
+  done < /proc/interrupts
+  while IFS= read -r line; do say "diskstats=$line"; done < /proc/diskstats
+}
+
+snapshot before_root_scan
+say "phase=root_scan policy=usb_sysfs_before_blkid retry_limit=60 interval_seconds=1"
+ROOT_DEVICE=
+attempt=0
+while [ "$attempt" -lt 60 ]; do
+  matches=0
+  for block in /sys/class/block/*; do
+    [ -r "$block/partition" ] || continue
+    [ "$(cat "$block/partition")" = 2 ] || continue
+    root_sysfs=$(readlink -f "$block" 2>/dev/null || true)
+    # Match a USB-bus ancestor component before opening any block device.
+    case "$root_sysfs" in */usb[0-9]*/*) ;; *) continue ;; esac
+    root_name=${block##*/}
+    [ -b "/dev/$root_name" ] || continue
+    parent_sysfs=${root_sysfs%/*}
+    boot_name=
+    partition_count=0
+    for partition_file in "$parent_sysfs"/*/partition; do
+      [ -r "$partition_file" ] || continue
+      partition_count=$((partition_count + 1))
+      if [ "$(cat "$partition_file")" = 1 ]; then
+        boot_path=${partition_file%/partition}
+        boot_name=${boot_path##*/}
+      fi
+    done
+    [ "$partition_count" = 2 ] && [ -n "$boot_name" ] || continue
+    [ "$(cat "/sys/class/block/$boot_name/size")" = 8388608 ] && \
+      [ "$(cat "/sys/class/block/$boot_name/start")" = 2048 ] && \
+      [ "$(cat "$block/start")" = 8390656 ] || continue
+    [ -b "/dev/$boot_name" ] || continue
+    say "phase=usb_identity_begin device=/dev/$root_name sysfs=$root_sysfs"
+    root_identity=$(blkid "/dev/$root_name" 2>/dev/null || true)
+    case "$root_identity" in *' TYPE="ext4"'*) ;; *) continue ;; esac
+    case "$root_identity" in *' LABEL="OMARCHY-PS4"'*) ;; *) continue ;; esac
+    boot_identity=$(blkid "/dev/$boot_name" 2>/dev/null || true)
+    case "$boot_identity" in *' TYPE="vfat"'*) ;; *) continue ;; esac
+    case "$boot_identity" in *' LABEL="PS4BOOT"'*) ;; *) continue ;; esac
+    matches=$((matches + 1))
+    ROOT_DEVICE=/dev/$root_name
+    say "phase=usb_identity_ok device=$ROOT_DEVICE boot=/dev/$boot_name"
+  done
+  [ "$matches" -le 1 ] || fail multiple_matching_usb_roots
+  [ "$matches" = 1 ] && break
+  attempt=$((attempt + 1))
+  sleep 1
+done
+[ -n "$ROOT_DEVICE" ] || fail usb_root_not_found
+say "phase=root_found device=$ROOT_DEVICE uptime=$(cat /proc/uptime)"
+say "phase=root_mount_begin options=ro,noload,nodev,nosuid,noexec"
+# Ext4 read-only without noload may replay the journal. Never allow that here.
+mount -t ext4 -o ro,noload,nodev,nosuid,noexec "$ROOT_DEVICE" /newroot || \
+  fail usb_root_readonly_mount
+[ -e /newroot/etc/os-release ] && [ -d /newroot/usr ] || fail usb_root_identity
+say "phase=root_mount_ok device=$ROOT_DEVICE uptime=$(cat /proc/uptime)"
+snapshot after_root_mount
+say "phase=ready mode=initramfs_only root=read_only no_rootfs_execution=1"
+
+# First diagnostic window is deliberately passive. No deferred SATA probe,
+# rescan, driver rebind, internal sector read, unlock, mount, write or reset.
+# The normal kernel can already have read HDD capacity/partitions before /init.
+heartbeat=0
+while :; do
+  sleep 10
+  heartbeat=$((heartbeat + 1))
+  say "phase=heartbeat count=$heartbeat uptime=$(cat /proc/uptime)"
+  [ "$heartbeat" != 6 ] || snapshot after_60_seconds
+  if [ "$heartbeat" = 12 ]; then
+    snapshot after_120_seconds
+    say "phase=observation_complete automatic_power_action=none"
+    hold
+  fi
+done

@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Meerzulee
+"""Print cached Linux SATA topology/counters as JSON; never open a device node."""
+
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import stat
+
+
+def read(path: Path):
+    try:
+        # Sysfs/proc files report zero size. The read bound is independent of it.
+        if not stat.S_ISREG(path.stat().st_mode):
+            return {"error": "not a regular sysfs/proc file"}
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                return {"error": "not a regular sysfs/proc file"}
+            with os.fdopen(fd, "rb", closefd=False) as stream:
+                content = stream.read(256 * 1024 + 1)
+            return {"text": content[:256 * 1024].decode(errors="replace"),
+                    "truncated": len(content) > 256 * 1024}
+        finally:
+            os.close(fd)
+    except OSError as error:
+        return {"error": error.strerror}
+
+
+def collect(root: Path):
+    data = {"schema": 1, "collected_utc": datetime.now(timezone.utc).isoformat(),
+            "scope": "cached sysfs/proc only; no device opens, commands or settings changes"}
+    data["proc"] = {name: read(root / "proc" / name) for name in (
+        "cmdline", "version", "uptime", "sys/kernel/random/boot_id", "interrupts",
+        "diskstats", "partitions", "mounts", "modules")}
+    data["pci"] = {}
+    for name in ("0000:00:14.2", "0000:00:14.7"):
+        device = root / "sys/bus/pci/devices" / name
+        record = {key: read(device / key) for key in (
+            "vendor", "device", "class", "irq", "dma_mask_bits", "consistent_dma_mask_bits", "resource")}
+        try:
+            record["driver"] = os.readlink(device / "driver")
+        except OSError:
+            record["driver"] = None
+        data["pci"][name] = record
+    data["ata"] = {}
+    for kind, attrs in {"ata_port": ("port_no", "nr_pmp_links", "idle_irq"),
+                        "ata_link": ("sata_spd", "sata_spd_limit", "hw_sata_spd_limit"),
+                        "ata_device": ("class", "pio_mode", "dma_mode", "xfer_mode", "spdn_cnt")}.items():
+        data["ata"][kind] = {p.name: {key: read(p / key) for key in attrs}
+                               for p in sorted((root / "sys/class" / kind).glob("*"))}
+    data["block"] = {}
+    for device in sorted((root / "sys/class/block").glob("*")):
+        # Cached identity/counters only. No blkid/lsblk/smartctl or /dev reads.
+        record = {key: read(device / key) for key in (
+            "dev", "size", "start", "partition", "ro", "stat", "device/state", "device/timeout")}
+        record["sysfs_path"] = str(device.resolve())
+        data["block"][device.name] = record
+    data["boot_id_end"] = read(root / "proc/sys/kernel/random/boot_id")
+    return data
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fs-root", type=Path, default=Path("/"), help="Synthetic fixture root for host tests")
+    args = parser.parse_args()
+    print(json.dumps(collect(args.fs_root), indent=2))

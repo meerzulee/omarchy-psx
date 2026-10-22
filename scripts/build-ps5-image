@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+"""Build a PS5 development image on native Linux x86-64 from explicit inputs.
+
+Only new regular files and a marked build root are written. No block device,
+loop device, console, installed host package or existing workspace is changed.
+Run with sudo; private mount namespace mounts disappear when this process exits.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import struct
+import subprocess
+import sys
+import tarfile
+import urllib.request
+import zlib
+
+REPO = Path(__file__).resolve().parents[1]
+MIB = 1024 * 1024
+GIB = 1024 * MIB
+LABEL = "OMARCHY-PS5"
+BOOT_LABEL = "PS5BOOT"
+
+
+def digest(path):
+    h = hashlib.sha256()
+    with Path(path).open("rb") as f:
+        for b in iter(lambda: f.read(4 * MIB), b""):
+            h.update(b)
+    return h.hexdigest()
+
+
+def run(args, **kwargs):
+    return subprocess.run([str(a) for a in args], check=True, **kwargs)
+
+
+def verify_sums(directory):
+    for line in (directory / "SHA256SUMS").read_text().splitlines():
+        expected, name = line.split(None, 1)
+        p = directory / name.lstrip(" *")
+        if not p.resolve().is_relative_to(directory.resolve()) or not p.is_file() or digest(p) != expected:
+            raise ValueError(f"checksum failed: {p}")
+
+
+def write(root, name, text, mode=0o644):
+    p = root / name.lstrip("/")
+    if not p.parent.resolve().is_relative_to(root.resolve()):
+        raise ValueError("image write escaped root through a parent symlink")
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if p.is_symlink():
+        p.unlink()
+    p.write_text(text)
+    p.chmod(mode)
+
+
+def vram_text(mib):
+    """The PS5 loader parses vram.txt as a hexadecimal byte count."""
+    if type(mib) is not int or mib <= 0:
+        raise ValueError("VRAM must be a positive integer MiB count")
+    return f"0x{mib * MIB:x}\n"
+
+
+def gpt_contract(path):
+    """Independently check both GPT headers, entry CRCs and out-of-order layout."""
+    size = path.stat().st_size
+    with path.open("rb") as f:
+        headers = []
+        for lba in (1, size // 512 - 1):
+            f.seek(lba * 512)
+            h = f.read(512)
+            if h[:8] != b"EFI PART":
+                raise ValueError("missing GPT header")
+            length, expected = struct.unpack_from("<II", h, 12)
+            if not 92 <= length <= 512:
+                raise ValueError("invalid GPT header size")
+            check = bytearray(h[:length]); check[16:20] = b"\0" * 4
+            if zlib.crc32(check) != expected:
+                raise ValueError("GPT header CRC mismatch")
+            current, backup, first, last = struct.unpack_from("<QQQQ", h, 24)
+            entries_lba, count, width, crc = struct.unpack_from("<QIII", h, 72)
+            if current != lba or backup != (size // 512 - 1 if lba == 1 else 1) or count != 128 or width != 128:
+                raise ValueError("unexpected GPT geometry")
+            f.seek(entries_lba * 512); entries = f.read(count * width)
+            if zlib.crc32(entries) != crc:
+                raise ValueError("GPT entry CRC mismatch")
+            bounds = [struct.unpack_from("<QQ", entries, n * width + 32) for n in range(2)]
+            root_start, root_end = bounds[0]
+            # GNU Parted rounds a 100% endpoint down to a MiB boundary.
+            # Allow that final padding, but size ext4 from the actual entry.
+            if (root_start != 500 * MIB // 512 or not last - 2047 <= root_end <= last
+                    or root_end != last and (root_end + 1) % 2048
+                    or bounds[1] != (MIB // 512, 500 * MIB // 512 - 1)):
+                raise ValueError(f"incorrect PS5 root/boot layout: {bounds}")
+            if any(entries[2 * width:]):
+                raise ValueError("unexpected additional partition")
+            headers.append({"header_lba": current, "backup_lba": backup, "first_usable": first,
+                            "last_usable": last, "root_start": root_start, "root_end": root_end})
+    return headers
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    for key in ("snapshot", "packages", "kernel", "work", "output"):
+        p.add_argument("--" + key, type=Path, required=True)
+    p.add_argument("--size-gib", type=int, default=16)
+    p.add_argument("--resume", action="store_true", help="retry only a matching marked build directory")
+    p.add_argument("--in-namespace", action="store_true", help=argparse.SUPPRESS)
+    a = p.parse_args()
+    if platform.system() != "Linux" or platform.machine() != "x86_64" or os.geteuid() != 0:
+        p.error("requires sudo on native Linux x86-64; see platforms/ps5/IMAGE.md")
+    if not 12 <= a.size_gib <= 128 or not str(a.output).endswith(".img.xz"):
+        p.error("use a 12..128 GiB regular .img.xz output")
+    for key in ("snapshot", "packages", "kernel", "work", "output"):
+        value = getattr(a, key).absolute()
+        if value.is_symlink() or value.exists() and not (value.is_dir() if key != "output" else value.is_file()):
+            p.error(f"invalid input/output type: {value}")
+        setattr(a, key, value.resolve())
+    if a.output.exists():
+        p.error("refusing an existing image")
+    if a.work == Path("/") or a.work.is_relative_to(Path("/dev")):
+        p.error("invalid work directory")
+    if not a.in_namespace:
+        os.execv("/usr/bin/unshare", ["unshare", "--mount", "--propagation", "private", "--",
+                 sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--in-namespace"])
+
+    print("[ps5-image] verifying explicit kernel, source and package inputs", flush=True)
+    verify_sums(a.snapshot)
+    verify_sums(a.kernel)
+    metadata = json.loads((a.kernel / "artifacts.json").read_text())
+    if metadata["platform"] != "ps5" or metadata["target"] != "7.2-ps5" or metadata["embedded_firmware"] is not False:
+        raise ValueError("expected a firmware-free PS5 kernel artifact bundle")
+    release = metadata["kernel_release"]
+    if release != "7.2.3-psx-ps5-dev1":
+        raise ValueError("image profile requires its explicit kernel release")
+    source = a.kernel.parent / "source" / metadata["source_archive"]["path"]
+    if digest(source) != metadata["source_archive"]["sha256"]:
+        raise ValueError("missing complete corresponding kernel source")
+    packages = sorted(a.packages.glob("omarchy-psx*-4.0.0-1-any.pkg.tar.zst"))
+    if len(packages) != 3:
+        raise ValueError("expected exactly the three matching common psX packages")
+    identity = {"schema": 1, "kernel": digest(a.kernel / "artifacts.json"),
+                "snapshot": digest(a.snapshot / "SHA256SUMS"), "size_gib": a.size_gib,
+                "packages": {q.name: digest(q) for q in packages},
+                "profile": digest(REPO / "manifests/ps5-image.json"),
+                "builder": digest(Path(__file__)), "output": str(a.output)}
+    marker = a.work / ".omarchy-ps5-image.json"
+    if a.work.exists():
+        if not a.resume or not marker.is_file() or json.loads(marker.read_text()) != identity:
+            raise ValueError("refusing an existing/unmatched work directory")
+    else:
+        a.work.mkdir(parents=True)
+        marker.write_text(json.dumps(identity, indent=2) + "\n")
+    root = a.work / "rootfs"
+    root.mkdir(exist_ok=True)
+    if shutil.disk_usage(a.work).free < 20 * GIB:
+        raise ValueError("need at least 20 GiB available for the regular-file image build")
+    for directory in ("dev", "proc", "sys", "run", "var/lib/pacman", "var/cache/pacman/pkg"):
+        (root / directory).mkdir(parents=True, exist_ok=True)
+    # Give chrooted libalpm a real '/' mount in /proc/self/mountinfo so its
+    # CheckSpace calculation can resolve the package cache's backing filesystem.
+    run(["mount", "--bind", root, root])
+    run(["mount", "--rbind", "/dev", root / "dev"])
+    run(["mount", "-t", "proc", "proc", root / "proc"])
+    run(["mount", "--rbind", "/sys", root / "sys"])
+    run(["mount", "-t", "tmpfs", "tmpfs", root / "run"])
+
+    offline = a.work / "offline-pacman.conf"
+    offline.write_text("[options]\nArchitecture = x86_64\nSigLevel = Never\nLocalFileSigLevel = Never\n"
+                       f"[omarchy-ps4-snapshot]\nServer = file://{a.snapshot}/repo\n")
+    (a.work / "pacman-cache").mkdir(exist_ok=True)
+    locked = [line.split("\t")[0] for line in (a.snapshot / "manifest/packages.lock").read_text().splitlines()]
+    selected = [name for name in locked if name not in ("omarchy-ps4", "omarchy-ps4-settings", "omarchy-ps4-provisioning")]
+    print("[ps5-image] installing pinned offline userspace", flush=True)
+    run(["pacman", "--root", root, "--config", offline, "--cachedir", a.work / "pacman-cache",
+         "-Syy", "--needed", "--noconfirm", *selected])
+    write(root, "/etc/pacman.conf", "[options]\nArchitecture = x86_64\nCheckSpace\n"
+          "SigLevel = Required DatabaseOptional\nLocalFileSigLevel = Optional\n"
+          "[core]\nServer = https://archive.archlinux.org/repos/2026/08/20/core/os/$arch\n"
+          "[extra]\nServer = https://archive.archlinux.org/repos/2026/08/20/extra/os/$arch\n")
+    write(root, "/etc/resolv.conf", Path("/etc/resolv.conf").read_text())
+    def chroot(*args, **kwargs):
+        return run(["chroot", root, "/usr/bin/env", "PATH=/usr/bin:/bin", *args], **kwargs)
+    chroot("pacman-key", "--init")
+    chroot("pacman-key", "--populate", "archlinux")
+    print("[ps5-image] installing signed Arch snapshot initramfs/login tools", flush=True)
+    chroot("pacman", "-Syy", "--needed", "--noconfirm", "mkinitcpio", "sddm", "mtools")
+    installed_packages = root / "run/psx-packages"
+    installed_packages.mkdir()
+    for q in packages:
+        shutil.copy2(q, installed_packages / q.name)
+    chroot("pacman", "-U", "--needed", "--noconfirm", *["/run/psx-packages/" + q.name for q in packages])
+
+    print("[ps5-image] integrating matching PS5 kernel/modules and owner setup", flush=True)
+    modules = a.work / "modules"
+    modules.mkdir(exist_ok=True)
+    archive = a.kernel / metadata["modules_archive"]["path"]
+    if digest(archive) != metadata["modules_archive"]["sha256"]:
+        raise ValueError("module archive differs from artifacts.json")
+    run(["tar", "--zstd", "-xf", archive, "-C", modules])
+    module_root = modules / "lib/modules" / release
+    module_files = list(module_root.rglob("*.ko"))
+    if not module_files:
+        raise ValueError("empty matching module set")
+    for q in module_files:
+        actual = subprocess.check_output(["modinfo", "-F", "vermagic", q], text=True).split()[0]
+        if actual != release:
+            raise ValueError(f"module release mismatch: {q}")
+    shutil.copytree(module_root, root / "usr/lib/modules" / release, dirs_exist_ok=True)
+    run(["depmod", "-b", root, "-a", release])
+    (root / "boot/ps5").mkdir(parents=True, exist_ok=True)
+    for name in ("boot/bzImage", "usr/lib/modules/" + release + "/vmlinuz"):
+        shutil.copy2(a.kernel / "bzImage", root / name)
+    shutil.copy2(a.kernel / "config", root / "boot/config-linux-psx")
+    profile = json.loads((REPO / "manifests/ps5-image.json").read_text())
+    for item in profile["firmware"]:
+        if not (item["url"].startswith("https://raw.githubusercontent.com/ps5-linux/ps5-linux-patches/")
+                and "753c7936dcb079bfeaaa0bb19dfc495744266500/" in item["url"]):
+            raise ValueError("firmware acquisition must use the pinned public source")
+        with urllib.request.urlopen(item["url"], timeout=60) as f:
+            data = f.read(item["bytes"] + 1)
+        if len(data) != item["bytes"] or hashlib.sha256(data).hexdigest() != item["sha256"]:
+            raise ValueError("external firmware/license identity differs")
+        q = root / item["path"]
+        q.parent.mkdir(parents=True, exist_ok=True)
+        q.write_bytes(data)
+    write(root, "/etc/omarchy-psx/platform.conf", f"OMARCHY_PSX_PLATFORM=ps5\nOMARCHY_PSX_ROOT_LABEL={LABEL}\n")
+    write(root, "/etc/fstab", f"LABEL={LABEL} / ext4 defaults,noatime 0 1\n"
+          f"LABEL={BOOT_LABEL} /boot/ps5 vfat ro,nofail,umask=0077 0 0\n")
+    write(root, "/etc/locale.gen", "en_US.UTF-8 UTF-8\n")
+    write(root, "/etc/locale.conf", "LANG=en_US.UTF-8\n")
+    write(root, "/etc/vconsole.conf", "KEYMAP=us\n")
+    write(root, "/etc/hostname", "omarchy-ps5\n")
+    write(root, "/etc/os-release", 'NAME="Omarchy psX"\nPRETTY_NAME="Omarchy psX (PS5 development)"\n'
+          'ID=arch\nID_LIKE=arch\nBUILD_ID=ps5-dev1\nHOME_URL="https://github.com/meerzulee/omarchy-psx"\n')
+    write(root, "/etc/environment", "OMARCHY_PATH=/usr/share/omarchy\n")
+    # The selected PS5 patch does not override the upstream DPM/recovery defaults.
+    # Preserve the community image's Oberon HDMI handoff policy in early userspace.
+    write(root, "/etc/modprobe.d/ps5-amdgpu.conf", "options amdgpu dpm=0 gpu_recovery=0\n")
+    write(root, "/etc/mkinitcpio.conf", 'MODULES=(amdgpu xhci_pci xhci_hcd usb_storage uas)\nBINARIES=()\nFILES=()\n'
+          'HOOKS=(base udev modconf keyboard keymap block filesystems fsck)\nCOMPRESSION="zstd"\nCOMPRESSION_OPTIONS=(-T2 -8)\n')
+    if (root / "etc/mkinitcpio.conf.d").exists() and any((root / "etc/mkinitcpio.conf.d").glob("*.conf")):
+        raise ValueError("unexpected initramfs drop-ins; refusing host autodetect/UKI overrides")
+    chroot("locale-gen")
+    chroot("passwd", "--lock", "root")
+    (root / "etc/localtime").unlink(missing_ok=True)
+    (root / "etc/localtime").symlink_to("/usr/share/zoneinfo/UTC")
+    write(root, "/etc/machine-id", "")
+    (root / "var/lib/dbus/machine-id").unlink(missing_ok=True)
+    for q in (root / "etc/ssh").glob("ssh_host_*"):
+        q.unlink()
+    for unit in ("sshd.service", "sshd.socket", "lightdm.service"):
+        if (root / "usr/lib/systemd/system" / unit).exists():
+            chroot("systemctl", "disable", unit)
+    for unit in ("NetworkManager.service", "bluetooth.service", "systemd-timesyncd.service", "sddm.service", "omarchy-psx-provision-owner.service"):
+        chroot("systemctl", "enable", unit)
+    chroot("systemctl", "set-default", "graphical.target")
+    write(root, "/var/lib/omarchy-psx/provisioning/pending", "", 0o600)
+    (root / "var/lib/omarchy-psx/provisioning").chmod(0o700)
+    chroot("mkinitcpio", "-k", release, "-c", "/etc/mkinitcpio.conf", "-g", "/boot/initrd.img")
+    if not (root / "boot/initrd.img").stat().st_size:
+        raise ValueError("missing initramfs")
+    lock = subprocess.check_output(["chroot", root, "pacman", "-Q"], text=True)
+    if any(line.split()[0] in ("linux", "linux-omarchy", "limine", "omarchy-ps4", "omarchy-ps4-settings", "omarchy-ps4-provisioning") for line in lock.splitlines()):
+        raise ValueError("unexpected PC kernel/bootloader or PS4 package in image")
+    # The release inventory lives in both the image and the outer artifact folder.
+    write(root, "/usr/share/omarchy-psx/release/packages.lock", lock)
+    write(root, "/usr/share/omarchy-psx/release/kernel-artifacts.json", json.dumps(metadata, indent=2) + "\n")
+    write(root, "/usr/share/omarchy-psx/release/image-inputs.json", json.dumps(identity, indent=2) + "\n")
+    for q in (root / "var/cache/pacman/pkg").iterdir():
+        if q.is_file() or q.is_symlink():
+            q.unlink()
+    # Filesystems are populated as data, with no loop device or media mount.
+    for q in (root / "run", root / "proc", root / "sys", root / "dev"):
+        run(["umount", "-R", q])
+    print("[ps5-image] assembling regular-file GPT/ext4/FAT image", flush=True)
+    raw = a.work / "ps5-omarchy.img"
+    with raw.open("wb") as f:
+        f.truncate(a.size_gib * GIB)
+    run(["parted", "-s", raw, "mklabel", "gpt", "mkpart", "root", "ext4", "500MiB", "100%",
+         "mkpart", "boot", "fat32", "1MiB", "500MiB", "set", "2", "esp", "on"])
+    headers = gpt_contract(raw)
+    root_sectors = headers[0]["root_end"] - headers[0]["root_start"] + 1
+    boot_stage = a.work / "fat-stage"
+    boot_stage.mkdir(exist_ok=True)
+    ext4, fat = a.work / "root.ext4", boot_stage / "boot.fat"
+    for q, length in ((ext4, root_sectors * 512), (fat, 499 * MIB)):
+        with q.open("wb") as f:
+            f.truncate(length)
+    run(["mkfs.ext4", "-F", "-m", "0", "-L", LABEL, "-d", root, ext4])
+    run(["e2fsck", "-f", "-n", ext4])
+    run(["mkfs.fat", "-F", "32", "-n", BOOT_LABEL, fat])
+    boot_files = {"bzImage": root / "boot/bzImage", "initrd.img": root / "boot/initrd.img"}
+    write(a.work, "cmdline.txt", profile["cmdline"] + "\n")
+    write(a.work, "vram.txt", vram_text(profile["vram_mib"]))
+    boot_files.update({name: a.work / name for name in ("cmdline.txt", "vram.txt")})
+    fat_mount = root / "run/psx-fat-stage"
+    fat_mount.mkdir(parents=True, exist_ok=True)
+    run(["mount", "--bind", boot_stage, fat_mount])
+    for name, q in boot_files.items():
+        shutil.copy2(q, boot_stage / name)
+        chroot("mcopy", "-i", "/run/psx-fat-stage/boot.fat", "/run/psx-fat-stage/" + name, "::" + name)
+        readback = boot_stage / ("fat-readback-" + name)
+        chroot("mcopy", "-o", "-i", "/run/psx-fat-stage/boot.fat", "::" + name, "/run/psx-fat-stage/" + readback.name)
+        if digest(readback) != digest(q):
+            raise ValueError("FAT boot-file readback mismatch")
+    run(["umount", fat_mount])
+    with raw.open("r+b") as image:
+        for q, offset in ((fat, MIB), (ext4, 500 * MIB)):
+            image.seek(offset)
+            with q.open("rb") as part:
+                shutil.copyfileobj(part, image, 8 * MIB)
+    gpt_contract(raw)
+    print("[ps5-image] compressing verified image", flush=True)
+    a.output.parent.mkdir(parents=True, exist_ok=True)
+    partial = Path(str(a.output) + ".partial")
+    if partial.exists():
+        if not a.resume or partial.is_symlink() or not partial.is_file():
+            raise ValueError("refusing an unmatched compressed partial")
+        partial.unlink()  # Same marked inputs and output path; regenerate our partial.
+    with partial.open("xb") as f:
+        run(["xz", "--threads=4", "-6", "--stdout", raw], stdout=f)
+    run(["xz", "--test", partial])
+    partial.rename(a.output)
+    boot_hashes = {name: {"bytes": q.stat().st_size, "sha256": digest(q)} for name, q in boot_files.items()}
+    report = {"schema": 1, "status": "development image; no PS5 hardware acceptance", "kernel_release": release,
+              "image_bytes_uncompressed": raw.stat().st_size, "image_sha256": digest(a.output),
+              "input_identity": identity, "gpt": headers, "root_label": LABEL, "boot_label": BOOT_LABEL,
+              "root_partition": 1, "boot_partition": 2, "boot_files": boot_hashes,
+              "module_count": len(module_files), "package_count": len(lock.splitlines()),
+              "signature_policy": "offline seed checksum-verified; additional Arch packages signature-verified; local psX packages unsigned development builds",
+              "limitations": ["console boot/DRM/Hyprland untested", "fixed-size ext4 root; automatic expansion pending",
+                              "coordinated updates, rollback selection, encryption and snapshots pending", "external loader supplied separately"],
+              "kernel_source": metadata["source_archive"]}
+    report["ps5_profile"] = profile
+    Path(str(a.output) + ".json").write_text(json.dumps(report, indent=2) + "\n")
+    Path(str(a.output) + ".packages.lock").write_text(lock)
+    Path(str(a.output) + ".sha256").write_text(report["image_sha256"] + "  " + a.output.name + "\n")
+    print(f"PASS: {a.output}\nSHA256: {report['image_sha256']}", flush=True)
+
+
+if __name__ == "__main__":
+    main()

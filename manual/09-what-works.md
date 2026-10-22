@@ -26,7 +26,7 @@ Here's the honest list, as of 2026-10-20. Everything below was observed on **one
 - **Fan control.** Linux has no way to read or set the fan.
 - **Suspend and resume.** Not available.
 - **Night light.** It blacked out the display, so it's switched off.
-- **Hardware video decoding in the standard image.** Not enabled or supported. A separate [experimental Mesa/UVD stack](https://github.com/meerzulee/omarchy-psx/tree/master/platforms/ps4/experiments/mesa-uvd#recorded-hardware-results) passed exact AVC decoding and a bounded 1080p30 loop on one Liverpool boot; seeking and broader qualification remain open.
+- **Hardware video decoding in the standard image.** Not enabled or supported. A separate [experimental Mesa/UVD stack](https://github.com/meerzulee/linux-psx/tree/master/userspace/mesa#recorded-hardware-results) passed exact AVC decoding and a bounded 1080p30 loop on one Liverpool boot; seeking and broader qualification remain open.
 - **The internal drive.** Linux sees it, but reads time out and fail. It's disabled in the boot profile, and installing to it isn't supported.
 
 ## Not tested

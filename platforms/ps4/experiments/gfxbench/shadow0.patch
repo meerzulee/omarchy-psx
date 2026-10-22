@@ -1,0 +1,112 @@
+--- a/gfxbench40/src/gfx4/opengl/glb_scene_opengl4.cpp
++++ b/gfxbench40/src/gfx4/opengl/glb_scene_opengl4.cpp
+@@ -10,6 +10,9 @@
+ #include <cmath>
+ #include <cstddef>
+ #include <map>
++#include <chrono>
++#include <cstdio>
++#include <cstdlib>
+ 
+ #include <ng/log.h>
+ #include <ng/stringutil.h>
+@@ -54,6 +57,35 @@
+ 
+ using namespace GLB;
+ 
++// Private diagnostic only: normal warmup, then first timed shadow cascade 0.
++// glFinish changes timing. Exit 86 is a diagnostic cut, never a benchmark score.
++static bool psx_shadow_probe = false;
++static bool psx_shadow_started = false;
++static unsigned psx_shadow_draw = 0;
++static void psx_shadow_mark(const char *stage)
++{
++    const auto us = std::chrono::duration_cast<std::chrono::microseconds>(
++        std::chrono::steady_clock::now().time_since_epoch()).count();
++    std::fprintf(stderr, "PSX_SHADOW0 us=%lld draw=%u %s\n", (long long)us, psx_shadow_draw, stage);
++    std::fflush(stderr);
++}
++static void psx_shadow_before_draw(const char *mesh, const char *material,
++                                  GLuint program, GLenum primitive,
++                                  unsigned count, unsigned instances, bool tess, bool geometry)
++{
++    GLint vao=0, ebo=0, vbo=0, fbo=0, ebo_bytes=0;
++    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
++    glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ebo);
++    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &vbo);
++    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fbo);
++    if (ebo) glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &ebo_bytes);
++    ++psx_shadow_draw;
++    std::fprintf(stderr, "PSX_SHADOW0 DRAW_STATE mesh=%s material=%s program=%u primitive=%u count=%u instances=%u tes=%u gs=%u vao=%d ebo=%d ebo_bytes=%d vbo=%d fbo=%d\n",
++        mesh, material, program, primitive, count, instances, unsigned(tess), unsigned(geometry), vao, ebo, ebo_bytes, vbo, fbo);
++    psx_shadow_mark("DRAW_BEGIN");
++}
++
++
+ #define TESSELLATED_SHADOWS 1
+ #define DEBUG_SHADOW 0
+ 
+@@ -872,7 +904,9 @@
+         m_cascaded_shadow_map->FrustumCull(i, this, visible_meshes, visible_mios, m_force_cast_shadows);
+ 
+         shadow_camera = m_cascaded_shadow_map->GetCamera(i);
++        if (psx_shadow_probe) psx_shadow_mark("BIND_CLEAR_BEGIN");
+         m_cascaded_shadow_map->Bind(i);
++        if (psx_shadow_probe) { glFinish(); psx_shadow_mark("BIND_CLEAR_COMPLETE"); }
+ 
+         CollectRenderMaterials(visible_meshes[0], m_shadow_material, PassType::SHADOW, i);
+         CollectRenderMaterials(visible_meshes[1], m_transparent_shadow_material, PassType::SHADOW, i);
+@@ -892,6 +926,12 @@
+             m_instance_manager->UploadInstanceData( instance_data);
+ 
+             Render(shadow_camera, instances, m_shadow_material, 0, 0, 0, PassType::SHADOW, false, i);
++        }
++        if (psx_shadow_probe && i == 0)
++        {
++            glFinish();
++            psx_shadow_mark("SHADOW0_COMPLETE_EXIT86");
++            std::_Exit(86);
+         }
+         // ProfilerEndPass();
+     }
+@@ -1627,7 +1667,12 @@
+             }
+             else
+             {
++                if (psx_shadow_probe) psx_shadow_before_draw(sm->m_name.c_str(), material->m_name.c_str(), s->m_p, primitive_type,
++                    sm->m_primitive_count ? sm->m_primitive_count : KCL::uint32(sm->m_mesh->getIndexCount(lod)), 1,
++                    s->HasShader(GLB::GLBShader2::ShaderTypes::TessEvaluationShader),
++                    s->HasShader(GLB::GLBShader2::ShaderTypes::GeometryShader));
+                 glDrawElements(primitive_type, sm->m_primitive_count ? sm->m_primitive_count : KCL::uint32(sm->m_mesh->getIndexCount(lod)), GL_UNSIGNED_SHORT, sm->m_mesh->m_ebo[lod].m_offset);
++                if (psx_shadow_probe) { glFinish(); psx_shadow_mark("DRAW_COMPLETE"); }
+             }
+         }
+         else
+@@ -1673,7 +1718,11 @@
+ #endif
+                     const GLsizei element_count = static_cast<GLsizei>(sm->m_mesh->getIndexCount(lod));
+                     const void *index_offset = sm->m_mesh->m_ebo[lod].m_offset;
++                    if (psx_shadow_probe) psx_shadow_before_draw(sm->m_name.c_str(), material->m_name.c_str(), s->m_p, primitive_type, element_count, instance_batch_size,
++                        s->HasShader(GLB::GLBShader2::ShaderTypes::TessEvaluationShader),
++                        s->HasShader(GLB::GLBShader2::ShaderTypes::GeometryShader));
+                     glDrawElementsInstanced(primitive_type, element_count, GL_UNSIGNED_SHORT, index_offset, instance_batch_size);
++                    if (psx_shadow_probe) { glFinish(); psx_shadow_mark("DRAW_COMPLETE"); }
+                     
+                     instances_to_render -= instance_batch_size;
+                 }
+@@ -2152,6 +2201,15 @@
+ 
+ void GLB_Scene4::Render()
+ {
++    if (std::getenv("PSX_CARCHASE_SHADOW0") && !m_is_compute_warmup && !psx_shadow_started)
++    {
++        psx_shadow_started = true;
++        psx_shadow_probe = true;
++        std::fprintf(stderr, "PSX_SHADOW0 TIMED_FRAME animation_time=%lld\n", (long long)m_animation_time);
++        psx_shadow_mark("PRIOR_WORK_FINISH_BEGIN");
++        glFinish();
++        psx_shadow_mark("PRIOR_WORK_COMPLETE");
++    }
+     ProfilerBeginFrame(m_animation_time);
+ 
+     ProfilerBeginPass("UBOs");

@@ -118,6 +118,23 @@ is available for anyone to inspect, subject to its license.
   interrupted review or establish hardware acceptance. These instructions
   explain the project context; applicable platform constraints still apply.
 
+## Shell and Herdr context
+
+- The owner's interactive shell is fish on the Mac and Omarchynator. Use fish
+  syntax for commands intended to be pasted into those terminals. For automated
+  multiline Bash scripts, explicitly invoke `/bin/bash` rather than relying on
+  the login shell; `$SHELL` does not identify the shell executing a tool command.
+- The owner's terminal workflow uses Herdr. Before controlling its panes or
+  agents, read the Herdr skill and verify `HERDR_ENV=1` in the current execution
+  environment. Do not infer a connected Herdr pane from the owner's workflow or
+  set/spoof Herdr variables to bypass that check.
+- Codex app-server tool sessions may lack the Herdr pane environment. The owner
+  explicitly confirmed the Herdr context and authorized targeting the existing
+  project session on 2026-10-21. Its verified name is `ps4`: use
+  `herdr --session ps4 ...`, verify the live tab, agent state and working
+  directory before input, and preserve focus. A missing default socket does not
+  mean this named session is stopped. Do not create or restart a session.
+
 ## Local infrastructure
 
 - Use OrbStack exclusively for Docker, containers, Linux virtual machines, and

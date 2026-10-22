@@ -1,0 +1,17 @@
+{
+  "policies": {
+    "ExtensionSettings": {
+      "jid1-TSgSxBhncsPBWQ@jetpack": {
+        "installation_mode": "force_installed",
+        "install_url": "file:///usr/share/omarchy-ps4/browser-codecs/h264ify-firefox-1.1.0.xpi",
+        "updates_disabled": true
+      }
+    },
+    "Preferences": {
+      "media.av1.enabled": {
+        "Value": false,
+        "Status": "locked"
+      }
+    }
+  }
+}

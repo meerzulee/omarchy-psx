@@ -1,162 +1,82 @@
-# PS4 Mesa / UVD candidate
+# PS4 Mesa integration
 
-Experimental Mesa 26.2.5 for Liverpool graphics and the experimental AVC-only
-kernel transport. This directory owns distribution-side userspace changes;
-the UVD kernel remains in the sibling `linux-psx` repository. It is not a
-system package or supported release. Hardware results below have narrow scope.
+Mesa patches, pinned native builder and graphics/UVD test tools now live in Linux psX:
 
-## Why this candidate exists
+https://github.com/meerzulee/linux-psx/tree/master/userspace/mesa
 
-EXP-20261020-006 downloaded 120 H264 frames through VAAPI, byte-exact against
-software output. EXP008 showed a clean initial moving clip with `vo=wlshm`,
-then a real decode error following interactive seeks. Seeking remains unresolved.
+In the sibling workspace use `linux-psx/userspace/mesa/`. This directory owns
+Omarchy package installation and update policy. The curated hardware history
+remains in the parent `SESSIONS.md`; moving source does not qualify an update.
 
-EXP009 reproduced the same stripes using saved NV12 with `hwdec=no` through
-mpv OpenGL/Wayland-EGL. EXP010 reproduced them with a verified RGB8 EGL target.
-The rendering fault therefore reproduces without a fresh H264 decode, and
-automatic RGB10 output alone does not explain it. Wayland SHM still uses the
-compositor; these tests do not establish that Wayland itself is faulty.
+## Current system trial and update policy
 
-Source review found stock Mesa's Kaveri identity overrides Liverpool's reported
-four render backends with two and selects raster `0x00000002`; the kernel uses
-`0x2a00161a`. Patch 0001 ports the existing public PS4 family/raster fix to the
-exact current stable release. This addresses a confirmed source mismatch. EXP011/012 subsequently showed
-clean reference pixels and text, including owner monitor confirmation. The
-upstream-version and PS4-patch changes were tested together; the exact causal
-hunk has not been isolated.
+EXP-20261020-022 installed the exact tested26.2.5 dev2 files and rendered clean GL/WebGL,
+but its Vulkan check stalled and the experimental UVD runtime timed out.
+Both original signed26.1.7 packages and previous rendering settings were
+restored. Stable system adoption remains withdrawn; consult the Linux psX
+[Mesa test matrix](https://github.com/meerzulee/linux-psx/blob/master/docs/MESA-TESTING.md).
 
-Patch 0002 keeps console video capabilities on kernel-confirmed AVC/NV12,
-with no encoding or inferred extra codecs. Family enum placement preserves
-the legacy UVD stream/session/feedback/register branches. No serializer or
-firmware bytes are imported. Liverpool UVD4.2 has no HEVC hardware decoding.
+`package-arch.py` is a data-only native Arch packager for a hash-verified
+candidate; it never installs, enables repositories or operates the GPU.
+Its local build skips dependency installation; an actual installation must
+resolve its dependencies and verify the complete package/stage identities.
+The unsigned local package file is not a signed public release. Preserve
+verified signed original packages before an authorized installation trial.
 
-Official release and source:
+Normal Omarchy updates remain blocked by the existing profile. Keep offline
+repository policy and signatures intact; never run upstream refresh/update
+commands to install this candidate. `graphics-hold.conf` records the additional
+Mesa/RADV IgnorePkg policy used on the test console. Include it under Pacman's
+options only through an authorized configuration change. Holds do not replace
+a complete matched-package qualification and rollback set.
 
-https://docs.mesa3d.org/relnotes/26.2.5.html
+## Owner's experimental default
 
-https://archive.mesa3d.org/mesa-26.2.5.tar.xz
+EXP-20261021-023 installed the exact dev5 Mesa/RADV stage as local packages
+`1:26.2.5-5.1`, following the owner's explicit request. All40 staged file and
+symlink identities match; package integrity and database checks pass. This
+CPU-only transaction preserved rendering settings (including `AMD_DEBUG=notiling`),
+offline repositories, required signatures, graphics holds and the update guard.
+Verified signed26.1.7 rollback packages remain saved on the console.
 
-Original PS4 graphics patch:
+The package change did not restart the desktop or operate the GPU. The boot
+was already terminal-faulted by CarChase and still needed full power-off.
+EXP-20261021-025 subsequently verifies one fresh boot: all40 stage identities
+match, Hyprland/Xwayland map installed Gallium26.2.5, and the owner confirms
+normal desktop/mouse. This experimental default is not stable-image promotion;
+CarChase remains unfixed and repeated boots/full graphics coverage remain open.
 
-https://github.com/DionKill/ps4-video-archlinux/blob/57e0f8ecc7a1df9b9664d682b19fadfe3e336f02/mesa-ps4/ps4-mesa.patch
+The separate [browser codec policy](../browser-codecs/README.md) selects
+YouTube H.264 instead of unsupported AV1/VP9. EXP027's isolated Chromium VAAPI
+attempt reaches5UVD completions, then CS rejection(-28) aborts its GPU process.
+No terminal kernel fault is observed. Normal Chromium's software-rendering
+workaround remains enabled; browser hardware decoding is not qualified.
 
-## Isolated native build
+## Package artifacts
 
-Use Linux x86_64. The Mac can generate the video, but Linux libraries are
-built on the native development host. Nothing installs to `/usr` on the host
-or console. Python 3.12+ is needed for safe source extraction.
+Git contains the source, patches, pinned builder and this package recipe.
+Distribute the matched `mesa` and `vulkan-radeon` packages together as artifacts,
+with `PACKAGES.json`, `SHA256SUMS` and the exact packaging inputs. Keep generated
+`src/` and `pkg/` work directories out of the distributed set. The candidate
+archive includes its source pins, patches and license notices; full upstream
+Mesa is fetched through Linux psX's pinned native builder.
 
-Create a private venv with Meson, Ninja, Mako, PyYAML, packaging and setuptools.
-The first build uses Meson1.10.2, Ninja1.13.0, Mako1.3.10, PyYAML6.0.3,
-packaging26.0 and setuptools80.9.0. Native dependencies include GCC/G++,
-pkg-config, Bison/Flex, libdrm, libva, libglvnd, Wayland/protocols/scanner,
-X11/XCB development files, libelf, zlib/zstd and SPIRV-Tools. No dependency
-fallback downloads or global package installation are performed by the builder.
-
-```sh
-python3 build-candidate.py \
-  --archive /path/to/mesa-26.2.5.tar.xz \
-  --meson /path/to/venv/bin/meson \
-  --work /path/to/new-build-directory --jobs 6
-```
-
-`sources.json` pins official source and ordered patches. The builder refuses
-existing output directories, verifies inputs, records every source hash,
-compiles with baseline x86_64 CPU flags, runs Mesa host tests, then stages
-GL/EGL/GLX/GBM, RadeonSI/VAAPI and RADV into a private tree. ACO is used;
-LLVM shared-library dependencies and LTO are disabled. Assertions remain
-enabled. The native candidate passed all44 selected Mesa host tests. An
-initial recipe incorrectly skipped non-default test helper builds; its failed
-run was preserved before the corrected passing run. Only H264 decode is compiled into this bounded candidate; additional
-video codecs and encoding require separate kernel work and qualification.
-
-Outputs include `RESULT.json`, phase logs, the complete source manifest,
-staged-file manifest and `mesa-psx-candidate.tar.xz`. Licenses, exact source
-pins and patches accompany the staged libraries. Preserve these outputs.
-
-## One-process comparison
-
-After extraction into an isolated user-owned path:
+On a native x86-64 Arch build host, after building and verifying the stage:
 
 ```sh
-python3 with-mesa.py --root /path/to/mesa-psx-candidate --verify-only
-python3 with-mesa.py --root /path/to/mesa-psx-candidate --print-env
+python3 package-arch.py \
+  --archive /path/to/mesa-psx-candidate.tar.xz \
+  --archive-sha256 5c397d86a769ed55dd35798c32bfcedea5c4e3ce6eee5147dd282a04c9385fe9 \
+  --manifest-sha256 687af5a366d4bba5af1f72cf5b1a57c4e09d1cfef58257a898ee34da2c7e3964 \
+  --mesa-source /path/to/linux-psx/userspace/mesa \
+  --candidate ps4-mesa-26.2.5-fill-bounds-htile-dev5 \
+  --pkgrel 5.1 --output /path/to/new-package-output
 ```
 
-The wrapper verifies every staged file and symlink, selects absolute EGL and
-Vulkan vendor manifests, and overrides the DRI/VA driver paths for one supplied
-command. It does not restart or replace the compositor. No command runs with
-`--verify-only` or `--print-env`.
-
-GPU workloads on the console require a bounded UART experiment. The first
-comparison reused EXP009's saved NV12 and OpenGL settings, changing selected
-Mesa. Do not promote system libraries on a build or a single visual success.
-
-## Recorded hardware results
-
-All results use the same running Liverpool kernel/boot. The installed system
-Mesa and compositor were not replaced. See the curated parent `SESSIONS.md`;
-raw captures, generated videos and binary packages stay in private `lab/`.
-
-- EXP011/012: saved reference NV12 through OpenGL is clean in the compositor
-  screenshot and on the owner's monitor. Actual mapped EGL/GLX/Gallium/GBM
-  hashes match the isolated candidate, renderer identifies Liverpool, and
-  automatic RGB10/XR30 matches the formerly failing path. Normal player exit.
-- EXP012: original canonical120-frame128×96H264 fixture decoded through the
-  candidate VAAPI driver. Every2,211,840NV12 byte matches the software oracle.
-  Post-exit INFO query is ready/idle and122 new UVD completions were observed.
-- EXP013: native1920×1080p30 thirty-second fractal decoded all900frames through
-  forced VAAPI/hwdownload. Every frame size/MD5 and the whole NV12 SHA256 match.
-  The56.061952sec invocation includes CPU download and hashing; it is not a
-  real-time playback benchmark. Its subsequent mpv initialization failed with
-  CS rejection errno-28 and an abort; the recording loop did not run. Actual
-  mpv logs requested four hardware threads despite vd-lavc-threads=1.
-- EXP014: hwdec-threads=1, the hardware setting documented by pinned mpv0.41.0
-  source, is confirmed in the actual log. Five completed1080p30 loops in the
-  bounded prefix passed with zero display/decoder drops, measured PTS/wall
-  speed0.997509x and5130 additional UVD completions. Captured picture/OSD are
-  clean; owner confirmation of this moving clip remains pending. The same
-  player was left looping for filming, with only the bounded prefix qualified.
-  This fixes the configuration defect; the exact errno-28 guard in the earlier
-  run remains unisolated. No kernel quota or clock change was made.
-
-`decode-fractal.py` defaults to CPU-only input/CLI preflight. Explicit `--run`
-performs exactly one forced VAAPI decode, fixed hwdownload to NV12 and bounded
-per-frame/whole-stream hash capture, with no raw2.8GB output retained.
-
-`demo.py` also defaults to preflight. Explicit `--run` launches a paused
-forced-vaapi-copy player, verifies actual libraries/decoder/dimensions/thread
-request, then unpauses once. It displays real decoder, source FPS, PTS/wall
-speed, drop counters and UVD fence completions, and monitors the ongoing loop.
-Three completed zero-drop passes are required for its READY record. Controls
-are disabled; seeking remains a separate gate. Software fallback is disabled.
-H264 can be decoded in software: hardware is required by the launcher and
-verified execution, not intrinsically by the video file.
-
-The native Mac fractal generator lives in `fractal/`, with deterministic
-720p30 and1080p30 variants and independently checked software NV12 oracles.
-
-## CPU-only demo guard checks
-
-From the repository root:
-
-```sh
-python3 -B platforms/ps4/experiments/mesa-uvd/checks/demo_check.py
-```
-
-These portable checks exercise actual thread/log gates, IPC parsing, fence
-parsing, loop progress and preflight with synthetic fixtures. They never
-launch mpv or touch GPU/debugfs/live process state. The frozen controller
-used in EXP014 passed62 checks; these do not establish hardware acceptance.
-
-## Recovery and remaining gates
-
-Normal exit restores application driver selection because it was process-local.
-Do not reset/unload/rearm the experimental UVD kernel. On a terminal driver
-fault, stop and use the preserved full-power-off/preparation recovery workflow.
-Preserve the existing Linux boot while it remains usable.
-
-Full desktop adoption, long-duration playback, supported resolutions/profiles,
-controlled seeking, repeated sessions and at least three cold boots of a frozen
-matching artifact set remain separate acceptance gates. Gladius is source-only.
-This directory publishes experimental source only. Binary releases, firmware redistribution and system-wide adoption are outside this source package.
+Package releases are distinct from candidate identities. Select both explicitly;
+the recipe rejects a mismatched candidate and verifies every staged file before
+packaging. Hashes identify bytes but do not replace package signatures. Current
+local packages are unsigned experimental artifacts, not a signed public release.
+A public release still needs reviewed corresponding source, qualification scope,
+signing and an explicit publication step. No upstream refresh or automatic
+Omarchy update is part of this packaging flow.

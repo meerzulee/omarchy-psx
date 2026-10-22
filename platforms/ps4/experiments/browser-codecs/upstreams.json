@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "upstream": "https://github.com/erkserkserks/h264ify",
+  "license": "MIT",
+  "chromium": {
+    "version": "2.0.1",
+    "manifest_version": 3,
+    "commit": "f894cef9d704dfb5fcf3aecddc25d734c3934af2",
+    "url": "https://codeload.github.com/erkserkserks/h264ify/tar.gz/f894cef9d704dfb5fcf3aecddc25d734c3934af2",
+    "sha256": "df229c8ecdf9915c30aac6b5c0108e791882b7923586401b4c7c1891426d0fed"
+  },
+  "firefox": {
+    "version": "1.1.0",
+    "addon_id": "jid1-TSgSxBhncsPBWQ@jetpack",
+    "url": "https://addons.mozilla.org/firefox/downloads/file/3398929/h264ify-1.1.0.xpi",
+    "sha256": "87bd3c4ab1a2359c01a1d854d7db8428b44316fef5b2ac09e228c5318c57a515",
+    "bytes": 35788
+  }
+}

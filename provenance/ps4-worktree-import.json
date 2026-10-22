@@ -185,7 +185,7 @@
       "source": "docs/COMPATIBILITY.md",
       "destination": "platforms/ps4/docs/COMPATIBILITY.md",
       "source_sha256": "56bc895a1d3f54fa7c8a2439c8324225ad4804033718e1acf81305572b0c55a5",
-      "destination_sha256": "de4ade9fef5cee0e8de6ead8925ae988a221c72fbb7b851365d851c088a85e31",
+      "destination_sha256": "c9cb959eb4df1802eace1b8834c5274487bfff7752049323b689dc66f521165d",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
@@ -478,7 +478,7 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "5e80e067e15b6be12eda852d62bd56722b933765bdc1e713e2067f821d2413e9",
+      "destination_sha256": "d73ab0102dcbb98fc632648fad255cc6d5a7b588a49a6b496ea6650668664162",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
@@ -499,7 +499,29 @@
         "2026-10-20: retain prior October 19\u201320 UVD experiment history and append EXP-005 first exact frame plus EXP-006 first normal 120-frame VAAPI decode with narrow acceptance, immutable evidence hashes and limits; preserve the original import hash and earlier verdicts. Keep personal host/path/LAN identifiers redacted by role/documentation examples.",
         "2026-10-20: append EXP007-010 presentation diagnostics and corrected EXP008 later-seek limitation; source lineage and original historical hashes preserved.",
         "Record completed EXP20261020-007 through014 presentation discrimination, isolated Mesa26.2.5, exact AVC regression/1080p decode, failed four-thread mpv initialization and bounded five-loop one-thread playback; preserve limits and private evidence boundaries.",
-        "2026-10-20 publication export: redact actual USB serial, filesystem UUIDs and running boot identity; preserve source hash, scoped verdicts and immutable evidence digests. Original private local commits retained separately."
+        "2026-10-20 publication export: redact actual USB serial, filesystem UUIDs and running boot identity; preserve source hash, scoped verdicts and immutable evidence digests. Original private local commits retained separately.",
+        "2026-10-20: append completed EXP015-017 browser FMASK fault isolation/fix and bounded AA WebGL observations; EXP018-021 direct100M ICMP, setup failures, exact32MiB integrity and two-minute duplex stress including87 TCP retransmissions. Preserve original imported source hash, scoped verdicts and private raw-evidence boundaries.",
+        "2026-10-20: append EXP022 failed system Mesa adoption, terminal UVD timeout, operator freeze, signed-package rollback and preserved update guards; retain prior pass scopes and original imported source hash.",
+        "Record EXP023 fresh desktop recovery after restoring original signed Mesa packages; no new GPU workload or full-stack qualification.",
+        "2026-10-21: append EXP024-029 and EXP001-008 bounded Vulkan depth/presentation failures, scoped passes and recovery observations; preserve negative findings, setup errors, timing limits, pending operator observation and original imported hash. Raw evidence and machine identities remain private.",
+        "2026-10-21: refresh current resume point and record EXP009-014 bounded fill/HTILE/presentation and exact UVD results; preserve observer failure, corrected mapping, earlier failures, original imported hash and private evidence boundaries.",
+        "2026-10-21: record EXP015 CPU-only wrong-pin stop and EXP016 bounded GL shadow rendering with owner-confirmed clean display; preserve failed map-observer receipt, exact identity/pixel-oracle gaps, original source hash and private evidence boundaries.",
+        "2026-10-21: record completed EXP017-022 GFXBench setup failures, pinned Wayland compatibility, two T-Rex runs with owner confirmation on the repeat, Manhattan/Manhattan3.1 passes and terminal CarChase graphics VM faults with immediate suite stop; preserve original imported hash, scoped evidence, no-reset policy and private identifiers/raw logs. Vulkan preparation is source-only and unqualified.",
+        "2026-10-21: record owner-authorized EXP023 experimental dev5 default package installation, exact stage/package hashes, unchanged rendering/update policy, retained signed rollback and pending cold-boot activation; preserve CarChase failure, corrected retained-fault ordering, original import hash and private evidence boundaries.",
+        "2026-10-21: close EXP024 as Orbis reboot with Linux not run; record read-only USB package/kernel identity inspection and safe unmount, pending default activation and completed capture scope. Original source hash retained.",
+        "2026-10-21: record fresh dev5 default boot, stale browser lock repair with setup/timing limitations, AV1 observation, pinned codec policy, failed Chromium VAAPI admission and corrected software-only filter checks. Preserve original imported hash, scoped outcomes and private evidence boundaries.",
+        "2026-10-21: record EXP028 terminal warmup fault and EXP029 completed capture without recovery, later owner-reported AVC selection and precise diagnostic limitations; preserve original source hash and private evidence boundaries.",
+        "2026-10-21: update the resume point and append completed EXP030 unchanged-stack physical recovery, fresh boot/build/driver identities, UVD startup, owner desktop observation and bounded-capture limits; retain original imported hash, earlier failures, untested GPU/video scope and private machine/raw-evidence boundaries.",
+        "2026-10-21: preserve EXP031 as completed UART capture but NOT_RUN hardware measurement after the prelaunch remaining-time guard stopped setup; record source-review/preflight limits, deadline timing and the required preprepared-launch change without claiming a driver failure or GPU test.",
+        "2026-10-21: record completed EXP032 installed-dev5 exact120-frame decode and three-loop native1080p30 playback, actual system mappings, zero drops, pacing, player CPU cost, scheduler-accounting limitations and owner smooth-playback report; retain original import hash and private raw/machine evidence boundaries, without maximum-throughput, browser or stable-adoption claims.",
+        "2026-10-21: record completed EXP033 frozen-dev5 T-Rex offscreen1080p throughput, actual render/window/vsync distinctions, unchanged UVD and source-explained intentional preview mosaic after the owner photo; preserve pixel-oracle, conformance and CarChase limits, original imported hash and private evidence boundaries.",
+        "2026-10-21: append EXP034 Chromium Mesa/software-video control, EXP035 observer-only failure, EXP036 buffered AVC1080p slow-motion evidence and EXP037 Firefox local VAAPI followed by exact handle-admission ENOSPC and terminal closure; retain collection errors, unchanged normal settings, unresolved audio/rate causes, original import hash and private evidence boundaries.",
+        "2026-10-21: record EXP038 on a newly observed unchanged-stack boot, matched Chromium1080p HDMI-null-HDMI audio-route timing and actual rate1, transient null-sink drops, restored defaults/owned-module cleanup and no terminal marker; distinguish route causality from an audible fix or kernel-specific root cause and preserve original import hash/private evidence.",
+        "2026-10-21: record EXP039 failed audible loopback returning to the HDMI-driven slow clock and EXP040 ineffective node.driver=false configuration with a prelaunch guard stop, no browser workload, verified rollback and completed UART continuity; retain original imported hash, negative/NOT_RUN results and private machine/raw-evidence boundaries.",
+        "2026-10-21: record EXP041 verified IRQ scheduling still at0.614846x, actual software decoder/dimensions/buffers, missing PCM proc observer evidence, full userspace rollback and completed UART continuity; separate read-only PR3 underscan scope and DP/HDMI source leads from an audio-driver diagnosis or hardware fix. Preserve original source hash and private evidence boundaries.",
+        "2026-10-21: record owner-authorized PR3/UVD derivative clean build, complete source/modules readbacks, EXP042 read-only staging guard stop and corrected EXP043 verified file-only USB update/unmount with rollback; mark the fresh TV boot/audio test pending in one bounded session, preserve original import hash, no-format/internal-write limits and private USB/UART identities.",
+        "2026-10-21: conclude EXP043 with completed UART continuity, exact new boot/kernel/config/module/dev5 identities, clean rate1 slow-playback segments, contaminated mixed-rate whole-window limits and owner-confirmed slow sound/picture; preserve original source hash, private raw evidence and startup-versus-underscan/UVD acceptance limits. Separate OC4/Astra read-only source/test recommendations from implementation or another hardware test.",
+        "2026-10-21: record completed EXP044 direct-ALSA S32/48k ten-second fixture with16.258609s process duration, negotiated hardware geometry, HDA IRQ timing clue, unchanged zero UVD fences and restored HDMI control. Preserve independent acoustic-measurement gaps, indirect-startup caveat, original imported hash and private evidence boundaries; no claimed driver fix."
       ]
     },
     {
@@ -2819,6 +2841,42 @@
       "sha256": "516365d75991c38cf96227c3a611202111c39b29366bf4fa0c4e033799199f20",
       "mode": "0o755",
       "purpose": "Synthetic MBR byte-preservation, sizing, input-matching and native regular-file Unix-metadata fixtures."
+    },
+    {
+      "destination": "platforms/ps4/experiments/browser-codecs/README.md",
+      "sha256": "ce8a51e2c44aa6bdd505468a832ea57a79bcd9d96c399de622892fd77490cc08",
+      "mode": "0o644",
+      "purpose": "Scoped pinned upstream h264ify deployment, browser codec policy, verification and rollback boundaries."
+    },
+    {
+      "destination": "platforms/ps4/experiments/browser-codecs/upstreams.json",
+      "sha256": "712ba349b9128d06580c0e782766500949358640959f57ccb3868bc6678e8d41",
+      "mode": "0o644",
+      "purpose": "Exact MIT upstream Chromium source and Mozilla Firefox add-on URLs, versions and artifact hashes; downloads excluded."
+    },
+    {
+      "destination": "platforms/ps4/experiments/browser-codecs/firefox-policy.json",
+      "sha256": "e9d4ec440fb577843c3dcf2c86d203dbc0c1a28a71bc7d214b0c6945d2c9b74d",
+      "mode": "0o644",
+      "purpose": "Reviewed Firefox policy fragment for pinned h264ify and disabled AV1; existing policies must be merged."
+    },
+    {
+      "destination": "platforms/ps4/experiments/gfxbench/README.md",
+      "sha256": "d6fe5b4624d760a17c551ed1206b79d2dfbb493439d4ee3fdd3a33cfbe2256dc",
+      "mode": "0o644",
+      "purpose": "Private first timed CarChase shadow-cascade diagnostic scope, provenance and build-only result."
+    },
+    {
+      "destination": "platforms/ps4/experiments/gfxbench/shadow0.patch",
+      "sha256": "65cdb7ffb5329fa10ee697e3011ad4f755017ab0e895f4cc4e8419038e067a33",
+      "mode": "0o644",
+      "purpose": "BSD-3-Clause GFXBench diagnostic adaptation: preserve warmup, trace/finish cascade0 and exit before later timed passes."
+    },
+    {
+      "destination": "platforms/ps4/experiments/gfxbench/tilemax-probe.c",
+      "sha256": "a35d759ac863a077049c295ed15131b86685f264c13d433c5711ef4e841b0841",
+      "mode": "0o644",
+      "purpose": "Reduced WG64 TileMax compute/readback and canary oracle using a separately pinned external BSD-3-Clause shader; build-only preparation, no GPU acceptance."
     }
   ],
   "validation": {
@@ -2865,7 +2923,7 @@
     "source_files_adapted": 75,
     "source_files_byte_identical": 177,
     "source_files_excluded": 6,
-    "new_platform_files": 10,
+    "new_platform_files": 16,
     "source_files_retired": 8
   },
   "retired": [
@@ -2924,6 +2982,32 @@
       "destination_sha256": "653330cb08d619e358cc000c998f7671f386fa6844d636c3c1843408cb2b1e1e",
       "removed": "2026-10-18",
       "reason": "Removed 2026-10-18 with the omarchy-ps4-ethernet package it tested."
+    }
+  ],
+  "retired_added_files": [
+    {
+      "destination": "platforms/ps4/experiments/mesa-uvd/patches/0003-addrlib-selected-fmask-entry.patch",
+      "sha256": "10f6369f300bd884290cc812254ee3f66694b3d0fdaeee37451b1f93561ba07c",
+      "mode": "0o644",
+      "purpose": "Original focused Mesa addrlib fix: validate only the required Liverpool FMASK tile entry; retain assertions and reject unavailable requested layouts.",
+      "reason": "Moved by owner request to Linux psX userspace/mesa; exact bytes and license retained.",
+      "moved_to": "userspace/mesa/patches/0003-addrlib-selected-fmask-entry.patch"
+    },
+    {
+      "destination": "platforms/ps4/experiments/mesa-uvd/checks/fmask-repro.cpp",
+      "sha256": "fb5679d047a2479f6c3abe1f3e72d8435643fb48bc5c91ba2c4af68f8873704b",
+      "mode": "0o644",
+      "purpose": "Public AddrLib API replay using the measured Liverpool tile-table constants; reproduce original assertion and verify selected-entry validation and layouts.",
+      "reason": "Moved by owner request to Linux psX userspace/mesa; exact bytes and license retained.",
+      "moved_to": "userspace/mesa/checks/fmask-repro.cpp"
+    },
+    {
+      "destination": "platforms/ps4/experiments/mesa-uvd/checks/fmask_check.py",
+      "sha256": "7b3d8c86f2d84d52f520ee1bc2598d62a3885e7378703ec3ee08eee777865e96",
+      "mode": "0o644",
+      "purpose": "Synthetic CPU regression runner for fifteen FMASK entry/layout cases; no console access.",
+      "reason": "Moved by owner request to Linux psX userspace/mesa; exact bytes and license retained.",
+      "moved_to": "userspace/mesa/checks/fmask_check.py"
     }
   ]
 }

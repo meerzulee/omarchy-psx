@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Meerzulee
+"""Make a new, data-only SATA diagnostic initrd from the retained runtime base."""
+
+from __future__ import annotations
+
+import argparse
+import difflib
+import gzip
+import hashlib
+import importlib.machinery
+import importlib.util
+import io
+import json
+from pathlib import Path, PurePosixPath
+import sys
+
+BASE_SIZE = 2549097
+BASE_SHA256 = "cf2102f52b8b5d048538e1dd410b2c9b43ec81d2a567294d6204578aa83103f7"
+ORIGINAL_INIT_SHA256 = "c0232dd418e9ea4916390f7d38a6903a5553cb8b3a5a32755b70d6a0f94ef894"
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def archive_module():
+    path = Path(__file__).resolve().parents[2] / "scripts/repack-ps4-initramfs"
+    loader = importlib.machinery.SourceFileLoader("ps4_sata_newc", str(path))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[loader.name] = module
+    loader.exec_module(module)
+    return module
+
+
+def assemble(base: bytes, replacement: bytes, module):
+    if len(base) != BASE_SIZE or digest(base) != BASE_SHA256:
+        raise ValueError("base size/SHA-256 differs from the retained EXP-006 runtime initrd")
+    archive = gzip.decompress(base)
+    entries, _ = module.parse_newc(archive)
+    indexed = {str(PurePosixPath(e.name.decode())): e for e in entries}
+    original = indexed["init"].data
+    if digest(original) != ORIGINAL_INIT_SHA256:
+        raise ValueError("base /init does not match its provenance")
+    if any("modules" in PurePosixPath(name).parts for name in indexed):
+        raise ValueError("base unexpectedly contains kernel modules; review matching modules first")
+    for applet in ("sh", "cat", "sleep", "mount", "readlink", "blkid", "mkdir", "uname"):
+        if "bin/" + applet not in indexed:
+            raise ValueError("base is missing required applet " + applet)
+    updated = module.replace_init(archive, replacement)
+    rebuilt, _ = module.parse_newc(updated)
+    if len(entries) != len(rebuilt):
+        raise ValueError("archive entry count changed")
+    for before, after in zip(entries, rebuilt):
+        if str(PurePosixPath(before.name.decode())) != "init" and before.raw != after.raw:
+            raise ValueError("a non-init entry changed")
+    stream = io.BytesIO()
+    with gzip.GzipFile(filename="", fileobj=stream, mode="wb", compresslevel=9, mtime=0) as writer:
+        writer.write(updated)
+    return stream.getvalue(), original, len(entries)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", required=True, type=Path)
+    parser.add_argument("--output-dir", required=True, type=Path, help="New local artifact directory; never a media target")
+    args = parser.parse_args()
+    module = archive_module()
+    try:
+        if args.output_dir.exists() or args.output_dir.is_symlink():
+            raise ValueError("output directory already exists; choose a fresh path")
+        replacement_path = Path(__file__).resolve().with_name("init")
+        base = module.read_regular(args.base, 8 * 1024 * 1024)
+        replacement = module.read_regular(replacement_path, 1024 * 1024)
+        result, original, count = assemble(base, replacement, module)
+        patch = "".join(difflib.unified_diff(original.decode().splitlines(True),
+                     replacement.decode().splitlines(True), fromfile="a/init", tofile="b/init")).encode()
+        receipt = {
+            "schema": 1, "status": "PASS_DATA_ONLY_REPACK_NOT_BOOT_TESTED",
+            "base": {"path": str(args.base.resolve()), "bytes": len(base), "sha256": digest(base)},
+            "base_identity_basis": "EXP-20261020-006 installation/INSTALL.json pins the same initrd; no fresh loaded-ramdisk measurement is claimed",
+            "original_init_sha256": digest(original), "diagnostic_init_sha256": digest(replacement),
+            "diagnostic_init_source": "diagnostics/ps4-sata/init",
+            "output": {"file": "initramfs.cpio.gz", "bytes": len(result), "sha256": digest(result)},
+            "archive_entries": count, "non_init_entries_byte_preserved": True,
+            "kernel_modules_in_initramfs": False,
+            "root_policy": "USB sysfs ancestry and geometry before per-device blkid; ext4 ro,noload; initramfs remains PID1",
+            "services_started": [], "console_or_media_writes": False,
+            "kernel_automatic_hdd_enumeration_reads": "possible before /init; not prevented by the userspace policy",
+            "firmware_and_busybox_notices": "unchanged external archive entries retain their original licensing; do not publish this generated archive",
+        }
+        # No devices, mounts, subprocesses or target binaries are used. Each
+        # publication is no-replace; a failed build leaves evidence for review.
+        args.output_dir.mkdir(parents=True, exist_ok=False)
+        for name, data in {"initramfs.cpio.gz": result, "original-init": original,
+                           "diagnostic-init": replacement, "init.patch": patch,
+                           "receipt.json": (json.dumps(receipt, indent=2) + "\n").encode()}.items():
+            module.create_output(args.output_dir / name, data)
+        print(json.dumps(receipt, indent=2))
+        return 0
+    except (OSError, ValueError, module.ArchiveError) as error:
+        print("ps4-sata-initramfs: " + str(error), file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,6 +1,157 @@
 > Imported PS4 history from `omarchy-ps4` on 2026-10-17. Paths and milestones below describe the original PS4 implementation and artifacts; they do not qualify a new Linux psX build or PS5. Use the [current migration guide](../../../docs/MIGRATION.md) for the active repository layout. Private network/host details are redacted.
 
-# Current resume point — Linux 7.2, 2026-10-18
+# Current resume point — Mesa/UVD, 2026-10-21
+
+**EXP-20261021-044 completed: slow delivery also reproduces through direct
+ALSA, without Chromium or a PipeWire playback stream.** A ten-second48k/stereo/
+S32LE fixture takes16.258609s for aplay open/write/drain/exit observation. Actual
+hardware parameters confirm48k/stereo/S32LE; process timing is not an independent
+acoustic duration/pitch measurement. HDA logs its IRQ timing workaround warning.
+UVD fences remain0/0→0/0, all other fences unchanged; no terminal fault. HDMI
+suspension released/default retained, no persistent change or active marker.
+This shifts investigation below the browser/audio-server path; it does not
+identify the precise HDA/bridge fault or exclude an indirect UVD startup effect.
+Next unused is045; operator tick-spacing/recording evidence remains pending.
+
+**EXP-20261021-043 completed: the PR3/UVD derivative boots the TV desktop, but
+HDMI playback remains slow.** New release/build/config/all41 modules match,
+UVD starts ready, installed dev5 identities match and no terminal fault is
+recorded. Clean rate1 segments measure0.614892x and0.614960x; owner explicitly
+reports sound and picture slow. Whole-window pacing is contaminated by rate
+changes and is not a clean comparison. Browser closed, normal flags/default
+audio unchanged; no active bounded experiment. PR3 is not an audio-speed fix,
+and its underscan-property behavior has not been exercised in Wayland here.
+Next unused is044; independent read-only OC4/Astra advice is requested before
+another hardware branch. Existing boot set/module rollback remains retained.
+
+**Audio-clock checkpoint through EXP-20261021-041:** effective exact-HDMI IRQ
+scheduling remains0.614846x with buffered1080p, zero drops/no stalls. The setting
+is rolled back; normal Chromium flags and kernel remain unchanged, no terminal
+fault, no active bounded marker. ALSA pointer sampling was unavailable (all
+requested proc subfiles absent), not evidence that PCM failed. Next unused is042;
+inspect the lower audio clock layer before another changed-variable experiment.
+
+EXP039's audible null/HDMI
+loopback remains0.615241x because it rejoins the HDMI-driven graph. EXP040's
+temporary `node.driver=false` rule does not change the exposed node.driver=true;
+its guard stops before Chromium starts, then removes the owned rule and restores
+audio. No playback result exists for040, no terminal fault, normal flags remain.
+EXP041 verifies the IRQ property before launch rather than treating a config
+file as proof; its unchanged timing rules out that userspace scheduling switch
+as a sufficient remedy. The HDMI/HDA/bridge root cause is not established.
+
+**EXP-20261021-038: on a newly observed unchanged-stack boot, Chromium
+1080p slow motion follows the selected audio output.** Matched Crab Rave
+segment at continuous playbackRate1 gives HDMI0.614976x → temporary null
+sink1.015747x → HDMI0.614740x, with no waiting/stalled events and full buffers.
+Null-sink transition drops remain; this is causal audio-route discrimination,
+not an audible smooth-playback fix. The source driver versus userspace audio
+cause is not yet isolated. Owned sink removed, HDMI default preserved, normal
+Chromium flags/profile unchanged, no terminal marker, no active bounded marker.
+The owner reported Linux relaunched before inspection; this unmarked boot is
+not a bounded physical-power-cycle acceptance.
+
+**Historical STOP: EXP-20261021-037 closes UVD with error-28 on the older recovered EXP030 boot.**
+Firefox actually decodes the known local clip through VAAPI, then navigating to
+YouTube reaches`No more free UVD handles!` and the terminal runtime closure.
+The deployed source permits one handle and closes admission after parser errors;
+do not raise handle/lease quotas blindly. No further graphics/video workload on
+this boot. Full physical power-off and the unchanged normal Linux USB boot are
+required before another test. Normal browser flags/policies remain unchanged.
+Chromium's separate software-decode YouTube test is still owner-reported slow;
+buffered1080p AVC advances only about0.62x wall time on uninterrupted sections.
+Playback rate/audio-clock/CPU causes are not isolated; GPU fault is not the
+recorded cause of that earlier slow-motion observation. Next unused ID is038.
+
+**Graphics: EXP-20261021-033 completes T-Rex offscreen1080p at286.986949FPS,
+16075frames/56.013seconds, `is_vsync_limited=false`.** The owner's small tiled
+monitor image is consistent with GFXBench's intentional10x10 thumbnail mosaic,
+rotated for its tall950x1034 presentation window; the measured render target
+remains1920x1080. Source explains the grid, not every pixel's correctness. No
+terminal fault is recorded, all GPU fences catch up and UVD stays2833/2833.
+CarChase remains unfixed.
+
+**Video: EXP-20261021-032 passes an installed-dev5 UVD measurement:** all120
+canonical frames are byte-exact, then three native1080p30 playback loops run
+with zero sampled decoder/display drops at0.997038x PTS/wall speed. Player CPU
+is27.7636% of one core over90.3342seconds;2711 additional UVD jobs complete.
+Actual installed EGL/Gallium/GBM mappings and the one-thread vaapi-copy request
+are verified; fallback is disabled. The owner reports smooth fractal playback.
+UART continuity is completed and no terminal fault is recorded. This is a
+specific paced copy-back/presentation result, not maximum decoder throughput,
+physical busy percentage, browser playback, broad3D or stable qualification.
+
+**Recovery: EXP-20261021-030 observes recovery from the terminal CarChase boot
+by full physical power-off and the unchanged normal Linux USB boot.** A fresh
+boot identity, the same runtime kernel build and installed dev5 Gallium/RADV
+hashes, actual desktop Gallium mappings, UVD STARTED/QUEUE_READY and no new-boot
+terminal markers are observed. The owner reports a normal desktop. Capture
+continuity is completed; no decoder or benchmark is launched in this recovery
+check. This is another startup observation, not a repetition of graphics/video
+acceptance tests or stable qualification. CarChase and browser UVD remain open.
+
+EXP-20261021-025 observes a fresh Linux boot with the owner-requested dev5
+default packages`1:26.2.5-5.1`. All40 staged identities match; Hyprland and
+Xwayland map the installed Gallium26.2.5. The owner confirms normal desktop
+and mouse. The kernel remains`7.2.11-psx-ps4-baikal-uvd-runtime-dev1`;
+signed original rollback packages, offline updates and graphics holds remain.
+This is one boot observation, not stable-image or full-stack qualification.
+The earlier CarChase graphics VM fault and terminal guard closure in EXP022
+remain unresolved; installing the package did not repair that old boot.
+
+EXP026 fixes Chromium startup by quarantining a dead old-hostname profile
+lock; the owner confirms the browser opens. A later software-only audit also
+quarantines dead Firefox and experimental Chromium locks. Hostname already
+matches the requested console name; no browser history/settings are removed.
+The owner's struggling YouTube stream reports1080p30 AV1, outside Liverpool's
+hardware codecs; observed UVD submissions before the next test are0.
+
+EXP027 installs pinned upstream h264ify for both browsers and runs one
+isolated Chromium H.264/VAAPI check. UVD completes5jobs before CS rejection
+(-28) and a userspace GPU-process SIGABRT; no kernel VM fault or terminal UVD
+marker is observed. The browser closes, and all UVD fences catch up. Normal
+Chromium retains`--disable-gpu`. Its codec-filter check subsequently rejects
+AV1/VP9 and allows H.264. Browser UVD playback remains failed/unqualified;
+do not confuse codec filtering with hardware decoding. No reset or rearm.
+
+The Mesa26.2.5 dev5 candidate, used process-locally for those tests, keeps the bounded compute-fill
+patch and restores HTILE. EXP009–014 establish small fill/guard oracles,
+HTILE-enabled D16 readback,1/120cube presentations and exact120/900frame UVD
+output, followed by actual driver-map confirmation. Earlier failed adoption
+and freezes remain recorded. The missing /proc children interface caused one
+collection failure, preserved and corrected separately from the decode passes.
+
+These are focused results on one console and one fresh boot. Full GL/Vulkan
+coverage, MSAA/formats/compute, games/DXVK, seeking, simultaneous load, sustained
+use and three fresh boots remain open. The underlying reason for the original
+FLAT-generated path hanging is not proved. Use Linux psX's
+[feature matrix](https://github.com/meerzulee/linux-psx/blob/master/docs/MESA-TESTING.md)
+and the exact experiment records below. Continuous UART remains running; no
+bounded experiment is active. No GPU reset/unload/rearm is authorized by a pass.
+
+EXP015/016 later prepared glmark2 and displayed one five-second OpenGL shadow
+scene. The owner confirms clean picture/shadow and normal desktop/mouse; the
+scene reported60FPS with FIFO and exited normally. Two collection mistakes
+remain recorded below. This is a visual smoke result, with no pixel oracle or
+captured exact live-library identity, and does not qualify general3D support.
+
+GFXBench source was subsequently built and saved on the console. EXP020/021
+pass full56second T-Rex runs at actual1080p with smooth movement confirmed by
+the owner. EXP022 passes Manhattan and Manhattan3.1, then stops immediately
+at CarChase VM faults. The37remaining GL and five Vulkan cases were not run.
+The owner authorized autonomous testing plus preserving the tool
+for later replay. Its results and startup compatibility work remain separate
+from general Mesa/kernel acceptance. Independent source review finds a full
+scene Render during motion-blur warmup; a private shadow-cascade0 probe is
+therefore gated after warmup, on the first timed frame. It builds on16cores,
+but EXP028 faults in warmup before the timed-stage cut. The kernel closes the
+UVD guard; no further GPU work is allowed on that boot. A separate shader-only
+WG64 oracle is built but unrun. Recovery observation EXP029 closed without a
+new boot; capture continuity completed, but recovery was not run. No bounded
+session remains active and no CarChase fix is claimed. Full physical power-off
+and a healthy fresh boot are still required before another GPU workload.
+
+## Previous resume point — Linux 7.2, 2026-10-18
 
 `7.2.11-psx-ps4-baikal-dev1` passed one core boot in EXP-20261018-001,
 including USB root, accelerated 1080p graphics and Wi-Fi. EXP-002 enabled BlueZ
@@ -13811,3 +13962,2096 @@ but they are not evidence of a Linux 6.18 boot.
   explicit filming request; continuous UART remains running. Later time is
   unqualified, the monitor normal-quits on failure, and no second decoder,
   reset/unload/rearm or reboot was attempted.
+
+
+## EXP-20261020-015 — Firefox PNG and WebGL with isolated Mesa
+
+- Same running UVD kernel/boot and Hyprland. Patched Mesa26.2.5 is selected
+  only for a separate Firefox154.0 profile; browser video decoding is disabled
+  for this rendering test. Installed Mesa26.1.7/compositor remain unchanged.
+- **PASS_OBSERVED_FIREFOX_PNG_WEBGL_RENDERING.** Primary inspected the clean
+  compositor capture; owner reports “looks great no glitches”. Mapped Firefox
+  libraries resolve to the pinned candidate (manifest SHA256
+  b8ea4288485b0a06ba5405fc852d73c88be5d15493af2e6a7224f9ef63438cca).
+  This qualifies this page/window only, not all Firefox workloads or the desktop.
+- The planned old-Mesa baseline exited before graphics because its launch
+  environment lacked WAYLAND_DISPLAY after the original browser was closed.
+  Corrected helper selects the single live Wayland socket; no valid old/new
+  rendering comparison was collected here. It was a launch setup failure.
+- UART continuity completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets2948354..2950983 (2629bytes),15:35:50.875258–15:42:18.950957UTC.
+  Compact context has no terminal GPU/UVD fault marker. One launch correction,
+  no reset/unload/reboot or global package install. Closing the test browser
+  restores its application environment. Private evidence:
+  lab/mesa-firefox-20261020-01/{PLAN.json,RESULT.json,candidate-screen.png}.
+
+
+## EXP-20261020-016 — Chromium accelerated native Wayland rendering
+
+- Owner requests Chromium after a clean Firefox texture-page observation.
+  Same patched Mesa26.2.5, running kernel/boot/compositor. Isolated Chromium
+  151.0.7922.169 profile and explicit ANGLE OpenGL; direct packaged binary
+  avoids the existing normal-launcher disable-gpu workaround. Sandbox remains
+  enabled; installed packages and normal profile/flags are unchanged.
+- **FAIL_ADDRLIB_FMASK_MSAA_ASSERT.** Owner sees no WebGL texture. Core from
+  GPU PID27705 has SIGTRAP in Addr::V1::CiLib::HwlComputeFmaskInfo through
+  gfx6_compute_surface and RenderbufferStorageMultisample, in candidate
+  libgallium26.2.5. Browser automatically retried its GPU process three times;
+  the agent made one browser launch, then terminated only its test root PID.
+  Root exited normally. No reset/unload/reboot or manual retry.
+- Core inspection also finds Firefox PID25753 trapped in the identical
+  Fmask/MSAA path at15:42:46UTC, after EXP015 cutoff. The initial clean
+  Firefox PNG/WebGL observation does not qualify further browsing. Owner
+  also observed YouTube stutter; video decoding was disabled in that test
+  profile and the actual stream codec was not measured.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets2954826..2960414 (5588bytes),15:43:38.091812–15:44:52.601814UTC.
+  Compact context records userspace core dumps, no terminal GPU/UVD marker.
+  System-wide Mesa promotion is held for the concrete allocation failure.
+  Private evidence: lab/mesa-chromium-20261020-01/{PLAN.json,RESULT.json,
+  core-info-27705.txt,core-info-25753.txt,chromium.log,mapped-before-stop.json}.
+
+
+## EXP-20261020-017 — corrected FMASK browser rendering
+
+- One driver delta from EXP016: Mesa patch0003 validates only the selected
+  FMASK entry. CPU replay reproduces the original trap;15 cases verify fixed
+  positive/missing entries and identical2D layouts. Fresh native build passes
+  all44 Mesa host tests, assertions remain enabled. Same browser versions,
+  sandbox and Wayland compositor/kernel; installed packages remain unchanged.
+- **PASS_BOUNDED_BROWSER_ANTIALIASED_WEBGL.** Chromium GPU and Firefox maps
+  select the new pinned candidate. Primary inspected both displayed PNG/WebGL
+  frames: matching pictures, antialias=true,glError=0. Chromium reports ANGLE
+  AMD radeonsi liverpool ACO. Owner confirms both browsers show WebGL. No new
+  core dumps during the captured check; no browser/GPU crash in their logs.
+- Candidate manifest SHA2563902e67bd5d5170cd0b2e26304b9dac261ea2fa3245a61a00dbd11e10a225ee6;
+  archive SHA256a649151cb528c752015f34374c210b9d7a33212a905bd8119d45b9f093b2e120.
+  This fixes the observed FMASK allocation crash, not a broad desktop, gaming,
+  browser video-decoding or repeated-boot qualification. Firefox video decode
+  remains disabled in the rendering profile. Healthy test windows remain open
+  for the owner's requested testing; later runtime is outside this prefix.
+- Initial wrapper setup omitted sources.json and exited before browser
+  execution. Exact manifest copied and39-file verification passed before
+  corrected launch; initial failed log/record preserved. One focus request
+  also failed as a UI operation; owner could see the browser and no driver
+  retry/reset was involved. No global package install/reboot/unload/rearm.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets2968735..2973773 (5038bytes),16:03:00.196401–16:08:40.185040UTC.
+  Compact context contains WLAN P2P errors, no terminal GPU/UVD marker.
+  Private evidence: lab/mesa-browser-fixed-20261020-01/ including
+  HARDWARE-RESULT.json,PLAN.json and both antialiased screenshots.
+
+
+## EXP-20261020-018 — direct peer 100 Mbps native Ethernet
+
+- Owner connected PS4 directly to the native/UART host. Host eno1 advertises
+  100/full only; both sides use a temporary isolated /30. SSH control uses
+  Wi-Fi with active NetworkManager host routes; driver DMA stays retained.
+- **PASS_BOUNDED_100M_ICMP; TCP_INCONCLUSIVE_SETUP.** Each direction receives
+  300/300 small and3000/3000 1400-byte ICMP payloads: zero loss. Native peer
+  reports100Mb/s full duplex and zero hardware RX/TX errors. MTS remains
+  attempted1/published1,terminal_fault0,error0, same four DMA allocations.
+- TCP connect timed out before any payload. Server logged READY, but host
+  INPUT policy is DROP and has no allow for test TCP port49518. No automatic
+  retry; subsequent experiment changes only that firewall prerequisite.
+  This is not TCP acceptance or resolution of issue2's gigabit report.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets2974733..3000443(25710bytes),16:13:47.531766–16:27:41.799763UTC.
+  Compact context contains WLAN reconnect/roaming and USB keyboard events,
+  no terminal MTS/GPU/UVD fault marker. Private evidence:
+  lab/ethernet-direct-20261020-01/{PLAN.json,RESULT.json,traffic-results/}.
+
+
+## EXP-20261020-019 — TCP host firewall prerequisite
+
+- **SETUP_ABORT_BEFORE_CLIENT.** Temporary exact peer/interface/port INPUT
+  allow installed; server listened. Agent matcher expected IP:port while ss
+  reports IP%interface:port for SO_BINDTODEVICE, so it aborted before any
+  connection attempt. Rule removed and cleanup timer stopped. Corrected
+  matcher is checked against the saved output before next experiment.
+- UART completed, same generation/epoch,16:30:25.228528–16:30:27.594059UTC,
+  range3001851..3001851,no output. No hardware acceptance claim. Private
+  evidence: lab/ethernet-direct-20261020-02/{PLAN.json,RESULT.json,traffic-results/}.
+
+
+## EXP-20261020-020 — direct 100 Mbps TCP integrity
+
+- Same direct link, boot and retained DMA as EXP018. Exact temporary host
+  firewall rule permits only eno1,172.30.254.2→172.30.254.1,TCP49518; listener
+  readiness matcher corrected from EXP019. Rule removed after measurement.
+- **PASS_BOUNDED_100M_TCP_INTEGRITY.** 32MiB each direction; both receiver
+  SHA256 values match3832f6d64036cad3c9b049b1cb118c01701ea54f46c2b9944e748a804b626193.
+  Receiver measurements83.38Mb/s host→PS4 and93.16Mb/s PS4→host; each sender
+  reports zero TCP retransmissions. Driver drop/error counters and native
+  peer hardware error counters do not increment. Control route stays wlan0;
+  no rearm/reset/unload/reboot. This is one short100M run, not stress/1G acceptance.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets3002271..3002811(540bytes),16:31:32.581636–16:31:44.570583UTC;
+  seven routine systemd lines, no terminal fault. Private evidence:
+  lab/ethernet-direct-20261020-03/{PLAN.json,RESULT.json,traffic-results/}.
+
+
+## EXP-20261020-021 — direct 100 Mbps two-minute full-duplex stress
+
+- Owner requests stress then a written result. Same100/full direct connection,
+  boot and retained MTS DMA. iperf3.22,120seconds,two TCP streams each way
+  simultaneously, concurrent1400-byte ICMP at10Hz. Only the exact peer/port
+  firewall allowance is temporary; no driver/source/kernel change.
+- **COMPLETED_100M_STRESS_WITH_RETRANSMISSIONS.** Receiver measurements:
+  PS4→peer93.13Mb/s(1397227520bytes),peer→PS4 91.23Mb/s(1368784896bytes).
+  PS4 sender0 TCP retransmissions; peer sender87. Loaded ICMP1200/1200,0%loss;
+  RTT min/avg/max0.686/35.878/46.186ms. No increment in MTS driver drop/error
+  counters or native peer hardware error counters; no terminal fault.
+  attempted1/published1 and all four DMA allocations unchanged.
+- EXP020 independently verified32MiB each way by matching SHA256 before load;
+  iperf is throughput evidence, not a whole-payload hash test. TCP retries
+  under saturation remain unisolated. This does not resolve issue2 or qualify
+  gigabit, another console, repeated boots or long-duration use.
+- PS4 has no configured usable package repository, so verified native-host
+  iperf3/lksctp runtime files were staged privately and mapped only for this
+  process. No PS4 system package upgrade. Setup time required a recorded
+  deadline amendment from300to360seconds; traffic remained120seconds.
+- Temporary firewall rule and direct NM profile removed; peer original
+  advertisements and NM management restored, safety timers stopped. Wi-Fi
+  control stays reachable with protected runtime host routes. No driver
+  reset/unload/rearm/reboot. Operator need not move cable for this cleanup.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets3002951..3005438(2487bytes),16:32:52.754989–16:38:50.618644UTC.
+  Compact context contains routine WLAN/systemd activity and cleanup, no
+  terminal MTS/GPU/UVD fault. Private evidence:
+  lab/ethernet-stress-20261020-01/{PLAN.json,RESULT.json,RESULTS.md,
+  iperf-client.json,iperf-server.json,loaded-ping.txt,uart-context.md}.
+
+
+## EXP-20261020-022 — system Mesa adoption withdrawn
+
+- Owner requests the tested Mesa as the system default and update protection.
+  Built two local Arch packages from exact dev2 stage;39 file/link identities
+  matched before and after installation. Preserved signed original26.1.7
+  packages/configs and prepared rollback before installing26.2.5-2.1.
+- **FAILED_SYSTEM_ADOPTION_ROLLED_BACK.** A fresh compositor mapped the new
+  system Gallium/EGL/GBM, and Chromium's GPU mapped new system Gallium; its
+  captured PNG/WebGL AA pictures are clean. Wayland/GBM GL4.6/GLES3.2 contexts
+  and RADV26.2.5 LiverpoolAPI1.3.354 enumeration worked. These prefix results
+  do not qualify the complete stack. Broad eglinfo exit1 includes failed
+  platform/device access; post-cube vainfo/decode tests were not reached.
+- Vulkan cube120-frame command stalled in DRM sync-object wait. Its screenshot
+  timed out. UART at17:01:57.165841UTC records PS4_UVD_RUNTIME CLOSED error=-110,
+  requiring full poweroff. Owner initially sees response, then reports frozen
+  picture/mouse. Cause remains unisolated; there was no requested AVC workload
+  in the cube. Hyprsunset was never launched. Agent installed RADV before its
+  isolated rendering acceptance; this promotion was premature. New matrix
+  gates OpenGL/Vulkan independently and uses a graphics-only kernel control.
+- Both signed26.1.7 packages and prior rendering configs restored; package
+  holds remain. Omarchy update still exits78, repositories remain empty, no
+  unattended OS update timer was found. Filesystem sync completed. No driver
+  reset/unload/rearm/reboot or desktop restart after the terminal marker;
+  current mapped graphics state remains faulted. Boot files/kernel/modules
+  and firmware unchanged. EXP023 captures manual full-poweroff recovery.
+- Compositor retained an old AMD_DEBUG=notiling value in the user-manager
+  environment despite removal from the on-disk file during the trial; do not
+  claim an environment-clean compositor comparison. Source/build tests passed
+  but were insufficient for Vulkan hardware acceptance.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets3009512..3033277(23765bytes),16:57:03.986408–17:05:38.369550UTC.
+  Private evidence: lab/mesa-system-adoption-20261020-01/{RESULT.json,RESULTS.md,
+  uart-context.md,TERMINAL-MARKERS.json,chromium-system-mesa.png,ROLLBACK.json}.
+  Mesa source/tools now live in Linux psX userspace/mesa; the test matrix is
+  linux-psx/docs/MESA-TESTING.md. This move does not promote the failed trial.
+
+
+## EXP-20261020-023 — desktop recovery after graphics timeout
+
+- **PASS_BOUNDED_DESKTOP_RECOVERY.** Owner boots Linux after the requested
+  physical power-off sequence and confirms that the desktop and mouse work.
+  A fresh boot identity replaces EXP022. The exact physical off duration is
+  not independently measured; this is one recovery, not repeated cold boots.
+- Original signed Mesa/vulkan-radeon 1:26.1.7-1 are installed, with zero
+  altered files across 103/12 package files. Hyprland maps original Gallium
+  26.1.7. Original rendering workarounds, Mesa/RADV holds and offline package
+  policy remain present. UVD reaches STARTED and QUEUE_READY without a new
+  matching terminal marker. No new render/decode workload or Hyprsunset run.
+- No driver reset/unload/rearm, software reboot or boot-file/kernel/module/
+  firmware replacement by the recovery checks. EXP022 adoption stays withdrawn;
+  Vulkan/UVD interaction and CTM remain separate open gates.
+- UART completed, generation 5c86c877cdc74dd199ab578d298c5cbc, epoch 1,
+  offsets 3034241..3309334 (275093 bytes),
+  17:10:24.592774–17:21:27.160286 UTC. Read compact context first; its 1860
+  omitted middle lines required a bounded raw runtime/fault-marker scan.
+  Continuous capture remains running with no active experiment. Private
+  evidence: lab/graphics-recovery-20261020-01/{PLAN.json,RESULT.json,
+  RESULTS.md,recovery-snapshot.json,UART.json,uart-context.md}.
+
+
+## EXP-20261020-024 — Vulkan clear preflight stopped before submission
+
+- **INCONCLUSIVE_SETUP.** A wrong assumed baseline ICD filename caused
+  vkCreateInstance failure before device creation or submission. The actual
+  `/usr/share/vulkan/icd.d/radeon_icd.json` was verified before EXP025.
+- UART completed, generation5c86c877cdc74dd199ab578d298c5cbc,epoch1,
+  offsets3311200..3311865(665bytes),17:35:15.519454–17:36:29.110587UTC.
+  Private evidence: lab/vulkan-uvd-20261020-01/RESULT-024.json and matching context.
+
+## EXP-20261020-025 — original Mesa headless Vulkan clear/readback
+
+- **PASS_BOUNDED_HEADLESS_CLEAR.** Original26.1.7 driver selected by verified
+  ICD; one64×64 optimal image clear/copy produced the exact pixel oracle and
+  exited normally. UVD fences0/0; no requested decode. Enumeration is separate
+  from this bounded GPU result. System packages/compositor unchanged.
+- UART completed, same generation/epoch,offsets3313699..3315980(2281bytes),
+  17:37:13.276850–17:38:02.753193UTC. Private RESULT-025.json and context.
+
+## EXP-20261020-026 — isolated dev2 Vulkan clear/readback
+
+- **PASS_BOUNDED_HEADLESS_CLEAR.** Identical probe and boot, changing only
+  process-local Mesa to dev2, manifest3902e67bd5d5170cd0b2e26304b9dac261ea2fa3245a61a00dbd11e10a225ee6.
+  Exact64×64 pixel oracle, normal completion, no UVD work or terminal marker.
+- UART completed, same generation/epoch,offsets3316118..3316652(534bytes),
+  17:38:29.033157–17:39:35.233563UTC. Private RESULT-026.json and context.
+
+## EXP-20261020-027 — isolated dev2 no-depth triangle
+
+- **PASS_BOUNDED_HEADLESS_DRAW.** One fullscreen triangle and readback verified
+  all4096 green pixels. No depth attachment/WSI, no UVD submission, system Mesa
+  unchanged. This does not qualify depth, metadata or presentation.
+- UART completed, same generation/epoch,offsets3316790..3317323(533bytes),
+  17:42:52.908841–17:43:44.811104UTC. Private RESULT-027.json and context.
+
+## EXP-20261020-028 — traced cube stalls graphics without UVD work
+
+- **FAILED_STOP.** Instrumented pinned upstream cube one-frame trial timed out;
+  the120-frame trial was not run. Owner reports frozen desktop/mouse. GFX
+  fences0xaf3/0xaf6 remain outstanding; UVD0/0 and compute/SDMA completed in the
+  captured snapshot. Kernel CLOSED error=-110 is the generic job-timeout guard,
+  not proof of a decoder-originated fault. No AVC workload was requested.
+- The initial outer runner discarded partial stderr on timeout. Missing trace
+  is an evidence limitation; no last-call claim is supported by that run.
+  Durable direct-file capture and three CPU regressions subsequently fix the
+  evidence-handling defect. No GPU reset/unload/rearm or desktop restart after
+  fault. Original signed26.1.7 system packages retained; sync completed.
+- UART completed, same generation/epoch,offsets3319575..3320225(650bytes),
+  17:51:48.494026–17:53:04.989296UTC. Private RESULT-028.json, CPU-STATE.json,
+  THREADS.json, fences-faulted.txt and context in the investigation directory.
+
+## EXP-20261020-029 — full-power-off baseline recovery
+
+- **PASS_BOUNDED_RECOVERY.** Owner boots unchanged Linux USB after physical
+  power-off and confirms responsive desktop/mouse. Fresh boot; original signed
+  Mesa/RADV26.1.7 with all115 package files unchanged; compositor maps original
+  Gallium. UVD STARTED/QUEUE_READY without a new terminal marker. No new GPU
+  test during recovery; exact off duration is not independently measured.
+- UART completed, same generation/epoch,offsets3321310..3590210(268900bytes),
+  17:56:21.397407–18:03:31.852116UTC. Compact context omitted1774 middle lines;
+  bounded raw marker scan completed. Private recovery-029.json and context.
+
+## EXP-20261021-001 — D16 near/far depth with HTILE disabled
+
+- **PASS_BOUNDED_DEPTH_NOHIZ.** Frozen probe5839e8bfbb396c4b527ccb6a95665405e78446929c55c5a7f2d22e25708a68a3,
+  same dev2/boot, RADV_DEBUG=img,nohiz. No-depth draw then64×64 D16 depth test
+  both verify4096 green pixels; near green rejects far red. Depth8192B/256B
+  alignment, no HTILE. UVD0/0, normal exit and no terminal marker.
+- GPU work lasted2.94s. Session closure took99.216s versus declared90s:9.216s
+  bookkeeping overrun, with no extra GPU work during the delay. Preserve this
+  timing limitation; later plans allow180s and close immediately on result.
+- UART completed, same generation/epoch,offsets3590894..3591557(663bytes),
+  18:07:37.481506–18:09:16.698098UTC on Oct20. Private RESULT-depth-nohiz-001.json.
+
+## EXP-20261021-002 — identical D16 test with HTILE enabled
+
+- **FAILED_STOP.** Changing only RADV_DEBUG to img, the no-depth draw passes;
+  depth adds HTILE offset8192,size16384,alignment2048. Queue submit succeeds,
+  then the two-second fence returns VK_TIMEOUT. GFX0x269/0x26c remains stalled,
+  UVD0/0, kernel closes UVD protectively. Owner confirms frozen desktop.
+- This isolates an HTILE-enabled trigger, not the exact underlying defect.
+  Metadata size/alignment are coherent with captured eight-pipe AddrLib rules;
+  neither a bad register nor metadata overrun has been proved. Durable logs
+  retain the failure. No further GPU work; CPU logs saved and sync completed.
+- UART completed, same generation/epoch,offsets3591693..3592011(318bytes),
+  18:09:23.816544–18:09:54.888903UTC on Oct20. Private RESULT-depth-default-002.json
+  and POSTFAULT-002-20261020T181514Z.json.
+
+## EXP-20261021-003 — baseline recovery after D16 timeout
+
+- **PASS_BOUNDED_RECOVERY.** Fresh boot, owner desktop/mouse normal, original
+  signed Mesa/RADV26.1.7 with115/115 package files unaltered and original mapped
+  compositor libraries. UVD STARTED/QUEUE_READY, no new terminal marker. Same
+  USB/kernel/modules; no new GPU workload or reset/unload/rearm during recovery.
+- UART completed, same generation/epoch,offsets3593197..3865647(272450bytes),
+  18:15:51.814717–18:23:38.877054UTC on Oct20. Compact omitted1835 middle lines;
+  bounded raw scan confirms runtime readiness without a terminal marker. Private
+  recovery-003.json and UART-RAW-SCAN-recovery-003.json.
+
+## EXP-20261021-004 — dev3 selector preflight catches missing manifest
+
+- **INCONCLUSIVE_SETUP.** Adjacent selector sources.json was omitted while
+  staging. The agent started the planned session before noticing the earlier
+  staging failure; verification stopped before GPU submission. No driver result.
+  Corrected inputs were fully verified before the new EXP005 trial.
+- UART completed, same generation/epoch,offsets3866722..3866860(138bytes),
+  18:25:54.086613–18:25:56.331243UTC on Oct20. Private run-dev3-depth-004.log.
+
+## EXP-20261021-005 — dev3 default-policy depth oracle
+
+- **PASS_BOUNDED_DEV3_DEPTH_DEFAULT.** New Mesa dev3 adds Liverpool-only HTILE
+  disable policy; no nohiz override. Same frozen probe as EXP001/002 verifies
+  all4096 pixels in draw and near/far D16 depth cases. No HTILE allocation;
+  depth layout8192B/256B, normal exit, UVD unused, no terminal marker.
+- Candidate manifest8fc4189a807179844851c9848b7baf19fb8dd1052b516060c2353a6112eaa9bb;
+  archive3bc15a19b31e5716658d59811e5734cae92720a65d8355a11d209405cd48d233.
+  Fresh native build passed44 Mesa tests plus15 FMASK CPU cases. Source patch
+  and independent review are not full GPU acceptance. System Mesa unchanged.
+- UART completed, same generation/epoch,offsets3868629..3868886(257bytes),
+  18:27:14.434898–18:27:19.708040UTC on Oct20. Private RESULT-dev3-depth-005.json.
+
+## EXP-20261021-006 — dev3 cube still stalls with HTILE absent
+
+- **FAILED_STOP.** Correct durable trace shows texture initialization fence
+  succeeds, then successful acquire/render-submit/present, followed by a stall
+  in vkDeviceWaitIdle. One-frame trial timed out15s;120-frame case and UVD
+  regression were not run. Owner confirms frozen desktop. GFX0x14c/0x14f remains
+  stalled minutes later, UVD0/0; kernel CLOSED error=-110 requires full poweroff.
+- Compositor configured1920×1080 despite requested128×128. Actual swapchain is
+  FP16 with20480B CMASK; D16 depth has no HTILE. HTILE disable is insufficient
+  for Vulkan adoption. Its isolated depth pass remains bounded evidence.
+- Source identifies a common metadata compute-fill path above4096B, using raw
+  global-address stores. Successful image readback also uses compute through
+  a typed-buffer path, so generic compute is not proved broken. Buffer-fill
+  threshold tests and offline shader inspection are the next diagnostic branch;
+  metadata consumption and presentation remain possible causes.
+- SSH/CPU survived; compositor main thread waits in epoll, multiple TTM workers
+  wait on outstanding work. Killing the owned cube did not complete GPU work.
+  Logs retained and sync completed. No reset/unload/rearm or further GPU test.
+- UART completed, same generation/epoch,offsets3869419..3869791(372bytes),
+  18:28:44.783765–18:29:02.604064UTC on Oct20. Private RESULT-dev3-cube-006.json,
+  POSTFAULT-006.json, CPU-FAULT-006-183428.json and matching context.
+
+## EXP-20261021-007 — recovery deferred for read-only SSH diagnosis
+
+- **INCONCLUSIVE_RECOVERY.** Owner remained on the faulted EXP006 boot and
+  requested continued SSH diagnosis. No reboot or recovery acceptance. CPU and
+  cached-fence observations retained; no additional GPU work, reset or rearm.
+- UART completed, same generation/epoch,offsets3871922..3874178(2256bytes),
+  18:36:11.781960–18:50:39.810989UTC on Oct20. Private RESULT-recovery-007.json
+  and matching context in the investigation directory.
+
+## EXP-20261021-008 — unchanged Linux boot returns; operator check pending
+
+- **PARTIAL_RECOVERY_OBSERVED.** Owner requested physical power-off and the
+  unchanged Linux USB boot. SSH observes a new boot with the same runtime kernel
+  and original Mesa/RADV26.1.7. UVD reaches STARTED/QUEUE_READY without a matching
+  terminal marker in the full bounded raw slice. Subsequent cached fence read
+  shows GFX completed its emitted work; UVD0/0. No new GPU test submitted.
+- Desktop/mouse confirmation was pending at closure; the owner subsequently
+  confirmed normal input/display before EXP009. That observation is outside
+  the bounded UART prefix and is recorded separately from its boot evidence.
+  No boot-file, kernel/module or firmware change; no software reset/rearm.
+- UART completed within900s, same generation/epoch,
+  offsets3874279..4150491(276212bytes),18:53:07.383376–19:07:56.191586UTC on
+  Oct20. Compact context omitted1884 middle lines; full raw marker scan retained,
+  SHA144605042eb85f2307dc7dd497e65a8235bf32dcb185b9ac615b65e5681c05e2.
+  Private uart-context-recovery-008.md, UART-RAW-SCAN-recovery-008.json and
+  recovery-008 snapshots in lab/vulkan-uvd-20261020-01.
+
+## EXP-20261021-009 — bounded-fill candidate passes Liverpool buffer oracles
+
+- **PASS_BOUNDED_DEV4_FILL.** Dev4 adds compute-fill offset bound0005 to dev3.
+  Same16KiB host-visible VRAM allocation,4092B then4096B fills; every pattern
+  and guard byte verifies. Actual Liverpool lowered ACO IR uses
+  buffer_store_dwordx4. Both fences complete, UVD unused, no terminal marker.
+  This is a workload result, not proof of defective FLAT address translation.
+- Manifestceab4d0e2a25d40b2562bbe4d459de80695775efb54444fde077f017f88751ea,
+  archive4ff95a1ced7df150cf5720066e5b8a20761e14110ef97f02b09c3c9e1dc4e576.
+  Frozen probe3d6e16d2d8cfe9c43be5425249be43f277c8d8b0359c3a130892bef395e305ed.
+- UART completed, same generation/epoch,offsets4152617..4152871(254bytes),
+  19:19:20.749087–19:19:45.147561UTC on Oct20. Private RESULT-dev4-fill-009.json
+  and actual shader logs in lab/vulkan-uvd-20261020-01.
+
+## EXP-20261021-010 — dev4 cube succeeds with HTILE still disabled
+
+- **PASS_BOUNDED_WAYLAND_PRESENT.** Same frozen cube/flags as failed EXP006,
+  changing candidate to dev4. One frame then120presentations complete, including
+  vkDeviceWaitIdle and teardown. FP16 swapchain/20KiB CMASK retained; HTILE
+  absent. Owner saw cube and confirms desktop/mouse normal. No UVD submission,
+  GFX work completed, no terminal marker. Original system Mesa unchanged.
+- UART completed, same generation/epoch,offsets4154478..4154735(257bytes),
+  19:22:18.704870–19:22:48.652422UTC on Oct20. Private RESULT-dev4-cube-010.json
+  and matching compact context.
+
+## EXP-20261021-011 — restored HTILE passes the exact former D16 reproducer
+
+- **PASS_BOUNDED_DEV5_DEPTH_HTILE.** Dev5 removes only HTILE-disable0004,
+  retaining bounded-fill0005. Identical frozen probe5839e8bf...a68a3 from
+  EXP001/002/005 passes draw and D16 near/far depth:4096green pixels each.
+  Actual HTile offset8192,size16384,alignment2048 matches failed EXP002.
+  Fence succeeds, normal exit, UVD unused, no terminal marker.
+- Dev5 manifest687af5a366d4bba5af1f72cf5b1a57c4e09d1cfef58257a898ee34da2c7e3964,
+  archive5c397d86a769ed55dd35798c32bfcedea5c4e3ce6eee5147dd282a04c9385fe9.
+  Fresh native build passed44Mesa tests. This does not qualify all depth formats.
+- UART completed, same generation/epoch,offsets4159405..4159662(257bytes),
+  19:31:22.746601–19:31:48.593709UTC on Oct20. Private RESULT-dev5-depth-011.json.
+
+## EXP-20261021-012 — dev5 cube succeeds with restored HTILE
+
+- **PASS_BOUNDED_WAYLAND_PRESENT.** Same cube/flags, dev5 selected. One frame
+  then120presentations and teardown succeed; depth has196608B HTILE at
+  offset4718592,alignment2048 and swapchain has20KiB CMASK. GPU work completes,
+  UVD unused, no terminal marker. Owner saw cube and confirms normal desktop
+  and mouse. System Mesa/compositor remain original26.1.7.
+- UART completed, same generation/epoch,offsets4161061..4161318(257bytes),
+  19:32:49.048245–19:33:24.274919UTC on Oct20. Private RESULT-dev5-cube-012.json.
+
+## EXP-20261021-013 — dev5 exact UVD decodes; extra mapping observer fails
+
+- **PASS_EXACT_DECODE_WITH_OBSERVATION_FAILURE.** Forced VAAPI/hwdownload
+  matches all120canonical frames and all900native1080p30 reference frames;
+  122/902UVD completions, both decoder exits0, no terminal marker. Whole1080p
+  NV12 SHAa36c73d7acf80b7aedb44f7af75069b1494abbc6c39838e0755db3a4f2a4e48f.
+  The56.10sec decode/hash invocation is not a real-time playback measurement.
+- Controller retains FAILED_STOP because a required extra live driver-map
+  observer used /proc/PID/task/PID/children, absent on this kernel, and silently
+  ignored FileNotFoundError. CPU-only child diagnosis confirms PPid status and
+  maps remain readable. This is an agent collection flaw, not a decode mismatch;
+  original receipts and decoded hashes retained. No900-frame retry requested.
+- UART completed, same generation/epoch,offsets4162383..4162928(545bytes),
+  19:37:16.647223–19:38:42.109123UTC on Oct20. Private RESULT-dev5-uvd-013.json,
+  individual decode receipts and OBSERVATION-ERROR-013.json.
+
+## EXP-20261021-014 — corrected observer captures actual dev5 UVD driver
+
+- **PASS_BOUNDED_DEV5_UVD_MAPPING.** Only observer changes to PPid status
+  enumeration, first demonstrated with a CPU-only child. One repeated canonical
+  clip matches120frames,122UVD completions, no terminal marker; actual mapped
+  dev5 Gallium SHA16d87fdff0011054eeba34e2dff9067519d8756de788c4970cecf4a7038ce4a3.
+  No900-frame repeat. All GFX/UVD emitted work completes; owner confirms normal
+  desktop/mouse after decoding. Original signed26.1.7 packages remain installed.
+- Together EXP009–014 demonstrate the compute-fill patch remedies the tested
+  metadata/depth/presentation workloads while retaining exact UVD output.
+  They do not prove every FLAT operation or live aperture state is defective;
+  original FLAT-only fill was not measured failing. General API coverage,
+  seeking, simultaneous graphics/decode, sustained use and repeated boots remain
+  separate gates. No system adoption or public artifact release here.
+- UART completed, same generation/epoch,offsets4164835..4165092(257bytes),
+  19:42:25.623231–19:42:49.057009UTC on Oct20. Private RESULT-dev5-uvd-014.json,
+  actual FFmpeg maps and matching compact context.
+
+## EXP-20261021-015 — glmark2 preflight stops at a wrong library pin
+
+- **NOT_RUN_PREFLIGHT_PIN_ERROR.** Native Wayland GL/GLES glmark2 builds at
+  upstream22c527cb0556f3a1ac4445aaa52cc532760928d5 were staged privately,
+  with no system package install. The controller incorrectly compared the
+  DRIL OpenGL loader to the different Gallium video-library hash and stopped
+  during CPU-only preflight. No rendering command or GPU submission ran.
+  The original assertion and script are preserved; this is a setup failure.
+- Frozen tool archive SHA256
+  c45050e3ff3ce4cd7f946f872077bce8c4caeee3124e660547043afad2187c1d;
+  suite manifest c7afd58fbb6f4fabfc6af377a6b2965c883f025e31ae06f59ffe7206f023a44b.
+  The Mesa manifest and library bytes remain the same dev5 candidate.
+- UART completed with the same generation/epoch, offsets4174715..4175386
+  (671bytes),20:12:46.523636–20:13:35.623571UTC on Oct20; no terminal marker.
+
+## EXP-20261021-016 — clean OpenGL shadow scene, extra map observer fails
+
+- **RENDERED_CLEAN_WITH_OBSERVATION_FAILURE.** Corrected file pins, same
+  healthy boot and process-local dev5, one glmark2 shadow scene for5seconds.
+  It reports Liverpool/ACO/Mesa26.2.5,640×480 windowed,depth32,samples0,
+ 60FPS with FIFO,frame time16.681ms and exit0. `AMD_DEBUG=notiling` remains
+  selected. Owner saw the horse and confirms clean picture/shadow plus normal
+  desktop/mouse. All observed GPU queues catch up; UVD stays1146/1146.
+- Original controller verdict FAILED_STOP remains: its extra map observer
+  wrongly required the DRIL loader in native EGL. Read-only ELF inspection
+  shows the EGL frontend links directly to Gallium. Exact live DSO maps were
+  not saved, so preserve that observation gap separately from the rendered
+  result. Upstream shadow::validate returns ValidationUnknown; this is not a
+  pixel-correctness or complete-feature pass. No driver/kernel/system update.
+- UART completed with the same generation/epoch, offsets4176346..4177018
+  (672bytes),20:14:54.633254–20:15:56.136822UTC on Oct20; no terminal marker.
+  Private original RESULT.json, stdout/CSV, fences and compact UART context
+  are retained under the Mesa3D experiment evidence.
+
+## EXP-20261021-017 — GFXBench transferred; GLFW surface creation fails
+
+- **FAILED_WINDOW_SETUP.** Latest upstream GFXBench source
+  89aa956f43836798d1eaaab8ec32d3dc8b02eead, version5.1.5, built natively using
+  all16CPU cores. Developer GL/Vulkan CLI and upstream notices/assets preserved;
+  no benchmark score upload or OS package install. Original dependency build
+  adaptations are exported: zlib header checks, two invalid Poco Delegate
+  assignments removed, unused legacy OpenSSL integration disabled.
+- Isolated T-Rex bundle transferred and hash-verified; candidate dev5 selected
+  and actual Gallium maps saved. GLFW reports EGL_BAD_MATCH while creating its
+  Wayland window; exit70, no scene/result frames. All cached GPU queues catch
+  up, no terminal marker. This is not a rendered benchmark pass.
+- UART completed, same generation/epoch, offsets4193024..4194091(1067bytes),
+  20:55:20.962356–20:57:32.144003UTC on October20; compact context read.
+
+## EXP-20261021-018 — diagnostic logging preserves the window failure
+
+- **FAILED_WINDOW_SETUP_DIAGNOSED.** Same binary/data/Mesa, adding only EGL
+  and GL diagnostic logging. The same window-surface error recurs, without
+  a terminal GPU fault. Source inspection identifies GLFW's optional opaque
+  presentation attribute and Mesa's matching Wayland rejection path; this is
+  a testable compatibility hypothesis, not a new Mesa patch.
+- UART completed, same generation/epoch, offsets4194229..4194900(671bytes),
+  20:59:04.020273–21:00:39.655182UTC on October20; compact context read.
+
+## EXP-20261021-019 — window compatibility works; missing shaders stop the scene
+
+- **WINDOW_PASS_SCENE_SETUP_FAILED.** A benchmark-only GLFW change omits the
+  optional EGL_PRESENT_OPAQUE_EXT hint on Wayland, preserving chosen framebuffer
+  settings. The window opens with Mesa Project EGL1.5. The mixed GL/Vulkan
+  runtime package lacks the old GL40 shader directory; shadow_caster0.vs is
+  missing, result statusFAILED/frame_count0. Exit0 alone would falsely pass it.
+- Driver/kernel unchanged, all cached queues catch up, UVD unchanged, no
+  terminal fault. Preserve the failed controller receipt. Exact shader assets
+  are present in the pinned source and are packaged for the next experiment.
+- Window-compatible executable manifest SHA256
+  6c0c748a0ee3437c4cf1bc3dd86738403d724bb80c740183fd079c38b6c83b06.
+- UART completed, same generation/epoch, offsets4195582..4196392(810bytes),
+  21:04:16.516688–21:05:13.316972UTC on October20; compact context read.
+
+## EXP-20261021-020 — first full GFXBench T-Rex run
+
+- **PASS_BOUNDED_GFXBENCH_TREX.** Add only the exact pinned upstream GL40
+  shader files. Full standard56seconds, result statusOK,3348frames,59.781FPS,
+  vsync limited. Requested1280×720 becomes actual1920×1080 in Hyprland.
+  Renderer reports Liverpool/ACO/Mesa26.2.5; actual candidate Gallium maps
+  saved. All12observed queues catch up; UVD remains1146/1146, no terminal marker.
+- Screenshot retained privately. No independent pixel oracle or performance
+  isolation; monitoring and one screenshot are part of the run. Initial tool
+  manifest2620e277f7116bc2fdb3277ab1e0651bb8589b22224b26385c83652a853fc585;
+  added-shader manifest79435875bb5d6a0f065e141b791c8ec88691805a48cae9e795e2e666649e7868.
+- UART completed, same generation/epoch, offsets4196392..4198426(2034bytes),
+  21:06:35.624163–21:09:55.017844UTC on October20; compact context read.
+
+## EXP-20261021-021 — owner-requested repeat is visibly smooth
+
+- **PASS_BOUNDED_GFXBENCH_TREX_REPEAT.** Same frozen T-Rex input/binary and
+  process-local dev5, full56seconds. Result statusOK,3350frames,59.803FPS,
+  actual1920×1080; candidate maps saved, all cached queues catch up, UVD
+  unchanged, no terminal marker. Owner says the moving scene is smooth.
+- Additional desktop DXT1/DXT5 scene files are staged and hash-verified for
+  the finite suite without replacing T-Rex inputs. Benchmark saved privately
+  for later replay; no global Mesa adoption. Owner then leaves and explicitly
+  authorizes completing testing autonomously and preserving the benchmark.
+- UART completed, same generation/epoch, offsets4198426..4203220(4794bytes),
+  21:09:56.051353–21:16:42.189398UTC on October20; compact context read.
+
+## EXP-20261021-022 — Manhattan passes; CarChase causes graphics VM faults
+
+- **FAILED_STOP_GRAPHICS_VM_FAULT.** Frozen finite40case GL plan
+  4bfbb53978954ab6fc44f0578bd7399b96632daf9129ec954115035d880808b3, standard
+  durations, per-case180seconds/whole-suite4200seconds, stop on first failure.
+  T-Rex was already passed; battery/endless cases excluded. Same unchanged
+  runtime kernel and isolated dev5; original26.1.7 system packages remain.
+- Manhattan passes3703frames at59.710FPS; Manhattan3.1 passes3624frames at
+  58.442FPS, both actual1920×1080/statusOK/candidate maps/clean cached fences.
+  CarChase(gl_4, GL4.3 core) initializes, completes logged shader warmup and
+  enters its run, then faults. Controller detects the terminal marker, kills
+  only its benchmark process and stops:37remaining GL and all five Vulkan
+  cases NOT_RUN. No automatic retry, GPU reset, unload, rearm or new boot set.
+- First faults at21:20:45UTC: VMID6 read page0x00FF0010/status0x0C008002 from
+  TC0 and write page0x000018C8/status0x0D044014 from TC5. Interrupt-ring overflow
+  and further VMID6/7 faults follow. At21:20:47 the generic guard records
+  PS4_UVD_RUNTIME CLOSED error=-5; no decoder was requested. UVD stays1146/1146.
+  Later caught-up cached fences do not reverse terminal closure. Full power-off
+  and a healthy Linux boot are required before further GPU work.
+- Partial application logs, actual maps, JSON, kernel/UART evidence and frozen
+  assets are retained privately on the console and build host. Source review
+  finds no demonstrated particle warmup OOB: actual256particles divide all
+  tested workgroup sizes. The core-context glGetString error is a separate
+  application API defect, without an established causal link. Failing shader,
+  resource and ownership layer remain unproved; reduce an identified dispatch
+  or draw after stage attribution. General compute already has passed paths.
+- Separate CPU-only preparation fixes the benchmark's Vulkan Wayland helper
+  and links one modern system Vulkan loader. It builds and is saved, but no
+  Vulkan GFXBench hardware run follows this fault. No hardware acceptance is
+  inferred from that build or from independent review.
+- UART completed, same generation/epoch, offsets4203220..4209238(6018bytes),
+  21:16:42.599991–21:22:57.469712UTC on October20; compact context read,0omitted.
+  Continuous UART remains running; no bounded experiment is active.
+
+
+## EXP-20261021-023 — owner-requested experimental default installed on disk
+
+- **PASS_PACKAGE_INSTALLATION_ONLY; BOOT_ACTIVATION_PENDING.** The owner
+  explicitly requests dev5 as the default. Diagnostic variable: replace the
+  matched Mesa/RADV package pair with the exact previously tested dev5 stage;
+  600second bound, CPU-only verification and signed-package rollback. This is
+  an experimental owner installation, not stable-image promotion.
+- Pinned candidate`ps4-mesa-26.2.5-fill-bounds-htile-dev5`, stage manifest
+  687af5a366d4bba5af1f72cf5b1a57c4e09d1cfef58257a898ee34da2c7e3964,
+  archive5c397d86a769ed55dd35798c32bfcedea5c4e3ce6eee5147dd282a04c9385fe9.
+  Native data-only packaging gives both packages version`1:26.2.5-5.1`.
+  Mesa package SHA25694f0c26caeca04c6912fbb712d79cb81dde2791362c545e7d98dfb2276534b64;
+  RADV package SHA256c6ccc607c050e5e646bf15e46d3f1c165ee887f1112ed613930c8ae1d8cccac6.
+- Original26.1.7 packages independently pass detached signature verification
+  and are copied into this experiment's rollback directory. Preflight verifies
+  the complete package union against40 staged identities plus only the GLX
+  indirect symlink and two license files. No install scripts, services, kernel
+  files, firmware or files outside`usr/` occur in the package payload.
+- Pacman resolves dependencies and installs both packages in one local
+  transaction. A transaction-specific configuration allows the unsigned local
+  candidates; the real required-signature/offline configuration is unchanged.
+  Post-install hashes/symlinks, package ownership, both package-integrity checks
+  and database dependency check pass. Actual Gallium SHA256
+  16d87fdff0011054eeba34e2dff9067519d8756de788c4970cecf4a7038ce4a3;
+  RADV738b9eec6f884bbc15268d9b4d750ac65540744fa5c2c265fc347c3aa88bf9f3.
+- Rendering settings including`AMD_DEBUG=notiling`, Chromium flags, package
+  holds and Omarchy update guard retain their exact hashes. No repository
+  refresh, desktop restart, GPU program, reset/unload/rearm or kernel change.
+  The CarChase-faulted boot remains terminal; new libraries on disk do not
+  recover that boot. A private CPU-only rollback script and receipts are saved
+  on the console; no rollback is executed during this successful transaction.
+- UART completed04:59:48.674418–05:01:42.071129UTC, same generation/epoch,
+  offsets4263679..4266417(2738bytes),32normalized lines,0omitted; compact context
+  read. No fresh GPU result or display-health acceptance is claimed. Continuous
+  UART remains running. The subsequent owner-initiated boot is separateEXP024.
+- Independent read-only source review additionally confirms that completed
+  particle warmup waits for GPU timer results or`glFinish()`. Two IH overflows
+  interleave the first retained EXP022 fault header/address; earlier hardware
+  events may be lost. This corrects event ordering, not the unresolved cause.
+
+
+## EXP-20261021-024 — Orbis reboot observed; Linux activation not attempted
+
+- **LINUX_NOT_RUN; DEFAULT_ACTIVATION_UNQUALIFIED.** The owner announces a
+  reboot; objective is full-poweroff/same USB Linux boot plus CPU identities
+  and desktop/mouse health,600second bound. UART marker begins before the
+  retained Orbis secure-loader banner, with continuous capture unchanged.
+- The retained stream shows Orbis startup, not Linux. The owner then reports
+  moving the USB to the build host. SSH is unavailable. No Linux banner occurs
+  in the complete raw slice; package activation, new compositor mappings and
+  desktop health therefore remain unobserved. No GPU workload is launched.
+- Outside console operation, read-only inspection identifies the expected USB
+  by its two filesystem labels, common USB parent and model. Installed package
+  database entries both read`1:26.2.5-5.1`; Gallium/RADV hashes match EXP023 and
+  its rollback script is present. Existing bzImage remains runtime-dev1,
+  SHA2569c3ec7d27fdfdebfee137684a635301e8dfa259b50e2f5d98ee33cf5f91e6153.
+  No boot files or package files are changed. Both identified USB filesystems
+  are safely unmounted; the native host's other storage remains mounted.
+- UART completed05:09:22.312857–05:13:40.509453UTC, same generation/epoch,
+  offsets4293470..4428696(135226bytes),2135normalized lines. Compact context
+  read first;136omitted lines led to complete-raw banner checking. This is
+  completed capture continuity, not a successful Linux boot or GPU acceptance.
+  Continuous capture remains running; no bounded experiment remains active.
+
+
+## EXP-20261021-025 — one fresh boot with dev5 installed as default
+
+- **PASS_ONE_BOOT_DEFAULT_MAP_AND_OWNER_HEALTH.** Objective: observe the same
+  USB/UVD-runtime kernel with the new default package pair;600second bound,
+  signed-package rollback retained. No kernel or boot-file replacement.
+- Both packages are`1:26.2.5-5.1`. All40 stage file/symlink identities match
+  manifest687af5a366d4bba5af1f72cf5b1a57c4e09d1cfef58257a898ee34da2c7e3964.
+  Actual Hyprland and Xwayland mappings use installed Gallium26.2.5. UVD logs
+  STARTED/QUEUE_READY, its fences are0/0, and no new graphics fault is retained.
+  The owner confirms normal desktop and mouse. This is one default-driver
+  boot observation, not a general graphics or repeated-boot acceptance.
+- UART completed05:27:22.693149–05:34:51.601649UTC, same generation/epoch,
+  offsets4437339..4584713(147374bytes),1841normalized lines,0omitted. Compact
+  context read. No additional GPU workload during this observation.
+
+
+## EXP-20261021-026 — browser startup locks after hostname changes
+
+- **PASS_CHROMIUM_STARTUP; SOFTWARE_PROFILE_REPAIR.** Chromium's initial
+  launcher exits21: its profile lock names an old host and dead process. No
+  Chromium process exists and the referenced socket is absent. Only the three
+  stale Singleton symlinks are quarantined; browser history/settings remain.
+- First remote GTK launch fails because its SSH environment has no Wayland
+  display. Correcting the actual session environment allows launcher exit0.
+  The initial four-second window poll is empty; that receipt is retained.
+  The owner subsequently confirms Chromium opens. Neither setup error is a
+  graphics-driver failure or rewritten as an immediate successful observation.
+- UART completed05:37:40.673042–05:41:42.533035UTC, same generation/epoch,
+  offsets4585807..4587554(1747bytes),19normalized lines,0omitted. Compact read.
+  Bookkeeping closes after241.860seconds, exceeding the declared180second
+  bound by61.860seconds. Actual launches are finite; no GPU stress or reset.
+- A later software-only audit confirms the static/runtime hostname already
+  matches the owner's requested name. With browsers closed, two experimental
+  Chromium profiles have dead PID/absent-socket locks; the registered Firefox
+  release profile has a dead old-address lock and an unlocked parentlock.
+  Stale symlinks are quarantined. Firefox's ordinary parentlock file and all
+  profile data are preserved. This follow-up relies on continuous capture and
+  application observations, not a new artificial UART acceptance session.
+
+
+## EXP-20261021-027 — compatible browser codecs; Chromium VAAPI admission failure
+
+- **PASS_POLICY_CONFIGURATION; FAILED_BROWSER_VAAPI_PLAYBACK.** The owner
+  reports struggling YouTube1920×1080@30 with`av01`/Opus, then explicitly asks
+  to force supported codecs. Read-only observation finds normal Chromium's
+  `--disable-gpu` workaround and0/0UVD fences. AV1 is outside the AVC-only
+  experimental backend; network delay is not independently excluded.
+- Objective: install pinned upstream h264ify and observe one isolated Chromium
+  H.264/VAAPI attempt;180second total bound,40second browser limit, stop on
+  first fault and close only the owned process. Chromium2.0.1 source commit
+  f894cef9d704dfb5fcf3aecddc25d734c3934af2 and Mozilla Firefox1.1.0 XPI are
+  reviewed/hash-verified. The existing Chromium extension list is extended;
+  its software-rendering switch remains. Firefox's merged policy installs the
+  pinned local add-on, disables only its updates and locks AV1 off. Signature
+  checking, package/update policy and browser profile data remain unchanged.
+- The isolated process uses installed dev5, ANGLE/OpenGL, supported frozen
+  1080p30 AVC clip SHA256
+  1ad9dc8b54545775a761628af471099a9d9df7b1b6d3f057feaba0acef10e0e5;
+  Vulkan is disabled. Logs reach VaapiVideoDecoder resolution setup, then
+  CS rejection(-28). The GPU process aborts; coredump names Mesa's userspace
+  reset-status/CS-submit path. The observer's play-promise call times out;
+  no playback-quality success is inferred. Owned browser closes after13.614s.
+  The owner subsequently confirms desktop and mouse still work normally.
+- UVD goes from0/0to5/5; these are jobs, not a decoded-frame count. No kernel
+  VM fault, IH overflow or terminal UVD guard marker is retained. The exact
+  ENOSPC guard is unobserved: retained-byte/object/job admission is plausible,
+  but errno alone does not identify it or prove the earlier mpv failure shares
+  a cause. No quota change, reset, rearm or second decoder experiment.
+- UART completed06:01:08.433382–06:02:03.207743UTC, same generation/epoch,
+  offsets4592914..4594112(1198bytes),15normalized lines,0omitted; compact read.
+  Later software-only verification uses headless rendering with no decode:
+  Chromium on the actual YouTube origin allows AVC and rejects AV1/VP9 with
+  h264ify enabled. Firefox loads add-on1.1.0 active/not-disabled, signedState2.
+  Its initial MIME observer cannot connect to BiDi; a corrected loopback
+  observer then confirms the actual Firefox YouTube-origin filter also allows
+  AVC and rejects AV1/VP9. Setup/collection errors are preserved. An actual
+  reloaded video is later reported by the owner as`avc1.640028`/`mp4a.40.2`.
+  UVD remains5/5 at the software-only observer cutoff. The later playback
+  complaint occurs on the CarChase-faulted boot; browser hardware decoding
+  and playback performance remain unqualified.
+- Independent CarChase follow-up is CPU/source-only: completed motion-blur
+  warmup already renders the full scene. The reduced probe is gated on the
+  first timed frame, marks/finishes cascade0 draws, then exits86 before later
+  passes. Native16core relink passes; original console benchmark preserved.
+  Diagnostic patch/binary hashes and limitations are documented in
+  `gfxbench/README.md`. No hardware execution or CarChase fix is claimed.
+
+
+## EXP-20261021-028 — CarChase diagnostic faults before the timed-stage cut
+
+- **FAILED_STOP_DURING_WARMUP; TERMINAL_BOOT.** After the owner confirms the
+  desktop/mouse remain normal following EXP027, objective is one first-timed
+  shadow-cascade0 cut;180second total bound,120second process limit. Static
+  preflight verifies6,440 frozen inputs, diagnostic binary SHA256
+  df37e2fab7ae9048733e2c89f969638db5a61186b819a492243732696a771d1a and installed
+  Gallium SHA25616d87fdff0011054eeba34e2dff9067519d8756de788c4970cecf4a7038ce4a3.
+  The original console benchmark is unchanged. The diagnostic adds flushed
+  stage markers and synchronization only after warmup;`AMD_DEBUG=notiling,vm`
+  adds resource-address logging to the prior notiling setting. Direct system
+  library selection replaces the earlier per-process path with matching bytes.
+- The intended timed stage is not reached: no`PSX_SHADOW0`marker appears.
+  stdout's last retained progress is motion-blur TileMax WG64,200warmup
+  iterations. Earlier TileMax variants return query results. This is a useful
+  phase boundary, not proof of the exact failing dispatch: retained logs have
+  no per-dispatch timestamps, and an IH overflow may lose earlier events.
+- First retained write page0x1810 gives GPU virtual address0x01810000,
+  VMID7/TC3, status0x0F084014. Later retained writes are0x01908000/TC6 and
+  0x0180E000/TC4/TC2. All lie outside printed resource ranges. The nearest
+  printed resource spans0x01600000..0x0180C000,2,146,304bytes, with32BIT/internal/
+  discardable/unmappable flags. Tess-ring allocation has matching flags and
+  plausible size arithmetic; resource identity and command provenance are not
+  captured. Nearest-address proximity is not BO ownership or a proved overflow.
+- Actual dev5 Gallium mappings are captured. The controller kills only its
+  owned process after15.502seconds when the kernel fault appears; exit-9,
+  no process-timeout or observer exception. The owner sees no intended scene.
+  Kernel then records`PS4_UVD_RUNTIME CLOSED error=-5`; all subsequently caught
+  up fences do not clear terminal status. No reset/unload/rearm or retry.
+- UVD is643/643 both before and after this graphics test. It advanced from5/5
+  between the preceding policy observation and this launch; global counters
+  alone do not identify the browser/client responsible. No decoder workload
+  is requested by the probe and no additional UVD job occurs during it.
+- UART completed06:19:23.493157–06:20:38.974800UTC, same generation/epoch,
+  offsets4601820..4603984(2164bytes),24normalized lines,0omitted; compact read.
+  CPU-only evidence/source work continues. The owner requests oc4 independent
+  review through the confirmed Herdr session. A separate TileMax shader oracle
+  builds natively but is not run. The owner asks about remaining720p/1080p
+  YouTube lag; the reported codec is now AVC/AAC, but this remains the faulted
+  boot with a closed decoder guard, so current playback is not qualification.
+
+
+## EXP-20261021-029 — recovery observation closed without a new boot
+
+- **NOT_RUN_RECOVERY; TERMINAL_BOOT_UNCHANGED.** Objective: observe full
+  power-off and the same normal Linux USB/kernel boot after EXP028, then
+  verify CPU identities, guard state and the owner's desktop report. The
+  declared observation bound is600seconds; no GPU stress is planned.
+- No new Linux boot is captured. SSH still identifies the same faulted boot;
+  no power-off or recovery acceptance is inferred from the completed capture.
+  No kernel, boot file, package, GPU workload, reset or rearm is changed here.
+- UART completed06:31:43.659177–06:41:46.677094UTC, same generation/epoch,
+  offsets4605616..4607250(1634bytes),20normalized lines,0omitted; compact read.
+  Closure after603.017917seconds exceeds the declared bound by3.017917seconds.
+  This is completed capture continuity with recovery not run. Continuous UART
+  remains active; the bounded session is closed. Use a new experiment number
+  for a later physical recovery; do not reuse this result as a boot pass.
+
+
+## EXP-20261021-030 — fresh unchanged-stack recovery after CarChase
+
+- **PASS_RECOVERY_OBSERVATION; GPU/VIDEO_REGRESSIONS_NOT_RUN.** The owner
+  authorizes full physical power-off and the unchanged normal Linux USB boot.
+  One 900-second bounded observation covers this recovery; no boot files,
+  packages, browser policy, driver reset, unload or rearm are changed.
+- SSH at07:42:39UTC confirms a new boot identity, distinct from the terminal
+  EXP028/029 boot, with kernel`7.2.11-psx-ps4-baikal-uvd-runtime-dev1` and GNU
+  build ID`32bd29522ed3400ff111a8a42a30f7fb468bd738`. Actual boot identities
+  remain in private evidence. Mesa/RADV packages are`1:26.2.5-5.1`.
+- Installed Gallium SHA256 is
+  `16d87fdff0011054eeba34e2dff9067519d8756de788c4970cecf4a7038ce4a3`;
+  RADV SHA256 is
+  `738b9eec6f884bbc15268d9b4d750ac65540744fa5c2c265fc347c3aa88bf9f3`.
+  Current Hyprland/Xwayland processes map the expected installed Gallium.
+- The current-boot journal and bounded raw Linux segment contain UVD
+  `STARTED`/`QUEUE_READY` and no matched GPU/VM fault, terminal UVD closure,
+  ring timeout, reset, IH overflow, panic or Oops marker. Runtime/ready/poll
+  parameters remain enabled; competing preparation/probe modes remain off.
+  This is startup/log evidence, not a new decoder-admission or pixel test.
+- Operator reports`launched`, then`yes desktop looks normal`. No further
+  physical-monitor or workload observation is inferred. CarChase remains
+  unfixed, and prior decode/playback/browser limitations retain their scopes.
+- UART completed07:39:35.176001–07:44:13.917876UTC,278.741875seconds, same
+  capture generation/epoch1, offsets4666389..4919158(252769bytes), no continuity
+  errors. The2000-line compact context reports3430normalized lines and1431
+  omitted middle lines; it is read first, followed by a raw new-Linux-segment
+  fault-marker scan. Raw SHA256:
+  `5080b1aa4327b98f73d71c62a992269bf889e5b612c2ea5f1dafdd5ef616fd69`.
+  Private artifact stem:
+  `20261021_133935_176001-exp-20261021-030-recovery-by-full-physical-poweroff-and-unchange-ef8fa855`.
+  The bounded marker is closed; continuous capture remains READY. No new
+  support, stable-adoption or maximum-throughput claim follows.
+
+
+## EXP-20261021-031 — prepared measurement stopped before any GPU operation
+
+- **NOT_RUN_WORKLOAD; PRELAUNCH_TIMING_STOP.** A240-second window was declared
+  for a small exact-decode gate followed by three1080p30 playback loops. The
+  launch controller was still being prepared after capture started. Its
+  remaining-budget guard refused execution before importing observers, reading
+  fence debugfs, opening a render node or launching a decoder/player. This is a
+  controller/setup failure, not a Mesa/UVD failure or a completed measurement.
+- CPU-only preparation verified all40 installed dev5 identities, the pinned
+  clip/player and the published Wayland socket. The first preflight correctly
+  rejected inherited AMD_DEBUG; an explicitly clean parent still selected
+  `AMD_DEBUG=notiling` for the child. The final runner accepts the same explicit
+  matching policy and rejects other ambient overrides. Earlier failed receipts
+  and input versions remain private and unchanged.
+- OC4 independently reviewed the plan and installed-player source. The primary
+  verifies the useful findings and corrects unsupported claims about Mesa's role
+  in VAAPI, historical A/B equivalence and kernel-log growth. The new controller
+  reuses the frozen demo gates, has finite bounds, direct kernel observation,
+  installed-library checks and15 portable synthetic checks. No hardware pass is
+  inferred from review or source tests.
+- UART completed08:16:43.917845–08:20:44.018935UTC,240.101090seconds, same
+  generation/epoch1, offsets4924954..4925092(138bytes),2normalized/context lines,
+  no omission or continuity error; compact read. The deadline guard closes the
+  marker0.101090seconds past the declared bound. No workload ran.
+- The changed next attempt must prepare the complete launch before opening its
+  marker and pass the actual marker start time at launch; do not rerun the old
+  hardcoded-time controller. No driver/kernel/USB/reset/rearm change occurred.
+
+
+## EXP-20261021-032 — installed dev5 exact AVC gate and measured1080p30 playback
+
+- **PASS_BOUNDED_MEASURED_WINDOW.** The changed setup from EXP031 prepares all
+  launch source before UART start and passes the actual marker start timestamp.
+  One240-second experiment covers a60-second small exact-decode prerequisite
+  followed, only on success, by a130-second finite player. No source/device,
+  package, USB, quota, clock, browser, reset or rearm change occurs during it.
+- The recovered runtime/dev5 boot from EXP030 is unchanged. All40 installed
+  file/symlink identities match pinned dev5 manifest
+  `687af5a366d4bba5af1f72cf5b1a57c4e09d1cfef58257a898ee34da2c7e3964`.
+  The system-mode controller SHA256 is
+  `6d6dab277db19bf1c8fc5882bf5dbe4921289138625b16b38ae8dae60f74c38d`;
+  it imports unchanged frozen demo SHA256
+  `3551bf84885548f4053397ecaee6091fa16c9d7e93e2a04126b3b9e490c10cc2`.
+- The pinned FFmpeg/installed RadeonSI VAAPI path passes all120 distinct
+  canonical frames/2211840 NV12 bytes, SHA256
+  `d99b87567601efb735d438e766f34112344a3a31fc1d9e1b4177bfd329bcb491`.
+  Parent command time is3.162493seconds, including runner/preflight/comparison;
+  this is not a decoder-throughput measurement. Live FFmpeg maps are retained.
+- Then the known1920x1080,30fps Baseline AVC fractal completes three loops,
+  plus a possible partial following pass before the coarse sampler stops.
+  All76 player samples report`hwdec-current=vaapi-copy`, source30fps and zero
+  display/decoder drops. Actual hardware-thread request is1; software fallback
+  is disabled. mpv itself has28 threads, not one total process thread.
+- The player interval is90.334204657seconds, PTS/wall speed0.9970383571x,
+  with25.08seconds of accumulated mpv CPU:27.76356984% of one CPU core. This
+  excludes the compositor and external observers; it is not whole-system CPU
+  load. The one-second sleeps plus observer work yield a coarse, non-exact1Hz
+  cadence. OSD/monitoring overhead remains in the measured playback path.
+- Before decoding, completed/emitted UVD fences are0/0; after the exact gate,
+  122/122; after playback and normal exit,2833/2833. Thus playback adds2711
+  completions, including management/prefetch/partial-pass work, not an exact
+  displayed-frame count. The observer processes writeback; equality does not
+  independently prove recovery, client attribution or valid pixels.
+- Actual installed`/usr` EGL/Gallium/GBM libraries map with manifest-matching
+  hashes. The mpv DRM client exposes scheduler accounting deltas of
+  37053469373ns DEC,5819654458ns GFX and2397848390ns compute over the interval.
+  Duplicate DRM FDs are deduplicated. These are scheduler-attributed times,
+  not calibrated physical hardware-busy percentages or per-frame latency.
+  Standard GPU busy/metrics and DPM clock endpoints are absent on this boot;
+  unavailable readings are not zero utilization.
+- Operator reports during playback:`fractal video is running smoothly`.
+  The player quits normally with exit0; no terminal GPU/VM/UVD marker is found
+  in the current-boot observer logs or compact UART. No graphics benchmark,
+  browser hardware decode, seek, extra codec, pixel oracle for the moving
+  1080p presentation, maximum-throughput or long-duration claim follows.
+- UART completed08:24:34.484426–08:26:19.749298UTC,105.264872seconds, same
+  generation/epoch1, offsets4925914..4926183(269bytes),3context/normalized
+  lines, no omission or continuity errors; compact read. Private artifact stem:
+  `20261021_142434_484426-exp-20261021-032-installed-dev5-uvd-measurement-preprepared-laun-13e4fcd9`.
+  Parent result SHA256:
+  `a2a4a7718cf9b33dc1465895d09cfe4235aa41e07fafc7de6898c5eef75bfcd4`.
+  The private evidence archive SHA256 is
+  `dc1afb3c2a028b371021261eaa76305dd89306bb352dfacf6ccbd7295d8b10c5`.
+  Continuous UART remains running; the bounded marker is closed.
+
+
+## EXP-20261021-033 — T-Rex offscreen1080p and intentional thumbnail preview
+
+- **PASS_BOUNDED_GFXBENCH_CASE; PIXEL_CORRECTNESS_NOT_QUALIFIED.** One standard
+  `gl_trex_off` run,240seconds total/180seconds GPU bound, no concurrent decoder
+  or browser and no CarChase. No driver, boot, package, quota, clock or reset/
+  rearm change. A copied frozen runner is bound to this case/current recovered
+  boot; original source remains intact. Runner SHA256:
+  `fcec4a1b9d1a45c0b18be3c259545d930d7ea40be0e31fdf68ea60529d349fc9`.
+- Frozen GFXBench commit`89aa956f43836798d1eaaab8ec32d3dc8b02eead`, existing
+  compatibility binary/assets/shaders and dev5 manifest are verified. Actual
+  candidate Gallium mapping is captured. This case selects dev5 process-locally,
+  with bytes identical to EXP032's40 installed identities and explicit
+  `AMD_DEBUG=notiling`; it is not an installed-path mapping observation.
+- Result`OK`, exit0,16075frames/56013ms,286.986949458FPS, score16071.26953125
+  frames. Render target1920x1080,`screenmode=1`, `is_vsync_limited=false`.
+  Environment still lists`vsync=true`; offscreen rendering avoids per-frame
+  presentation throttling. Actual preview window950x1034 differs from the
+  requested1280x720 and the render target. This is scene throughput, not a
+  driver-to-driver speedup, physical GPU-busy percentage or pixel oracle.
+- Owner photo shows a small repeated/tiled image over the desktop. Inspection
+  finds an intentional100-frame preview mosaic in native source:
+  `gfxbench40/src/common/opengl/offscrman.h:33–52` defines10x10 thumbnails,
+  each48x27, forming480x270. `offscrman_opengl.cpp:585–609,692–702,900–913`
+  fills/presents it and selects a rotated270x480 viewport when width<height,
+  matching this tall window. The preview background is cleared with alpha0.
+  This explains the photo's grid/layout, not every scene pixel or older
+  window-alpha behavior. No new driver-corruption finding is established.
+- Runner time62.570032seconds including load/observers. All12 fence pairs
+  catch up; GFX completed/emitted19863/19863→38718/38718. UVD remains
+  completed2833/emitted2833, adding no job. Kernel log/compact UART show no
+  terminal GPU/VM/UVD marker. No full-suite, browser or CarChase-fix claim.
+- UART completed08:34:07.477560–08:35:21.321712UTC,73.844152seconds, same
+  generation/epoch1, offsets4927899..4929017(1118bytes),11normalized/context
+  lines, no omission/continuity error; compact read. Private artifact stem:
+  `20261021_143407_477560-exp-20261021-033-one-gfxbench-t-rex-gl-trex-off1920x1080-standar-004b6849`.
+  Benchmark result JSON SHA256:
+  `da6173f260e0df086eae6a5ee4965035ab78e5b946074238fcc628d8003ac4b6`.
+  Marker closed; continuous UART running. No further case is started here.
+
+
+## EXP-20261021-034 — Chromium accelerated rendering with software AVC control
+
+- **PASS_SCOPED_LOCAL_PLAYBACK; YOUTUBE_OBSERVER_INCOMPLETE.** Fresh isolated
+  profile, installed dev5, ANGLE/OpenGL/Wayland, Vulkan disabled and video decode
+  deliberately software. Sandbox stays enabled; normal flags/profile unchanged.
+  Total bound150seconds/browser100seconds. Owner confirms Chromium opens/works.
+- GPU info reports installed Liverpool Mesa26.2.5 with GPU compositing, OpenGL,
+  rasterization and WebGL enabled; video decode is`disabled_software`.
+  Media events identify`FFmpegVideoDecoder`, H.264 Baseline1080p and
+  `kIsPlatformVideoDecoder=false`. Local clip advances3.031994→19.040341seconds
+  over about16seconds; quality counters96→576frames,0→1drop, no media error.
+- YouTube starts AVC720p/Main with software decode, but cross-navigation CDP
+  evaluation fails`Inspected target navigated or closed`; not a driver-fault
+  finding. Browser closes normally, no kernel terminal marker, UVD2833/2833
+  unchanged. This is not a hardware-video or complete YouTube smoothness pass.
+- UART completed08:57:38.012527–08:58:28.346749UTC,50.334222seconds,
+  offsets4950920..4951582(662bytes),8normalized/context lines, no omission or
+  continuity error; compact read. Original observer error remains retained.
+
+
+## EXP-20261021-035 — Firefox observation setup failed before media navigation
+
+- **INCOMPLETE_OBSERVER; NO_PLAYBACK_RESULT.** Isolated Firefox WebRender/VAAPI
+  copy-path setup keeps sandbox/signatures enabled and normal profile/policy
+  untouched. The mismatched forwarded/local BiDi port produces a WebSocket
+  ErrorEvent before the local media page is opened. No decoder result follows.
+- Capability initialization advertises H.264 hardware support, not actual
+  decoded pixels. UVD remains2833/2833, no submission or kernel terminal error.
+  Owned browser receives TERM after observer stop; controller records exit-15.
+- UART completed08:59:38.229669–08:59:55.628589UTC,17.398920seconds,
+  offsets4951797..4952310(513bytes),7normalized/context lines, completed
+  continuity/no omissions; compact read. Retry must correct observation setup.
+
+
+## EXP-20261021-036 — owner-observed YouTube AVC slow motion despite buffering
+
+- **IMPROVED_BUT_NOT_SMOOTH; CLOCK/PACING_CAUSE_UNRESOLVED.** Same tested
+  Chromium GPU-rendering/software-decode profile, no normal-profile edits.
+  Total bound210seconds/browser170seconds. Initial Big Buck Bunny720p is owner
+  reported`little laggy but i guess better`; then requested Crab Rave is opened
+  in the same owned browser/session, verified1920x1080/`hd1080`, H.264 High with
+  FFmpeg software decoding. URLs are
+  https://www.youtube.com/watch?v=YE7VzlLtp-4 and
+  https://www.youtube.com/watch?v=LDU_Txk06tM .
+- Crab Rave samples retain28–40seconds of buffer at the endpoints, readyState4,
+  no media error and only3total drops, unchanged over the sampled window. Owner
+  reports`little laggy, like in slowmotion`. Excluding evident position jumps,
+  video time91.986701→96.913599seconds advances4.926898seconds over8.041seconds
+  wall (about0.613x); another uninterrupted segment agrees approximately0.62x.
+  This is not a smoothness pass merely because the drop counter stays flat.
+- Full buffering argues against immediate network starvation in those samples;
+  it does not prove decoder/CPU/audio-clock cause. PlaybackRate/defaultPlaybackRate
+  and audio clock were not captured, and seek/position jumps prevent a whole-run
+  rate claim. Earlier successful mpv and local browser fixtures lack audio;
+  an audio/silent-sink comparison is proposed, not run. Read-only inspection
+  later finds HDMI PipeWire48kHz default, about6GiB memory available and no OOM.
+- UVD is unchanged, no terminal GPU/kernel marker. Browser closes normally at
+  its170-second bound. Some old-tab CDP queries time out after navigation;
+  the separate Crab tab observer captures12samples and decoder properties.
+- UART completed09:00:50.299576–09:03:43.593691UTC,173.294115seconds,
+  offsets4952805..4956775(3970bytes),41normalized/context lines, completed
+  continuity/no omissions; compact read. No persistent configuration changed.
+
+
+## EXP-20261021-037 — Firefox local VAAPI frames, then terminal handle exhaustion
+
+- **FAIL_TERMINAL_UVD_HANDLE_ADMISSION; BROWSER_YOUTUBE_NOT_QUALIFIED.** The
+  changed observation preserves the remote BiDi Host port and correctly awaits
+  script promises. Same isolated Firefox VAAPI copy-path preferences, sandbox
+  retained; total150seconds/browser95seconds. No normal profile/policy edits,
+  kernel/USB changes, quota increases, resets or rearm.
+- Firefox RDD logs actual`IsHardwareAccelerated=true` and VA-API frame output
+  through about20.633seconds of the pinned local1080p30 Baseline clip. This
+  is browser hardware-decode activity, not a fresh independent pixel oracle;
+  JavaScript playback receipts were not finalized after the failure. UVD
+  completed/emitted advances2833/2833→3457/3457(+624jobs).
+- On navigation to Crab Rave, several decoder initializations are logged,
+  then the exact kernel branch prints`No more free UVD handles!` followed by
+  `PS4_UVD_RUNTIME CLOSED error=-28; no reset/rearm/free, full poweroff required`.
+  Mesa rejects CS(-28) and the Firefox RDD process aborts. The owned browser is
+  stopped at37.303318seconds. Caught-up fences do not recover the closed guard.
+- Primary source verification: frozen runtime`amdgpu_uvd.c:337–343` sets
+  max_handles=1; CREATE admission at893–907 returns-ENOSPC when occupied.
+  `runtime/build_candidate.py:143–164` adds serialized parser admission and
+  runtime closure on later errors. Exact old-handle lifecycle/decoder ownership
+  is not instrumented; overlap/recycling is a strong lead, not a proven leak.
+  This identifies this Firefox rejection, not the cause of earlier Chromium-28.
+- The Node observer additionally exits13 with unsettled top-level await after
+  the browser connection disappears; its pending promise timeout was unref'ed.
+  Preserve this collection failure separately from retained kernel/RDD proof.
+- UART completed09:04:39.297545–09:05:18.700572UTC,39.403027seconds,
+  offsets4958682..4959331(649bytes),8normalized/context lines, no omissions or
+  continuity errors; compact read. Browser-private evidence archive SHA256:
+  `67927ea9ec626f40fc356883f00abb3a9091dae6bb77c6c09847681d489dd35c`.
+- All playback stopped. This recovered boot is now quarantined; only CPU/source/
+  read-only inspection follows until physical power-off/unchanged USB recovery.
+  Chromium normal`--disable-gpu` and Firefox normal codec policy stay unchanged;
+  no browser fix is silently promoted. Continuous UART remains running.
+
+
+## EXP-20261021-038 — Chromium1080p audio-output A/B/A isolates slow-motion path
+
+- **PASS_AUDIO_ROUTE_DISCRIMINATION; AUDIBLE_FIX_NOT_YET_QUALIFIED.** Owner
+  reports Linux relaunched. Read-only checks find a different private boot ID,
+  the same runtime release/Gallium/RADV hashes, STARTED/QUEUE_READY and no
+  terminal marker. No bounded boot marker was started retroactively. This case
+  starts before audio-module/browser actions and captures only its own work.
+- Chromium only, existing private control profile, installed Mesa ANGLE/OpenGL,
+  Vulkan off and hardware video decoding explicitly disabled. Same Crab Rave
+  segment,1920x1080, fixed playbackRate/defaultPlaybackRate1, no seeks during
+  measured windows. Predeclared seeks between arms reset to the same segment.
+  In-page performance.now/currentTime,4Hz sampler and media events are retained.
+- HDMI A:12.575097video seconds/20.448100wall=0.614976306x,377new frames,
+  zero new drops, minimum19.4215seconds buffered, no waiting/stall events.
+  Temporary null sink:20.841704/20.518600=1.015746883x,623frames/92drops,
+  minimum36.109752seconds buffered, no waiting/stall events. HDMI B:
+  12.755369/20.749200=0.614740279x,382frames/zero drops, minimum43.121357
+  seconds buffered and no waiting/stall events. Every sampled rate remains1.
+- PW graph corroborates HDMI as driver for A/B and the null sink as the active
+  driver for the middle arm, Chromium as follower; both paths nominal48000Hz.
+  This is not merely44.1/48k mismatch. The immediate post-move Pulse snapshot
+  can lag route completion; the later graph shows Chromium linked to HDMI again.
+- Null arm includes transition/catch-up: its last5.498seconds deliver29.28FPS
+  with5drops and1.0141x speed, versus earlier burst drops/variable speed. Do not
+  present the whole null arm as a clean30FPS pass or as a useful audible output.
+  Owner reports that playback feels good then slow-motion while outputs change;
+  the primary explains the deliberate A/B/A, not a changing speed preference.
+- Browser exits0, temporary null module unloads successfully, original HDMI
+  default remains. Normal flags/profile are unchanged. Kernel observer has no
+  terminal marker; UVD decoding is not requested. A software-clocked audible
+  HDMI bridge is the next userspace workaround to test, not an accepted fix.
+- UART completed10:01:12.062679–10:02:51.481603UTC,99.418924seconds,
+  generation/epoch unchanged, offsets5291097..5292521(1424bytes),17normalized/
+  context lines, no omission or continuity error; compact read. Private artifact:
+  `20261021_160112_062679-exp-20261021-038-chromium1080p-audio-clock-hdmi-null-hdmi-matche-b8e429dc`.
+  Normal USB/kernel/packages/clocks/quotas/reset/rearm are untouched.
+
+
+## EXP-20261021-039 — audible HDMI loopback rejoins the slow hardware clock graph
+
+- **FAIL_WORKAROUND; NO_TERMINAL_FAULT.** One changed audio path links the
+  previously faster null sink's monitor to real HDMI through an owned Pulse
+  loopback,48kHz/stereo/80ms target latency. Chromium alone is directed to the
+  virtual sink, GPU rendering/software AVC and fixed rate1 remain unchanged.
+  Total bound200seconds/browser155seconds. Normal profile/default stay intact.
+- Matched1080p Crab Rave segment advances27.531738video seconds over44.7495
+  wall=0.615241243x,826new frames, zero drops, minimum20.616531seconds buffered,
+  no waiting/stall events. This is not smooth playback merely because no frames
+  are dropped, and audible bridge creation is not proof of independent timing.
+- PW graph shows real HDMI as driver, with virtual sink, both loopback streams
+  and Chromium all followers. Thus connecting the simple loopback rejoins the
+  same timing domain; it does not preserve the null sink's independent clock.
+  The next justified variable is whether the HDMI sink can follow a software
+  graph driver, not more codec flags or another unchanged bridge attempt.
+- Browser exits0, no terminal marker. Owned loopback then null module are
+  removed, HDMI remains default. No kernel/USB/driver quota/reset/rearm change.
+  The operator's sound-quality verdict is not supplied; do not infer normal pitch.
+- UART completed10:11:48.503788–10:13:02.294316UTC,73.790528seconds,
+  offsets5293861..5295478(1617bytes),19normalized/context lines, no omission or
+  continuity errors; compact read. Private artifact stem:
+  `20261021_161148_503788-exp-20261021-039-chromium1080p-audible-software-clock-sink-to-hd-a08e98ef`.
+
+
+## EXP-20261021-040 — requested HDMI software-follower setting is not effective
+
+- **PRELAUNCH_GUARD_STOP; PLAYBACK_NOT_RUN.** An exclusive temporary
+  WirePlumber rule matches the exact HDMI output and requests node.driver=false.
+  After WirePlumber restart, pw-dump still exposes node.driver=true. The
+  receiver assertion stops before Popen; no Chromium pid/command/stderr or
+  media timing samples exist. The observer's `Crab Rave page unavailable` is
+  secondary to that deliberate prelaunch guard, not a web/network failure.
+- The rule file is content-checked, removed, WirePlumber restarted; captured
+  baseline/rollback nodes both expose node.driver=true and original HDMI default.
+  No terminal marker, browser_exit=null, normal flags/profile unchanged. This
+  does not test or disprove software-clocked audible playback; the requested
+  eligibility change was never achieved. Do not retry the same ineffective rule.
+- Next lower-layer variable is the documented ALSA IRQ scheduler setting
+  api.alsa.disable-tsched=true, not another codec or UVD quota change. Installed
+  node's PropInfo/Props expose this boolean and its current false value. Verify
+  the actual node/Props before launching a new isolated Chromium measurement.
+- UART completed10:24:26.033703–10:24:54.205925UTC,28.172222seconds,
+  offsets5296885..5297161(276bytes),4normalized/context lines, no omission or
+  continuity error; compact context read. Private artifact stem:
+  `20261021_162426_033703-exp-20261021-040-chromium1080p-hdmi-node-driver-false-software-c-04d6c3c7`.
+
+
+## EXP-20261021-041 — effective IRQ scheduling does not correct HDMI timing
+
+- **FAIL_WORKAROUND; NO_TERMINAL_FAULT.** Exact-HDMI temporary rule sets
+  api.alsa.disable-tsched=true. Both exposed node property and ALSA implementation
+  Props confirm true before Chromium starts and again while running; baseline/
+  rollback Props are false. This changes only scheduling, not sample rate,
+  hardware clocks, kernel, UVD limits or decoder flags. Same private Chromium
+  profile, Mesa26.2.5 dev5 ANGLE/OpenGL and FFmpeg software H.264 High1920x1080.
+  PipeWire1.6.8/WirePlumber0.5.15; same runtime kernel7.2.11-psx-ps4-baikal-uvd-runtime-dev1.
+- Crab Rave advances27.514066video seconds/44.7495wall=0.614846333x,
+  825new frames/zero drops, sampled playbackRate1 and1920x1080 throughout,
+  minimum21.256249seconds buffered, no waiting/stalled/seeking/pause events.
+  Nominal output/Chromium graph rates are48000Hz, HDMI remains driver and
+  Chromium follows; zero graph errors in the final snapshot. CDP reports
+  FFmpegVideoDecoder/platform=false and AAC input44100Hz resampled to the48k
+  output, not a simple44.1/48k ratio explaining0.615x.
+- The additional1Hz PCM observer was unavailable: all54 reads of status/
+  hw_params/sw_params at card0/pcm3p/sub0 return ENOENT. The card/PCM inventory
+  separately enumerates00-03 and00-07, but no proc substatus exists. Preserve
+  this observation gap; no hardware-pointer rate or DMA-consumption claim.
+- Browser exits0; owned IRQ rule content-checked/removed, WirePlumber restarted,
+  original HDMI default retained, baseline scheduling restored. Normal profile/
+  flags unchanged; no terminal marker. Operator music pitch/quality remains
+  unreported. Timer-to-IRQ scheduling is not sufficient; do not repeat it or
+  infer a kernel/bridge root cause from this negative result alone.
+- UART completed10:30:24.436978–10:31:40.107218UTC,75.670240seconds,
+  offsets5298393..5299326(933bytes),11normalized/context lines, no omission or
+  continuity error; compact context read. Private artifact stem:
+  `20261021_163024_436978-exp-20261021-041-chromium1080p-hdmi-api-alsa-disable-tsched-true-f75f8d96`.
+
+### Read-only follow-up — PR3 is an underscan fix, not audio-speed evidence
+
+- Owner asks whether Linux psX PR3's HDMI/TV work could help. Live PR metadata
+  and local patch agree: merged2026-10-20, it forwards only underscan/hborder/
+  vborder to the legacy connector handler. It fixes TV edge cropping in one
+  reported6.18/X11 boot, does not change audio properties, sample clocks, HDA,
+  decoder or PipeWire. It is in the6.18 series, not the current7.2 series.
+  A modeset might incidentally reinitialize parts of display hardware; no
+  evidence here establishes it as a0.615x audio-clock remedy. No patch/boot test.
+  https://github.com/meerzulee/linux-psx/pull/3
+- Existing source routes Liverpool/Gladius encoders as DP through the PS4
+  bridge; native-HDMI AFMT/DTO mode setup has an HDMI-only condition. This is
+  a source-inspection lead, not proof that the current boot's divider is wrong.
+  Prefer discriminating actual audio duration/pitch versus reported timing
+  before any driver change. A targeted existing-driver quirk may be appropriate;
+  a new custom audio driver is not established as necessary.
+
+
+## EXP-20261021-042 — PR3/UVD USB update stops at read-only inventory guard
+
+- **PREWRITE_GUARD_STOP; USB_WRITE_AND_BOOT_NOT_RUN.** Owner requests PR3 on
+  the current UVD kernel, a fresh TV/speaker boot, and explicitly confirms the
+  identified Kingston USB for kernel plus a new whole module directory only.
+  No format/repartition/internal/initramfs/bootargs change is authorized.
+- The distinct runtime-underscan-dev1 clean native build succeeds, all41 module
+  names/vermagic match the new release, complete source/module archive readbacks
+  pass and only connector source/LOCALVERSION change from preserved runtime-dev1.
+  Kernel SHA25696b9c03ae7a3c093750f7111aa981e203b9cde5cbc92b509d30619beae19f56c.
+  PR3's ordinary7.2 series integration is already local commit2952951; this is
+  a separate UVD derivative, not a replacement by the non-UVD native target.
+- The staging tool requests lsblk JSON without NAME/--tree; lsblk omits the
+  children array, so the identity guard raises KeyError before backup creation,
+  module copy or kernel replacement. No USB writes or console action occurs.
+  Corrected inputs explicitly request --tree/NAME and pass a separate read-only
+  target/mount guard before any next bounded attempt. No kernel rebuild needed.
+- UART is READY after the owner's earlier reconnect, same capture generation,
+  new connection epoch2. EXP042 completed12:34:59.674295–12:35:00.403915UTC,
+  0.729620seconds, offsets5483602..5483602,0raw/context lines or continuity
+  errors. Compact context read. This is not a boot or hardware acceptance.
+  Private stem:
+  `20261021_183459_674295-exp-20261021-042-pr3-underscan-plus-unchanged-uvd-fresh-tv-boot--e85d2419`.
+
+
+## EXP-20261021-043 — PR3/UVD TV boot passes; HDMI sound and picture remain slow
+
+- **PASS_SCOPED_FRESH_BOOT; FAIL_AUDIBLE_PLAYBACK_PACING.** Same explicit owner-confirmed
+  file-only USB scope as042; only installer inventory parsing changes to
+  --tree/NAME, separately validated read-only before this session. Stable USB
+  serial, both partition UUIDs/types and exact mounts are rechecked before
+  write/promotion. No format, internal storage, initramfs or bootargs changes.
+- New release`7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1`, unchanged
+  runtime source plus exact suds-mcduff PR3 patch and LOCALVERSION identity.
+  Kernel SHA25696b9c03ae7a3c093750f7111aa981e203b9cde5cbc92b509d30619beae19f56c;
+  GNU build ID`ea8f723d90889c429db387acfdb78f61154f7fff`;
+  config6134ef58948ec9aac438b9e5d3710d17c6356cf8e2f816bb8a3808f7f5baa9f7.
+  Whole41-module archive84f125e0b23b31d11702716bf7b0c48eaf95e3ccff9dc3b6a1e3d5402d6a03fc;
+  corresponding source004f448c4c986b1b4ef83ba45a648bc063d2b38f1243dfeaa9dd39e364230af9.
+  Complete source/module readbacks and all module vermagic checks pass; no new
+  firmware is embedded/bundled. Build/test success is not hardware acceptance.
+- Existing runtime-dev1 boot files are copied/read back under
+  `PS4BOOT/psx-recovery-EXP-20261021-043`; old module directories remain. Only
+  active bzImage is replaced; all new module files are independently verified
+  after copy. Original initramfs/bootargs/vram hashes remain unchanged. Both
+  USB partitions flush/unmount successfully. Owner is told USB is ready to move.
+- Bounded marker starts before writes, generation unchanged/connection epoch2,
+  start offset5485839;1800s total,180s staging,300s boot observation bound.
+  Deadline watchdog may close only this owned marker, never operate the console.
+  Owner sequence: full power-off, move unmounted USB, keep UART/TV connected,
+  launch normal Linux once, report desktop; leave Chromium closed for identity/
+  fault preflight. Stop on terminal fault or no display after five minutes.
+- Owner reports desktop appeared. Read-only preflight verifies fresh boot,
+  exact new release/build/config and all41 installed module hashes, unchanged
+  dev5 Gallium/RADV bytes, UVD STARTED/QUEUE_READY and no terminal GPU/UVD
+  marker. TV is1920x1080@60. HDMI48k is default/unmuted. Running config confirms
+  CONFIG_SND_VERBOSE_PROCFS is disabled: previous missing PCM proc substatus is
+  expected, not evidence of a wrong card/device. Wi-Fi SSH is verified against
+  the existing host key; an initial hyprctl preflight observer fails without
+  its instance signature, then corrected read-only observation succeeds.
+- Same private Chromium control profile, ANGLE/OpenGL/dev5 rendering, software
+  FFmpeg H.2641920x1080, hardware video decode disabled. HDMI throughout; no
+  silent sink/module or audio-setting change. First uninterrupted rate1 window:
+  14.319423media/23.2877wall=0.614892110x,429frames/1drop, minimum17.078195s
+  buffer. Final rate1 window:11.976780/19.4757=0.614960181x,356frames/zero drops,
+  minimum38.233195s buffer. No waiting/stalled/seeking/pause events. HDMI drives
+  the48k graph; no graph errors in the saved snapshot.
+- Whole45.0003s page window advances28.058922s, but includes rate1→1.5→1.25→1
+  changes, so its0.623527x is not a controlled rate1 result. Those changes are
+  not scripted by this controller; preserve the event history without guessing
+  their source. Mac host window45.104848s corroborates near-equal page/system
+  elapsed scale, not a large monotonic-clock speed error. Owner reports
+  `sound slow` and `also picture`; exact physical pitch/sample rate is unmeasured.
+- Browser exits0, no terminal marker; normal flags hash/default HDMI remain
+  unchanged. No browser VAAPI, quota/handle/reset/rearm change. TV and kernel
+  both differ from earlier runs; no causal PR3 audio-fix claim. This is one
+  scoped startup, not general new-kernel/UVD acceptance or an exercised
+  Wayland underscan-property test. Existing-driver timing versus actual sample
+  clock remains to be isolated; a low-volume48k ten-second calibration fixture
+  is generated offline but not played. Owner requests independent OC4/Astra
+  read-only fix advice; opinions are not implementation or hardware acceptance.
+- UART completed12:37:03.590591–12:51:00.027771UTC,836.437180seconds,
+  offsets5485839..5673057(187218bytes),2377normalized lines/2000context lines;
+  378middle lines omitted in the compact context, no continuity errors. Compact
+  reviewed first, then exact raw transition/Linux fault scan reviewed because
+  of omission. Benign printk`debug:` text is not a BUG fault. Private stem:
+  `20261021_183703_590591-exp-20261021-043-pr3-uvd-derivative-usb-update-with-corrected-ls-09cc0773`.
+
+### Read-only follow-up — OC4 and Astra audio-clock opinions
+
+Both independent opinions favor an HDMI-dependent audio pacing defect and one
+direct-ALSA calibration with an independent acoustic timing reference before
+choosing an existing-driver or userspace fix. No implementation or hardware
+operation follows from these opinions. Primary checks the exact runtime source:
+HDA controller/intel match the initial reference, but GPU/codec files differ;
+the native-HDMI DTO branch remains excluded by Liverpool's forced DP mode and
+the current bridge's audio initialization is inline. Its register/rate meanings
+are not proved. A ten-second fixture must match current48k/stereo/S32LE hardware
+parameters, and tick onset spacing—not file length/process drain—must be timed.
+Disabled verbose procfs does not remove ALSA status APIs. A new custom driver,
+blind clock compensation or routine LPIB switch is not justified by agreement.
+
+
+## EXP-20261021-044 — direct ALSA ten-second fixture completes in16.26seconds
+
+- **PASS_LOWER_PATH_DISCRIMINATION; PHYSICAL_PITCH_TIMING_PENDING.** Owner
+  explicitly authorizes the proposed test and asks whether UVD is involved.
+  Same healthy runtime-underscan boot; no existing audio streams. The exact
+  HDMI node is verified as card0/device3. Only that sink is temporarily suspended
+  to release its PCM; direct`aplay -D hw:0,3 -v --dump-hw-params --disable-resample`
+  bypasses Chromium and PipeWire streaming. No browser or video decode requested.
+- Fixture is480000frames/10seconds,48k/stereo/S32LE, ten1kHz gated ticks at
+  one-second source intervals and−30dBFS peak, losslessly expanded from the
+  priorS16 fixture. SHA25628c6315eb4b966356a8ffd1c4dc4fac81d45a0edc327221e245eeda5cadbb15a.
+  Actual ALSA negotiated setup confirmsS32_LE,2channels,48000(48000/1),32msbits,
+  RW_INTERLEAVED,period6000frames/125000us,buffer24000frames/500000us and
+  MONOTONIC timestamps. These are declared/negotiated rates, not a measured
+  physical output oscillator. Buffer geometry differs from browser graph quantum.
+- Aplay exits0 after16.258608738seconds measured by the receiver's monotonic
+  open/write/drain/exit observation, matching the broad earlier0.615x effect
+  without either browser or PipeWire playback. This elapsed value includes
+  buffering/drain/polling and must not be promoted to a measured acoustic pitch
+  or ten-tick onset span. Independent phone recording/operator tick-spacing
+  observation is requested but not yet supplied at this checkpoint.
+- New kernel clue at2160.312276s:
+  `snd_hda_intel 0000:00:01.1: IRQ timing workaround is activated for card #0. Suggest a bigger bdl_pos_adj.`
+  Source controller/intel matches the actual build; this message is emitted by
+  deferred IRQ/position work. It is a diagnostic lead, not proof that changing
+  bdl_pos_adj fixes the slowdown. No parameter or register is changed.
+- UVD signaled/emitted fences remain0/0 before and after; every other saved
+  fence also remains unchanged. No terminal GPU/UVD marker. Active UVD decoding
+  is not required to reproduce this result; an indirect runtime-enabled boot
+  effect is not excluded without a separately controlled cold-boot comparison.
+  No reset/rearm, driver unload, kernel/boot/configuration change is attempted.
+- Owned aplay closes normally, exact HDMI suspension releases successfully,
+  HDMI stays default and returns idle/SUSPENDED under normal PipeWire control.
+  No persistent settings change or active bounded marker remains. Stop bounds
+  were90s total/35s audio. Private receiver/results and independent copies are
+  under the local audio-calibration evidence directory.
+- UART completed13:16:38.646136–13:16:56.858659UTC,18.212523seconds,
+  offsets5676889..5677536(647bytes),7normalized/context lines, no omission or
+  continuity error; compact context read. Known wireless P2P error messages
+  occur separately from the new HDA timing information. Private stem:
+  `20261021_191638_646136-exp-20261021-044-direct-alsa-hw0-3-ten-second48k-stereos32-ticks-9576f261`.
+
+## EXP-20261021-049 — DTO-patched 7.2.11 boot restores HDA clock and fixture pacing
+
+- **PASS_SCOPED_DTO_PATCH_BOOT; DIGITAL_PACING_PASS; ACOUSTIC_PENDING.**
+  One real-hardware USB boot of the 7.2-ps4 DTO patch; not general support.
+  Owner launched the Linux payload loader. Loader v25.1 kexec'd the staged
+  `bzImage` SHA256 `574efc7972c579d05907a7587a5e916608e1b197edf53b139814d71230d82e54`
+  (11,265,024 bytes) and initramfs SHA256
+  `cf2102f52b8b5d048538e1dd410b2c9b43ec81d2a567294d6204578aa83103f7`
+  (2,549,097 bytes) from `/mnt/usb0`. The payload binary's search order was
+  checked read-only: `/mnt/usb0`, `/mnt/usb1`, `/data/linux/boot`,
+  `/user/system/boot`; USB has priority. Bootargs SHA256
+  `6eeae7cd0de103038dfa55441cb00f841c1397dde916fd1268a38f4f0b8a5189`
+  (runtime-underscan pre-SATA profile; amdgpu modeset and UVD runtime enabled)
+  and vram 1024 MB were unchanged.
+- USB staging was verified, synced and unmounted before boot; rollback
+  `PS4BOOT/psx-recovery-EXP-20261021-049` preserves the prior SATA-experiment
+  set, and `PS4BOOT/psx-recovery-EXP-20261021-045` preserves the pre-SATA
+  `96b9c03a...` set. No internal-storage or console boot-file write was made
+  by this staging/testing procedure.
+- UART session `EXP-20261021-049` completed with valid continuity:
+  2026-10-21T22:26:36.365926+06:00 to 22:36:50.687738+06:00
+  (614.321812 s), offsets 6901653..7094866 (193,213 bytes), 2,519 normalized
+  lines, no omitted lines or continuity errors. Kernel marker:
+  `Linux 7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1 reached the initramfs.`
+  amdgpu modeset/HDMI-A-1 came up, systemd reached graphical target and
+  OpenSSH started; SSH at `192.0.2.125`; boot ID
+  `9be10a28-e1c8-40cc-a7d2-3fd607614b4d`.
+- Read-only DCE/HDA probe: `DCCG_AUDIO_DTO_SOURCE=0`, `DTO0_PHASE=24000`,
+  `DTO0_MODULE=148500`; HDA `WALLCLK=23.966476 MHz` (0.998603 of 24 MHz).
+  Before the patch the same registers were unprogrammed and WALLCLK measured
+  14.778 MHz idle / 14.784 MHz playing. The modeset path programmed DTO0
+  automatically, with no userspace helper or manual register write.
+- Direct ALSA `hw:0,3` ten-second 48k/stereo/S32LE fixture: exit 0,
+  `process_elapsed_seconds=10.082772949`; the HDMI sink was suspended and
+  released, and no terminal GPU/UVD marker appeared. The previous unpatched
+  direct-ALSA result was 16.258608738 s. The new value includes open,
+  buffering/drain and polling, so it is a digital pacing measurement, not an
+  acoustic duration or pitch measurement. Independent tick-spacing/pitch
+  validation remains pending.
+- The residual 0.14% WALLCLK difference is recorded separately and is not the
+  0.61575x fault. One successful boot is evidence, not promotion; a cold-boot
+  repeat is required for the project acceptance count. The 6.18 series remains
+  unpatched; the fix lives only in the 7.2-ps4 series.
+- Private stem: `20261021_222636_365926-exp-20261021-049-boot-dto-patched-7-2-11-and-measure-audio-91331d48`.
+  Evidence: `clock-probe/RESULTS-049.md`, `EXP-049-IDLE.json`,
+  `audio-calibration/EXP-049-direct-alsa/RESULT.json`,
+  `USB-EXP-20261021-049.json`.
+
+## EXP-20261021-055 — 44.1 kHz hardware path is clean; 48 kHz is corrupted
+
+- **PASS_WORKAROUND_44K1; 48K_HARDWARE_PATH_DEFECT_OPEN.** Same boot
+  `9be10a28-e1c8-40cc-a7d2-3fd607614b4d`, release
+  `7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1` (DTO patch from EXP-049).
+  The owner still reported a robotic, stuttering voice after the DTO fix.
+- A checksummed 19.49-second macOS speech fixture was played through four
+  paths. PipeWire 48 kHz was robotic; **direct ALSA `hw:0,3` 48 kHz S32 was
+  also robotic** with PipeWire sockets/services stopped and no other streams;
+  direct ALSA 44.1 kHz S32 was clean; PipeWire 44.1 kHz was clean. The fixture
+  decoded cleanly and had identical SHA256 on both hosts. `aplay
+  --test-position` reported no ring-position warning at 48 kHz, so the HDA DMA
+  ring looked coherent while the audible output was corrupted.
+- This clears Chromium, Firefox, PipeWire and the 44.1-to-48 resampler. The
+  remaining defect is rate-specific in the kernel/HDA/HDMI path. The working
+  hypothesis is that the PS4 DP-to-HDMI bridge path still skips the normal AMD
+  AFMT/audio-packet setup (ACR/NCTS, 60958 channel status, sample send); the
+  DTO patch only restored the audio reference clock. Not proven.
+- Working userspace configuration: `default.clock.rate = 44100` and
+  `default.clock.allowed-rates = [ 44100 ]` in the user
+  `pipewire.conf.d/10-clock-rate.conf`; PipeWire/WirePlumber restarted.
+  Chromium YouTube then played cleanly with sink and stream both at 44.1 kHz,
+  because YouTube AAC audio is 44.1 kHz and no resampling to 48 kHz occurs.
+  This is a workaround, not a 48 kHz fix.
+- Cleanup: removed the earlier `20-posix-rt.conf` experiment files and the
+  Firefox `media.cubeb.*` overrides; no kernel, boot-file, storage or UVD
+  change. EXP-050 through EXP-054 were ad-hoc diagnostic attempts (Chromium
+  after DTO, RTKit, Firefox comparison, and an ineffective Firefox
+  direct-ALSA setup) and are not individually promoted here.
+- UART session completed with valid continuity; private stem
+  `20261021_232323_572232-exp-20261021-055-clean-pipewire-vs-direct-alsa-comparison-1a30750a`.
+  Evidence: `audio-calibration/EXP-055.md`,
+  `audio-calibration/EXP-055-RESULTS.json`, and the speech fixtures under
+  `~/mesa-tests/EXP-20261021-055/`.
+- Next: a bounded kernel-side AFMT/ACR test for 48 kHz. Do not revisit browser
+  or PipeWire permutations for the 48 kHz defect; they are already excluded.
+
+## EXP-20261021-056 — AFMT setup runs but does not fix native 48 kHz
+
+- **AFMT_HYPOTHESIS_REJECTED.** Two test kernels were built from the DTO-patched
+  7.2.11 tree. v1 (`255c6669…`) used the named DP-bridge condition and did not
+  match: the PS4 encoder reports `INTERNAL_UNIPHY`, `enc_mode=DP`, bridge id 0.
+  v2 (`0dcadfe9…`, `#3`) matched the DP encoder and logged
+  `PS4 audio: mode_set asic=9 enc_mode=0 bridge=0` and
+  `PS4 audio: setup enc_mode=0 dig=0 afmt=1 enabled=0/1`. Native 48 kHz direct
+  ALSA remained robotic on both boots. The AFMT/ACR/audio-endpoint setup is not
+  sufficient to fix the 48 kHz defect.
+- v2 boot `2f797ca5-8d7d-42a9-a2c0-3dba8f4be125`; release
+  `7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1`; 44.1 kHz PipeWire and
+  Chromium YouTube stayed clean. The v1 set is preserved on the USB as
+  `psx-recovery-EXP-20261021-056-v1`; the pre-audio SATA set is
+  `psx-recovery-EXP-20261021-056`.
+- UART `EXP-20261021-056` completed with valid continuity; private stem
+  `20261022_000901_768900-exp-20261021-056-afmt-kernel-boot-and-48k-test-42890442`.
+  Test patch is retained only as negative evidence; do not include it in the
+  default series as a fix.
+
+## EXP-20261021-057 — 48 kHz discrimination: format, period, DTO and codec
+
+- **NATIVE_48K_OPEN; 44K1_WORKAROUND_CLEAN.** Same v2 boot. 48 kHz direct ALSA
+  was robotic with S32 and S16, with large (24000/96000) and small (1024/4096)
+  periods, and across the DTO module sweep `148500/148352/148290/148650`.
+  DTO `148352` was slightly better to the owner but still robotic; the other
+  values were not clearly different. WALLCLK measured 23.935/23.959/23.970/
+  23.912 MHz respectively, and all registers were restored.
+- HDA codec verbs read during playback: 48 kHz `fmt=0x00000031` and 44.1 kHz
+  `fmt=0x00004031`, both 2ch/24-bit with the correct rate field; `DIGI_CONVERT`
+  was `0x0281` for both. The codec is not mislabeling 48 kHz. The remaining
+  rate-specific suspect is the MN864729 bridge audio path, which needs an
+  ICC/bridge register test rather than another GPU/AFMT rebuild.
+- UART `EXP-20261021-057` completed with valid continuity; private stem
+  `20261022_002748_235334-exp-20261021-057-48k-format-and-dto-discrimination-73180d3f`.
+  Evidence: `audio-calibration/EXP-056-057-RESULTS.json`, `build-056-v2/`,
+  `post-boot-056.py`, `dto-sweep-057.py`.
+
+## EXP-20261021-058 — larger bdl_pos_adj removes the warning but not the robotic voice
+
+- **BDL_POS_ADJ_REJECTED; BOOTARGS_RESTORED; 44K1_CLEAN.** One boot of the v2
+  kernel with `snd_hda_intel.bdl_pos_adj=64` appended to `bootargs.txt` on the
+  USB boot partition. Boot `08b67d23-5cea-485d-a241-3f04d6c2005e`; sysfs
+  parameter `64,-1,…`; the HDA `IRQ timing workaround` message was absent.
+  Direct ALSA `hw:0,3` 48 kHz S32 was still robotic to the owner.
+- The IRQ/position layer is therefore not the cause. The original bootargs
+  `6eeae7cd0de103038dfa55441cb00f841c1397dde916fd1268a38f4f0b8a5189` were
+  restored, the parameter is absent, and `/boot` is read-only again. Original
+  backup: `~/mesa-tests/EXP-20261021-058/bootargs.before`; rollback set:
+  `PS4BOOT/psx-recovery-EXP-20261021-058`.
+- The 44.1 kHz PipeWire workaround remains clean. No further GPU/AFMT/HDA
+  rebuild is justified by this evidence. The remaining 48 kHz suspect is the
+  MN864729 bridge audio path, which requires a separate bridge-register
+  investigation.
+- UART `EXP-20261021-058` completed with valid continuity; private stem
+  `20261022_003711_730321-exp-20261021-058-bdl-pos-adj-64-boot-test-1af67a5f`.
+  Evidence: `audio-calibration/EXP-058-RESULTS.json`.
+
+## EXP-20261021-060 — MN864729 ICC register investigation; no native 48 kHz fix
+
+- **BRIDGE_AUDIO_CONFIG_ATTEMPTS_NEGATIVE; NATIVE_48K_OPEN; 44K1_CLEAN.**
+  The MN864729 is reachable from userspace through `/dev/icc` (char major 73,
+  `ICC_IOCTL_CMD`, bridge queue major `0x10`/minor 0). Reads use
+  `reply.databuf[3]`, matching the driver. A read-only map of
+  `0x1000-0x10ff`, `0x6000-0x60ff`, `0x7000-0x70ff`, `0x7200-0x72ff`,
+  `0x7600-0x76ff` and `0x7a00-0x7aff` was compared during 44.1 kHz and 48 kHz
+  playback.
+- The only stable rate difference was `0x70a7` (`0x02` at 44.1 kHz, `0x83` at
+  48 kHz), which is read-only status. `0x7a50` is static during playback and
+  rate-dependent but writes revert; it is status/metadata. `0x701f`, `0x60f0`,
+  `0x720b`, `0x7a98` and `0x7aa8` are dynamic. `0x70b1` is writable but
+  `0x79 -> 0x6f` did not fix the sound.
+- One-clip tests with owner confirmation: DTO `148352/148290/148650/148106`
+  (24.0079 MHz), ACR 48k CTS `148352` + DTO `148352`, AFMT 60958 sampling
+  frequency `0x02`, DP_SEC audio SDP `0x1111`, bridge `0x70b1=0x6f`, and the
+  `0x7a50` block written to the 44.1 kHz value. All remained robotic. The
+  AFMT/ACR registers are write-only; DP_SEC and `0x70b1` read back confirmed.
+- The bridge sees the rate but its internal 48 kHz conversion remains
+  defective. The next decisive comparison is native Orbis 48 kHz playback on
+  the same bridge/TV; that separates a Linux configuration gap from a
+  bridge/TV limitation.
+- UART `EXP-20261021-060` completed with valid continuity; private stem
+  `20261022_004758_844832-exp-20261021-060-bridge-register-probe-d2165dac`.
+  Evidence: `audio-calibration/EXP-060-RESULTS.json`, `bridge-reg.c`,
+  `bridge-scan.c`, `bridge-wr.c`, `bridge-word.c`, `dpsec-test-060.py`,
+  `afmt-freq-060.py`, `acr-test-060.py`, `dto-one-060.py`.
+
+## EXP-20261022-061 — Orbis 48 kHz media reference and Ghidra HDMI config
+
+- **PASS_ORBIS_48K (media), CONDITIONAL NATIVE-48K CONCLUSION.** The PS4 booted
+  Orbis and played `USB/VIDEO/48k-test.mp4` (H.264 Constrained Baseline,
+  stereo AAC 48 kHz, SHA256 `114feee9…`) on the same TV, cable and MN864729
+  bridge; owner reported clean. The PS4 audio format was set to Linear PCM.
+- Ghidra on
+  `research/ps4/firmware-notes/rootfs-1202/system/sys/orbis_audiod.elf.decrypted`
+  resolved the HDMI config (`FUN_00014af0`): default
+  `SNDCTL_DSP_SPEED = 48000`, `SNDCTL_DSP_CHANNELS = 8`; 44.1 kHz is only a
+  conditional branch. The daemon also contains `audioOut48to44_core` for that
+  conditional 44.1 kHz mode. This pointed to native 48 kHz / 8-channel LPCM as
+  the Orbis default.
+- The `48k-test.mp4` was uploaded through GoldHEN FTP to
+  `/mnt/usb0/VIDEO/48k-test.mp4`; the TV OSD was unavailable, so the
+  daemon decompilation was used as the precise rate reference.
+
+## EXP-20261022-062 — remote Linux loader attempt was a no-op
+
+- The v25 1 GB Linux loader ELF (`c813d169…`) was sent to GoldHEN payloader
+  `192.0.2.215:9090` to boot Linux remotely. UART logged
+  `[GoldHEN] <payloader> Error handling payload`; no kexec, boot-file or
+  storage change occurred. The PS4 remained in Orbis and the owner booted
+  Linux normally. Session closed; no acceptance claim.
+
+## EXP-20261022-063 — 8-channel 48 kHz Linux test still robotic
+
+- **8CH_48K_REJECTED; NATIVE_48K_OPEN; 44K1_CLEAN.** Linux `hw:0,3` reports
+  `CHANNELS: [2 8]` and `RATE: [32000 192000]`. A 5 s 48 kHz S32 8-channel
+  WAV (speech in FL/FR, SHA256 `fc90e6f6…`) was played directly with
+  `aplay -D hw:0,3`; ALSA accepted S32_LE/8ch/48000, period 6000, buffer
+  24000. The owner reported robotic.
+- Channel count is therefore not the cause. The Orbis daemon’s 48 kHz/8ch
+  HDMI stream still differs from Linux below the application format, in the
+  Orbis kernel `aout` driver / bridge configuration. The 44.1 kHz PipeWire
+  setup remains clean.
+- UART `EXP-20261022-063` completed; private stem
+  `20261022_013211_741588-exp-20261022-063-linux-8ch-48k-direct-test-4178ca1b`.
+  Evidence: `audio-calibration/EXP-061-RESULTS.json` (Orbis test),
+  `EXP-063-RESULTS.json`, Ghidra project/log `ghidra-audio-java.log`.
+
+## EXP-20261022-064 — 0x70D DIGI_CONVERT_1 still robotic at 48 kHz
+
+- **0X70D_REJECTED; NATIVE_48K_OPEN; 44K1_CLEAN.** Test kernel
+  `7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1-ps4hdmi70d`
+  (`bzImage` `8d88cdf3…`), v2 audio bootargs `6eeae7cd…`, initramfs
+  `cf2102f5…`, vram `4f71bb76…`, 41 matching modules. The boot log confirms
+  the RMW, e.g. `PS4 HDMI DIGI_CONVERT_1 nid=0x2 old=0x211 new=0x11
+  fmt=0x37`.
+- One 8-channel 48 kHz S32 WAV (`fc90e6f6…`) was played directly to
+  `hw:0,3`; ALSA accepted S32_LE/8ch/48000, period 6000, buffer 24000;
+  `aplay_rc=0`. The owner reported **still robotic/distorted**. The `0x70D`
+  write is therefore not sufficient; the remaining difference is below the
+  codec, in the Orbis `aout`/bridge path.
+- UART `EXP-20261022-064` completed; private stem
+  `20261022_025231_769826-exp-20261022-064-native-48k-0x70d-one-clip-timeout180s-44k1-held-3f8a9eb6`.
+  The slice also shows the expected `IRQ timing workaround ... bigger
+  bdl_pos_adj`, already tested in EXP058 without a fix.
+- The 44.1 kHz PipeWire fallback remains the known-good state; no 44.1 path
+  setting was changed. No native-48k acceptance.
+- **Static follow-up (verified):** the 0x70D-only test did not replicate the
+  Orbis converter sequence. Orbis writes `0x200 -> 0x70D -> 0x70E=0x79 ->
+  0x706`; Linux writes `0x706 -> 0x200`, and the EXP-064 patch appended only
+  `0x70D`. `0x70E` and the order are untested. The Orbis BDL `2 x 8192` bytes
+  versus Linux `4 x 192000` is a real secondary difference; the AFMT category
+  code `0x79` is another candidate. `0xC004505C` only caches tick globals and
+  is bypassed by direct ALSA.
+- **Next:** the full ordered converter sequence is the next single candidate;
+  a cheap `hda-verb` `0x70E=0x79` pre-check may precede the decisive ordered
+  kernel. If negative, test the Orbis `2 x 8192` BDL geometry, then the AFMT
+  category `0x79`. Do not repeat the 0x70D-only or the other negative guesses.
+
+## EXP-20261022-065 — ordered 0x70E sequence still robotic at 48 kHz
+
+- **0X70E_ORDERED_REJECTED; NATIVE_48K_OPEN; 44K1_CLEAN.** Test kernel
+  `7.2.11-psx-ps4-baikal-uvd-runtime-underscan-dev1-a70e1`
+  (`bzImage` `3f0c1e1b…`), v2 audio bootargs `6eeae7cd…`, initramfs
+  `cf2102f5…`, vram `4f71bb76…`, 41 matching modules, no SATA parameters;
+  snapshot `psx-recovery-EXP-20261022-013`. The boot log confirms the ordered
+  sequence on both nids, e.g. `PS4 HDMI Orbis sequence nid=0x2 stream=1
+  fmt=0x11 0x70E=0x79` through `fmt=0x37`, and `nid=0x6 … fmt=0x31`.
+- One 8-channel 48 kHz S32 WAV (`fc90e6f6…`) was played directly to `hw:0,3`
+  with `aplay -D hw:0,3 -v --dump-hw-params --disable-resample`; ALSA accepted
+  S32_LE/8ch/48000, period 6000, buffer 24000, `aplay_rc=0`. `0x70E=0x79` was
+  re-applied on the live stream (`fmt=0x37`). The owner reported **still
+  robotic**. The `IRQ timing workaround … bigger bdl_pos_adj` line is the one
+  already negative in EXP058.
+- The ordered converter sequence is therefore not the missing difference.
+- UART `EXP-20261022-065` completed; private stem
+  `20261022_040625_762380-exp-20261022-065-audio-0x70e-ordered-8ch-48k-one-clip-3aa14c0e`.
+  The boot preceded the bounded slice and is covered only by continuous UART;
+  the bounded slice covers playback. An earlier operator attempt produced no
+  audio only because `/boot/exp055-8ch-48k.wav` is root-only; it is not a
+  result and did not change the codec state.
+- The 44.1 kHz PipeWire fallback remains clean and was not touched. No native
+  48 kHz acceptance; v2 `-058` remains the rollback set.
+
+## EXP-20261022-066 — Orbis 512-frame BDL geometry still robotic
+
+- **BDL_GEOMETRY_REJECTED; NATIVE_48K_OPEN; 44K1_CLEAN.** Same kernel, fixture
+  and device as `-065`; the only variable was buffer geometry. Playback used
+  `aplay -D hw:0,3 -v --disable-resample --buffer-size=512 --period-size=256`,
+  matching the Orbis `2 x 8192`-byte BDL: period 256 (5333 us), buffer 512
+  frames (10.67 ms), `aplay_rc=0`. Codec setup was identical
+  (`fmt=0x37`, `0x70E=0x79`). The owner reported **still robotic**.
+- Buffer geometry is therefore not the cause. With `0x70D`, the ordered
+  `0x70E` sequence and BDL geometry all negative, no remaining
+  application-visible or ALSA-visible variable explains the robotic output.
+- UART `EXP-20261022-066` completed; private stem
+  `20261022_041023_967916-exp-20261022-066-audio-48k-bdl-geometry-512-frames-11ce459c`.
+- **Next:** stop hardware guessing; continue static analysis of
+  `libSceAudioOut`/`aout` and the bridge/AFMT path before another hardware
+  variable. Do not repeat `0x70D`, `0x70E`, 2ch/8ch, AFMT category, DTO, ACR,
+  DP_SEC, bridge registers or BDL geometry. The 44.1 kHz fallback is the
+  shipped working state; no native 48 kHz acceptance.
+
+## EXP-20261022-067 — 48 kHz content is clean through the default stack
+
+- **DEFAULT_PATH_CLEAN; DIRECT_48K_OPEN.** Diagnostic only: no new kernel and
+  no codec write. The `-065`/`-066` fixture (`fc90e6f6…`, 8ch/48 kHz S32) was
+  played through PipeWire (`paplay`) on
+  `alsa_output.pci-0000_00_01.1.hdmi-stereo`, which runs `s32le 2ch 44100Hz`
+  with `clock.rate=44100` from
+  `~/.config/pipewire/pipewire.conf.d/10-clock-rate.conf`; the owner reported
+  **clean**, `paplay_rc=0`.
+- The robotic artifact is therefore confined to forcing `hw:0,3` to native
+  48 kHz; 48 kHz *content* is handled correctly by the shipped default stack.
+  The `codec#0` proc dump does not expose per-converter runtime format (60
+  lines, no converter state) and `hda-verb` is absent on the console, so a
+  codec-register diff from `/proc` is not obtainable this way.
+- UART `EXP-20261022-067` completed; private stem
+  `20261022_041348_833929-exp-20261022-067-audio-codec-state-48k-vs-44k1-6ba6ed27`.
+- **Next:** unchanged. Native 48 kHz needs an Orbis 48 kHz bridge/HDA reference
+  capture before another hardware variable; no further blind writes.
+- **Applied:** the clean 44.1 kHz graph is now shipped, not just a local
+  workaround: `rootfs/xfce/overlay/etc/pipewire/pipewire.conf.d/10-ps4-44k1.conf`
+  installs to `/etc/pipewire/pipewire.conf.d/` and resamples 48 kHz content for
+  every user. The compatibility ledger records HDMI audio as `Degraded` with
+  native 48 kHz open. Remove the drop-in when native 48 kHz is qualified.
+
+## EXP-20261022-001 — Baikal embedded SATA PHY, 1.5 Gbps host (NCQ active)
+
+- **FAIL_DATA_PATH; INTERNAL HDD ATTACHED ONCE.** SATA PHY lab identifier
+  `EXP-20261022-001`; kernel
+  `7.2.11-psx-ps4-baikal-sata-phy-dev1` (`bzImage` `2bff5339…`, initramfs
+  `77fa8d26…`, 41 matching modules), bootargs `9cef96c5…`.
+- Command line used `libata.force=1:1.5Gbps,1.00:noncq`. The 1.5 Gbps host
+  limit applied, but the later `1.00:noncq` did not: libata selects the first
+  matching force entry for device quirks, so the port-wide entry won. NCQ
+  remained enabled (`NCQ (depth 32)`).
+- UART slice completed with valid continuity:
+  `20261022_000129_363148-exp-20261022-001-sata-phy-1-5gbps-host-noncq-f353c63e`.
+  Link up at 1.5 Gbps; HPA `READ NATIVE MAX ADDRESS` (`0x27`) completed in
+  1051 ms; IDENTIFY completed; `set_mode rc=0`. Internal HDD attached as
+  `/dev/sdb`: 976773168 sectors, 500 GB, 4096-byte physical blocks.
+- The first 4 KiB read of sector 0 (`READ FPDMA QUEUED`, NCQ) timed out after
+  about 30 s. EH then hard-reset the link; subsequent IDENTIFY (`0xec`) attempts
+  timed out, and `sdb: unable to read partition table` followed.
+- No mount, write, format, or internal-storage modification was performed.
+
+## EXP-20261022-002 — Baikal embedded SATA PHY, effective non-NCQ
+
+- **FAIL_SET_XFERMODE; NO DISK.** Command line
+  `libata.force=1.00:noncq,1:1.5Gbps`; both
+  `FORCE: modified (noncq)` and `FORCE: PHY spd limit set to 1.5Gbps` applied,
+  and `NCQ (not used)` was reported.
+- UART slice completed with valid continuity:
+  `20261022_013848_463114-exp-20261022-002-sata-phy-1-5gbps-noncq-effective-32e9258f`.
+  Link remained at 1.5 Gbps; HPA `0x27` completed in 1323 ms; then
+  `SET FEATURES` transfer-mode command `0xef` timed out after 15 s,
+  `failed to set xfermode`, and IDENTIFY `0xec` timed out. No `/dev/sdb`
+  appeared. A later `set_mode rc=0` issued no internal command and did not
+  produce a disk.
+- No mount, write, format, or internal-storage modification was performed.
+
+## EXP-20261022-003 — Baikal embedded SATA PHY, 1.5 Gbps with SET_XFERMODE skipped
+
+- **FAIL_COMMAND_COMPLETION; NO DISK.** Command line
+  `libata.force=1.00:nosetxfer,1:1.5Gbps`; `FORCE: modified (nosetxfer)`
+  applied while NCQ remained enabled.
+- UART slice completed with valid continuity:
+  `20261022_014344_107506-exp-20261022-003-sata-phy-1-5gbps-nosetxfer-fd5ac438`.
+  Link up at 1.5 Gbps. The first IDENTIFY `0xec` completed in 51 ms, but HPA
+  `0x27` then timed out after 5.2 s; the following IDENTIFY attempts timed out
+  at 5 s and 10 s. No `/dev/sdb` appeared.
+- `/proc/interrupts` showed IRQ 1 with the actions
+  `xhci_aeolia[0000:00:14.7]`, `xhci-hcd:usb1`, and `xhci-hcd:usb3`. The first
+  is the embedded AHCI handler's registered description, not a missing
+  handler; the IRQ count was 250. The failure is therefore not explained by an
+  absent `ahci` label in `/proc/interrupts`.
+- No mount, write, format, or internal-storage modification was performed.
+
+## EXP-20261022-004 — PHY profile boot attempt, parameter rejected
+
+- **INVALID_PROFILE_PARAM; PHY PROFILE NOT APPLIED.** The new
+  `c8044521…` kernel booted with
+  `libata.force=1:1.5Gbps ps4_sata_phy_orbit=1`. The kernel reported:
+  `Unknown kernel command line parameters "ps4_sata_phy_orbit=1", will be
+  passed to user space.` The profile line then read
+  `Baikal SATA PHY profile: existing shared trace 3-5, glue 112/48` and
+  `Baikal SATA EFUSE VALUE: 0x28:0x11:0x10`, proving the default path was used.
+- The built-in parameter name is `ps4_bpcie.ps4_sata_phy_orbit`, as confirmed
+  by `modules.builtin.modinfo` (`ps4_bpcie.parm=ps4_sata_phy_orbit`). The bare
+  name is not accepted as a kernel command-line parameter. The next boot must
+  use `ps4_bpcie.ps4_sata_phy_orbit=1`.
+- The default-path run still reached IDENTIFY (10 ms), HPA (1190 ms), the first
+  `SET FEATURES 0xef` (99 ms), then timed out on the second `0xef` (15 s); no
+  `/dev/sdb` appeared in the observed window. This is not a test of the PHY
+  profile and is not counted as a profile result.
+- UART slice completed with valid continuity:
+  `20261022_021044_117324-exp-20261022-004-sata-phy-orbis-ahci-profile-1-5gbps-ncq-323cd983`.
+- No mount, write, format, or internal-storage modification was performed.
+
+## EXP-20261022-005 — Orbis AHCI PHY profile applied, first read still fails
+
+- **FAIL_FIRST_READ; PHY PROFILE DID NOT RESOLVE.** The corrected built-in
+  parameter `ps4_bpcie.ps4_sata_phy_orbit=1` was accepted. The log confirmed
+  `Baikal SATA PHY profile: Orbis AHCI trace 6-8, glue 108/44`; the selected
+  EFUSE print was `0x28:0x10:0x108d0f` (the `tune2` field is logged without the
+  5-bit mask; the `0x2078` write is masked to the same 5-bit field).
+- Link up at 1.5 Gbps. IDENTIFY completed in 40 ms; HPA `0x27` completed in
+  1126 ms; both `SET FEATURES 0xef` calls completed; `set_mode rc=0`;
+  `ata1.00` configured for UDMA/100 and the internal HDD attached as `/dev/sdb`
+  (500 GB, 976773168 sectors, 4096-byte physical).
+- The first 4 KiB read of sector 0 (`READ FPDMA QUEUED`, tag 22) still timed
+  out at 30 s with `SAct 0x400000`, `SErr 0x0`, `status { DRDY }`.
+  The following IDENTIFY `0xec` revalidation attempts timed out at 5 s and
+  10 s. No partition table read succeeded.
+- UART slice completed with valid continuity:
+  `20261022_021953_918791-exp-20261022-005-sata-phy-orbis-ahci-profile-1-5gbps-ncq-prefixe-5abfef65`.
+- No mount, write, format, or internal-storage modification was performed.
+- This is a valid profile test and a negative result for the first read. The
+  next step is the AHCI interrupt/port register dump at the first timeout, with
+  the same profile, rather than another force/PHY combination.
+
+## EXP-20261022-006 — instrumented dump fired before the command timeout
+
+- **INCONCLUSIVE REGISTER DUMP; HPA TIMEOUT.** The `99346e92…` instrumented
+  kernel applied the Orbis AHCI profile correctly:
+  `Baikal SATA PHY profile: Orbis AHCI trace 6-8, glue 108/44` and
+  `Baikal SATA EFUSE VALUE: 0x28:0x10:0x0f`.
+- Link up at 1.5 Gbps. The first `ahci.eh.regs` dump was at 6.88 s, before the
+  first ATA command:
+  `n=1 irq_count=0 port_irq_count=0 last_is=0x0 last_pxis=0x0 last_pxci=0x0
+  last_pxtfd=0x0 ghc=0x80000002 is=0x0 pxis=0x0 pxie=0x0 pxcmd=0x44017
+  pxtfd=0x80 pxsig=0xffffffff pxssts=0x123 pxsctl=0x0 pxserr=0x0 pxsact=0x0
+  pxci=0 pxsntf=0x0 pxfbs=0x0`.
+  This is the initial EH/attach state, not a command timeout.
+- HPA `0x27` then timed out after 5.286 s; IDENTIFY `0xec` timed out after
+  5.16 s; no `/dev/sdb` and no first-read test in this run.
+- The `ahci_error_handler` dump did not run at the internal-command timeout.
+  A second instrumented kernel (`4e073282…`) adds
+  `ahci.post_internal.regs` in `ahci_post_internal_cmd()` so the register state
+  is captured at the actual internal timeout. It is built but not staged or
+  booted.
+- UART slice completed with valid continuity:
+  `20261022_022643_884252-exp-20261022-006-sata-phy-profile-ahci-regs-d5fab0a5`.
+- No mount, write, format, or internal-storage modification was performed.
+
+## EXP-20261022-007 — timeout registers point to completion/IRQ loss
+
+- **FAIL_SET_XFERMODE; COMPLETION/IRQ LOSS.** Profile applied
+  (`trace 6-8`, glue `108/44`, EFUSE `0x28:0x10:0x0f`); link 1.5 Gbps;
+  IDENTIFY/HPA and the first `0xef` completed. The second `0xef` timed out
+  after 15 s, so `set_mode` failed and no `/dev/sdb` appeared.
+- The post-internal timeout dump was:
+  `cmd=0xef err_mask=0x4`, `irq_count=3`, `port_irq_count=3`,
+  `last_is=0x1`, `last_pxis=0x1`, `last_pxci=0x0`, `last_pxtfd=0x50`,
+  `ghc=0x80000002`, `is=0x1`, `pxis=0x1`, `pxie=0x0`, `pxcmd=0x4c017`,
+  `pxtfd=0x50`, `pxsig=0x101`, `pxssts=0x113`, `pxsctl=0x310`,
+  `pxserr=0x0`, `pxsact=0x0`, `pxci=0x0`, `pxsntf=0x0`, `pxfbs=0x0`.
+- Interpretation: the command slot and SActive are clear, the device is ready
+  (`PxTFD 0x50`), and there is no link/SERR error. `PxIS` still has the D2H
+  Register FIS bit set (`0x1`), with `IS=0x1` pending, but only three AHCI
+  interrupts were seen. `PxIE=0` is the EH freeze mask, not the cause. This is
+  consistent with a completed command whose completion interrupt/FIS was not
+  delivered or handled, not a PHY failure.
+- The initial `ahci.eh.regs n=1` at 6.87 s was the pre-command attach state
+  (`irq_count=0`, `pxis=0`, `pxci=0`, `pxssts=0x123`, `pxsig=0xffffffff`) and
+  is not the timeout state.
+- UART slice completed with valid continuity:
+  `20261022_023439_816497-exp-20261022-007-sata-phy-profile-ahci-timeout-regs-6fff34e5`.
+- No mount, write, format, or internal-storage modification was performed.
+- Next: compare the Orbis IRQ vector/dispatcher and Linux shared IRQ 1; test
+  whether polling (`irqpoll`) or a separate AHCI completion path recovers the
+  pending D2H FIS. No more PHY/force profiles until the completion path is
+  understood.
+
+## EXP-20261022-008 — irqpoll gets `sdb` but the read completion is still lost
+
+- **FAIL_FIRST_READ; IRQ/FIS LOSS CONFIRMED.** Kernel `4e073282…`, same
+  Orbis AHCI profile, added only `irqpoll`. Profile applied and EFUSE remained
+  `0x28:0x10:0x0f`.
+- Link 1.5 Gbps; IDENTIFY/HPA completed; `set_mode rc=0` after 4.9 s;
+  `ata1.00` configured for UDMA/100 and the HDD attached as `/dev/sdb`
+  (500 GB, 976773168 sectors). `irqpoll` improved the setup path.
+- The first 4 KiB sector-0 read still timed out at 30 s. The read-timeout dump:
+  `ahci.eh.regs n=2 irq_count=7 port_irq_count=7 last_is=0x1 last_pxis=0x1
+  last_pxci=0x0 last_pxtfd=0x50 ghc=0x80000002 is=0x1 pxis=0x8
+  pxie=0x0 pxcmd=0x4d617 pxtfd=0x40 pxsig=0x101 pxssts=0x113
+  pxsctl=0x310 pxserr=0x0 pxsact=0x0 pxci=0x0 pxsntf=0x0 pxfbs=0x0`.
+  `PxIS=0x8` is the SDB (NCQ completion) FIS; `PxCI`/`PxSACT` are clear,
+  `PxTFD=0x40`, `PxSERR=0`. The NCQ completion was not handed to libata.
+  `PxIE=0` is the EH freeze mask.
+- `irqpoll` is therefore not sufficient. The result confirms a lost/missed
+  completion interrupt or FIS handling, not a PHY/link failure.
+- UART slice completed with valid continuity:
+  `20261022_023956_524368-exp-20261022-008-sata-phy-profile-ahci-regs-irqpoll-ccb115df`.
+- No mount, write, format, or internal-storage modification was performed.
+- Next: the independent Orbis IRQ/dispatcher review, then a separate AHCI
+  completion vector or a driver-level polling fallback. No more PHY/force
+  profiles.
+
+## EXP-20261022-010 — demux logging shows the func-7 path is not entered
+
+- **INCONCLUSIVE DEMUX THEORY; NO `bpcie-demux` LOGS.** Fresh-loaded kernel
+  `86999c78…` with the same Orbis AHCI profile, 1.5 Gbps + NCQ, and no
+  `irqpoll`. The profile applied and EFUSE remained `0x28:0x10:0x0f`.
+- Link 1.5 Gbps; the first IDENTIFY/HPA path proceeded, but the revalidation
+  IDENTIFY `0xec` timed out after 5.17 s; `set_mode rc=-5`; no `/dev/sdb`.
+- The expected `bpcie-demux` logs did not appear for function 7. The AHCI
+  handler still recorded four interrupts and the post-internal dump:
+  `cmd=0xec err_mask=0x4 irq_count=4 port_irq_count=4 last_is=0x1
+  last_pxis=0x1 last_pxci=0x0 last_pxtfd=0x50 ghc=0x80000002 is=0x1
+  pxis=0x2 pxie=0x0 pxcmd=0x4c017 pxtfd=0x50 pxsig=0x101 pxssts=0x113
+  pxsctl=0x310 pxserr=0x0 pxsact=0x0 pxci=0x0 pxsntf=0x0 pxfbs=0x0`.
+  The pending bit is `0x2` (PIO Setup FIS), not the function-7 demux path.
+- This does not support the IDA/Ghidra agent's primary `bpcie_handle_edge_irq`
+  function-7 hypothesis as the AHCI completion path. Either the AHCI interrupt
+  is direct/shared, or the demux is on a different function. The completion
+  loss itself remains real.
+- UART slice completed with valid continuity:
+  `20261022_030426_197273-exp-20261022-010-sata-demux-logging-9e0db6e4`.
+- No mount, write, format, or internal-storage modification was performed.
+- Next: log all `bpcie_handle_edge_irq` functions/descriptors, or pivot to a
+  driver-level polling completion fallback. No more PHY/force profiles.
+
+## EXP-20261022-011 — polling fallback reaches the internal HDD and reads its partition table
+
+- **PASS_FIRST_READ; INTERNAL HDD READ-ONLY ACCESSIBLE.** Kernel `c9bb983e…`,
+  known SATA initramfs `77fa8d26…`, bootargs `a7362de6…`, same Orbis AHCI
+  profile and 1.5 Gbps + NCQ, plus
+  `libahci.ps4_ahci_poll_ms=5`.
+- Profile applied and EFUSE remained `0x28:0x10:0x0f`. Link 1.5 Gbps;
+  `set_mode rc=0` after 284 ms; `/dev/sdb` attached (500 GB, 976773168
+  sectors, 4096-byte physical).
+- The first 4 KiB read and the partition scan completed. The kernel logged:
+  `sdb: sdb1 sdb3 sdb5 sdb7 sdb9 sdb10 sdb11 sdb12 sdb13 sdb17 sdb19
+  sdb25 sdb27 sdb29 sdb31` and `sd 0:0:0:0: [sdb] Attached SCSI disk`.
+  Diskstats showed real reads; `PS4_SATA_DIAG phase=ready
+  mode=initramfs_only root=read_only` followed.
+- No `bpcie-demux` lines appeared even with all-function logging. The
+  function-7 demux path is still not the AHCI path used here. The 5 ms AHCI
+  poll timer serviced the pending completion FIS and let the read/partition
+  scan complete.
+- UART slice completed with valid continuity:
+  `20261022_031135_633708-exp-20261022-011-sata-demux-polling-906124ae`.
+- No mount, write, format, or internal-storage modification was performed.
+- This is one successful read-only boot, not hardware acceptance. Repeat
+  boots and read-only validation are required; the polling fallback also
+  needs review/reduction before it can be considered a support fix.
+
+**SATA PHY series conclusion (2026-10-22).** The internal HDD is not yet
+supported under Linux. The 1.5 Gbps + NCQ profile is the only one that reaches
+a block device, and it fails on the first data read. Effective non-NCQ fails
+earlier at SET_XFERMODE; `nosetxfer` fails at HPA/IDENTIFY command completion.
+No force-only profile is a fix.
+
+Independent IDA review found a PHY configuration mismatch: the Linux sequence
+uses the Orbis trace 3..5 branch, while both Orbis SATA controllers use trace
+6..8; the Linux xHCI call also takes the shared EFUSE/glue path instead of the
+AHCI path. The review's controller labels are swapped relative to the boot log
+(the HDD is Orbis `ahci1` trace 6, the optical drive `ahci0` trace 8), but both
+use the same 6..8 branch. The HDD is confirmed PMR, not SMR.
+
+A test kernel was built with a disabled-by-default profile selector
+`ps4_bpcie.ps4_sata_phy_orbit` (new `bzImage` `c8044521…`; previous
+`2bff5339…`). `EXP-20261022-004` booted it with the bare name
+`ps4_sata_phy_orbit=1`, which the kernel rejected; the PHY profile was not
+applied. `EXP-20261022-005` used the correct prefixed name; the profile applied
+and reached `sdb`/`set_mode rc=0`, but the first 4 KiB read still timed out.
+The timeout dumps in `EXP-20261022-007` and `-008` show `PxCI=0`,
+`PxSACT=0`, ready status, no `PxSERR`, but a pending completion FIS
+(`PxIS=1` D2H in 007; `PxIS=8` SDB in 008) and too few AHCI interrupts.
+`irqpoll` let `set_mode`/`sdb` attach but the first read still timed out.
+`EXP-20261022-010` added demux logging; the expected function-7
+`bpcie-demux` path did not run, so the agent's primary subfunction-demux
+hypothesis is not supported by this boot. The completion loss remains real.
+Both follow-ups were built into `c9bb983e…`: all-function
+`bpcie_handle_edge_irq` logging, and an AHCI polling fallback controlled by
+`libahci.ps4_ahci_poll_ms`. In `EXP-20261022-011`, the 5 ms poll let the
+internal HDD attach and read its partition table for the first time under
+Linux. The first read succeeded read-only. This is one boot and a workaround,
+not stable support or hardware acceptance; repeat boots and a proper IRQ fix
+remain required.
+
+The bring-up work is committed locally in `linux-psx` as `89201e6`:
+`0400-storage-ahci/0003-ps4-baikal-ahci-phy-orbis-profile.patch` and
+`0400-storage-ahci/0004-ata-ahci-ps4-completion-poll.patch`, added to the
+`7.2-ps4-baikal` series. The patches default disabled and do not include raw
+UART logs, device identifiers, credentials or private paths. No push was made.
+
+## EXP-20261022-012 — read-only GPT type-GUID map resolves the internal layout
+
+- **PASS_READ_ONLY_GPT_MAP.** Kernel `97c766ab…` (GPT v2 diagnostic),
+  passive diagnostic initramfs `77fa8d26…`, bootargs `a7362de6…` (same
+  Orbis AHCI profile, 1.5 Gbps + NCQ, 5 ms completion poll).
+- The kernel printed all 15 GPT entries with both the partition type GUID and
+  unique GUID. The relevant roles on this Baikal B1 are:
+  - `sdb7` — type `6e0c5310…` — `eap_vsh`, start 961830912, 262144 sectors
+  - `sdb27` — type `c638477a…` — main `user`, start 35653632,
+    881055744 sectors
+  - `sdb29` — type `21e4dfb4…` — `eap_user`, start 962093056,
+    2097152 sectors
+- `sdb27` is therefore the main user partition on this console; the community
+  `sd?27` assumption matches this layout. This resolves the read-only layout
+  question only. It does not validate EAP decryption, UFS mount, image access,
+  or write.
+- UART slice completed with valid continuity:
+  `20261022_145033_821273-exp-20261022-012-read-only-gpt-type-unique-uuid-diagnostic-781774e8`.
+- The diagnostic userspace held in PID1; no mount, write, format, decryption,
+  or key handling was performed. The console was left in the passive hold.
+
+## EXP-20261022-013 — read-only EAP/UFS validation passes
+
+- **PASS_READ_ONLY_EAP_UFS.** Kernel `c9bb983e…`, purpose-built read-only
+  initramfs `c6aae2ab…`, bootargs `75369e91…` (same Orbis AHCI profile,
+  1.5 Gbps + NCQ, 5 ms completion poll, `ps4root.mode=readonly`).
+- The existing loader injected its key path; the initramfs checked only for
+  `the loader-injected key` and did not read, copy, print, hash, or persist it.
+- The initramfs selected exactly one `/dev/sd?27` with size `881055744`
+  sectors (`sdb27`), set the block device read-only, opened plain dm-crypt
+  read-only with `aes-xts-plain64`/256-bit, and mounted UFS2 read-only at
+  `/ps4hdd`. The `home` and `system` directories were present.
+- UART markers:
+  `phase=target device=/dev/sdb27 size_sectors=881055744`,
+  `phase=key_present`, `phase=blockdev_readonly`,
+  `phase=ready mode=readonly-ufs`, `phase=hold no_writes=true`.
+- No e2fsck, fstab write, image loop, image install, or internal write was
+  performed. No key material was logged.
+- UART slice completed with valid continuity:
+  `20261022_154519_596315-exp-20261022-013-read-only-eap-ufs-validation-51227344`.
+- This proves the read-only Orbis UFS/AES-XTS path on Baikal 12.02. It does
+  not prove stable AHCI completion, image mounting, write durability, or
+  install support. The console was left in the read-only hold.
+
+## EXP-20261022-015 — FTP-written file is readable through Linux EAP/UFS
+
+- **PASS_FTP_WRITE_LINUX_READ.** A 69-byte non-sensitive test file was
+  uploaded through Orbis FTP to `/user/home/omarchy-ftp-test-20261022.txt`.
+  The FTP round-trip SHA-256 matched.
+- The same read-only EAP/UFS initramfs then listed `/ps4hdd/home`, read the
+  file, and printed its contents. Markers:
+  `phase=home_listing`, `phase=ftp_test_file`, `phase=ftp_test_size size=69`,
+  `phase=ftp_test_read_ok`, `phase=hold no_writes=true`.
+- No Linux-side write occurred. The UFS was read-only and the block device was
+  read-only.
+- UART slice completed with valid continuity:
+  `20261022_164114_338023-exp-20261022-015-read-only-ftp-file-verification-6617349a`.
+- This proves Orbis FTP write visibility through the Linux EAP key path. It
+  does not prove image loop mounting, install support, write stability, or
+  performance. The Orbis test file remains to be deleted when FTP is
+  reachable again.
+
+## EXP-20261022-017 — internal Alpine image boot, Ethernet and SSH pass
+
+- **PASS_INTERNAL_IMAGE_ALPINE.** A 1 GiB Alpine ext4 image was uploaded via
+  Orbis FTP to `/user/home/omarchy-alpine.img`, then booted through the
+  loader key path, `sdb27`, dm-crypt, loop0 and ext4.
+- Root: `/dev/loop0`, about 973 MiB, with the image mounted read-write for
+  this test. No Orbis system partition was written.
+- The kernel’s `psx_mts_net` driver registered the internal Ethernet port;
+  DHCP assigned an address and SSH root login with the test key succeeded.
+- Console shows a normal Alpine `ps4 login:` getty; SSH is the working access
+  path.
+- WiFi is not working yet: MT7668 probe fails because firmware files
+  (the MediaTek firmware set) are
+  missing. Ethernet works.
+- UART slice completed with valid continuity:
+  `20261022_170935_637159-exp-20261022-017-internal-alpine-image-boot-72501694`.
+- This proves an internal-image Linux root, Ethernet and SSH on Baikal. It does
+  not prove WiFi, long-term write stability, or performance. The test image
+  remains for further tests and must be deleted when finished.
+
+## EXP-20261022-018 — internal Alpine image write test
+
+- **PASS_BASIC_IMAGE_WRITE.** Over SSH, wrote 64 MiB inside
+  `/user/home/omarchy-alpine.img` with `dd ... conv=fsync`.
+- Completed: 67,108,864 bytes in 1.658 s, **38.6 MB/s**; hash of the
+  zero-filled file matched; file was removed and synced.
+- No dmesg errors. The 2.6 GB/s readback was page cache, not a disk result.
+- UART session completed with valid continuity but captured 0 bytes because
+  the test ran over SSH without UART markers.
+- This proves a working write path inside the test image. It does not prove
+  sustained throughput, reboot persistence, or long-term AHCI write stability.
+
+## EXP-20261022-019 — internal image persistence across reboot
+
+- **PASS_INTERNAL_IMAGE_PERSISTENCE.** A marker written inside
+  `/user/home/omarchy-alpine.img` was synced, then the PS4 was rebooted to
+  Orbis and a new Linux payload was launched.
+- The internal image booted again through `sdb27` + dm-crypt + loop0 + ext4.
+- SSH returned; the marker survived with the same SHA-256:
+  `24c62dc92a4f37ae2ccedafcbc9673376b5c6703fd68247b5779e3f4ee7f72d5`.
+- The second boot again registered `psx0`, DHCP and SSH. No Orbis system
+  partition was written.
+- UART slice completed with valid continuity:
+  `20261022_173523_484354-exp-20261022-019-internal-alpine-persistence-test-faefc5f0`.
+- This closes the basic internal-image write/persistence gate. It does not
+  prove long-term stability, sustained performance, WiFi, or desktop support.
+
+## EXP-20261022-020 — internal Alpine sequential performance
+
+- **PASS_BASIC_SEQUENTIAL_PERF.** Inside the internal Alpine image, 128 MiB
+  sequential `dd conv=fsync` wrote at **45.1 MB/s**; a direct 128 MiB read
+  after dropping caches measured **61.0 MB/s**.
+- No dmesg errors; test file removed. `fio` was not installed because the
+  Alpine repository index emitted a TLS certificate warning; `dd` was used.
+- These numbers include ext4 + loop + dm-crypt + UFS + the internal SATA HDD.
+  Random I/O/IOPS are not measured.
+- UART slice completed with valid continuity (145 bytes of kmsg markers):
+  `20261022_174213_236496-exp-20261022-020-internal-alpine-performance-eca50d00`.
+
+## EXP-20261022-022 — hybrid USB root + internal image read-write
+
+- **PASS_HYBRID_USB_ROOT_INTERNAL_RW.** Alpine booted from the USB image
+  (`/dev/loop0`), while the internal image was loop-mounted read-write at
+  `/mnt/internal` (`/dev/loop1`) through `sdb27`, dm-crypt and UFS.
+- Ethernet and SSH worked. A file written under `/mnt/internal/root` was
+  synced, read back and removed; no Orbis system partition was written.
+- UART slice completed with valid continuity:
+  `20261022_175954_385082-exp-20261022-022-hybrid-usb-internal-rw-7c9f00ca`.
+- This proves a usable USB-root/internal-data hybrid. Performance, WiFi,
+  long-term stability and desktop support remain open.
+
+## EXP-20261022-023 — USB root vs internal image benchmark
+
+- **PASS_SEQUENTIAL_BENCHMARK.** Same 1 GiB Alpine image, 128 MiB `dd` tests:
+  - USB root: **11.8 MB/s write**, **83.4 MB/s direct read**
+  - Internal image: **46.4 MB/s write**, **62.8 MB/s direct read**
+- Internal is much better for writes; USB is faster on sequential direct
+  reads. The internal path includes dm-crypt + UFS; USB does not.
+- Random I/O/IOPS were not measured.
+- UART slice completed with valid continuity:
+  `20261022_180211_044593-exp-20261022-023-usb-vs-internal-benchmark-2244e1aa`.
+- Practical choice depends on workload; write-heavy favors internal, read-heavy
+  sequential favors USB. Hybrid remains useful for capacity/data separation.
+
+## EXP-20261022-024 — random I/O benchmark
+
+- **PASS_RANDOM_IO_BENCHMARK.** Raw 4K random read, QD16, 10 s:
+  - internal dm-crypt/UFS: **98 IOPS / 393 KiB/s**, ~162 ms average latency
+  - USB partition: **444 IOPS / 1.78 MiB/s**, ~34 ms average latency
+- Filesystem-level fio on a 64 MiB file reported much higher numbers
+  (tens of thousands of IOPS), but those were cache-inflated and are not
+  treated as disk performance.
+- USB is about 4.5× better at random reads, but both paths are slow. The
+  5400 rpm HDD is weak at random I/O; USB is better for random/read-heavy
+  work, internal for sequential/write-heavy work.
+- UART slice completed with valid continuity (234 bytes of kmsg markers):
+  `20261022_180431_938276-exp-20261022-024-random-io-benchmark-bcef6457`.

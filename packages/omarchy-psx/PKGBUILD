@@ -1,0 +1,160 @@
+# SPDX-License-Identifier: MIT
+# Common console userspace. Platform geometry/firmware belong to the image profile.
+pkgbase=omarchy-psx
+pkgname=(omarchy-psx omarchy-psx-settings omarchy-psx-provisioning)
+pkgver=4.0.0
+pkgrel=1
+pkgdesc='Pinned Omarchy console desktop'
+arch=('any')
+url='https://github.com/meerzulee/omarchy-psx'
+license=('MIT')
+makedepends=('git' 'imagemagick')
+options=('!debug')
+_commit=f0020448ca87329199de7cb12f2015ebc4a3e5e7
+source=("omarchy::git+https://github.com/basecamp/omarchy.git#commit=${_commit}"
+        'console-disabled-commands.txt' 'omarchy-psx-unavailable'
+        'omarchy-psx-provision-owner' 'omarchy-psx-finalize-owner'
+        'timezone-picker.sh' 'omarchy-psx-provision-owner.service'
+        '20-omarchy-psx-owner-gate.conf' '10-omarchy-psx-wheel'
+        '20-omarchy-psx-sshd.conf' 'console-autostart.lua'
+        'omarchy-launch-nautilus' 'omarchy-launch-nautilus-cwd')
+# Recomputed by the source preparation step; all local files are checked.
+sha256sums=(
+  'SKIP'
+  '5fc0c1cad771ceaddafa65209117651fb0590e3c50c909c55e483c6836954a67'
+  'd91aa344c3ea2851f97fcc51d8a2fac9884cc86e415f8190bcad846a650fe981'
+  '54ce6c8dfbb498ed956636e27233b95cab59a9f0f7297f9aa4228f72a638c835'
+  'ceb7614f606217ef3f9b3644a283d0e6dfcc3184873ce69eb071c760a20b9fc1'
+  '166579bbdd53488cf7986b986fd9343ea9875db61bca522283594677c703c114'
+  '66f9c768efdbc42ffd136f154951ec8955fbe7399831318b0b6818c50420a667'
+  '6b11d4c91531f283a3b7b62cf2a057f98c3ee65cb532932404446fd3058fd788'
+  '65ae53cdc6fd4d323e8bab7796c0f743744d181897a349bccdc2e4259cf60cfc'
+  '707ade3a8e8c3543a603248afb58da57552ff51891c752b9b502516f62205511'
+  'dec236033399973b81bb50d86a853d67478ba9904ef112a624d99a5e0eb97824'
+  '122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393'
+  'd78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf'
+)
+
+prepare() {
+  [[ $(git -C "$srcdir/omarchy" rev-parse HEAD) == "$_commit" ]]
+  install -m644 "$srcdir/console-autostart.lua" "$srcdir/omarchy/config/hypr/autostart.lua"
+  install -m644 "$srcdir/console-autostart.lua" "$srcdir/omarchy/default/hypr/autostart.lua"
+  sed -i 's/org\.gnome\.Nautilus\.desktop/thunar.desktop/g' \
+    "$srcdir/omarchy/default/applications/mimeapps.list"
+}
+
+package_omarchy-psx() {
+  provides=('omarchy')
+  conflicts=('omarchy' 'omarchy-dev' 'omarchy-ps4')
+  depends=('fakeroot' 'git' 'gnome-keyring' 'gum' 'hyprland' 'jq'
+           'omarchy-psx-settings=4.0.0-1' 'pacman-contrib' 'perl' 'pipewire'
+           'quickshell' 'ttf-jetbrains-mono-nerd-basic' 'thunar' 'uwsm'
+           'wireplumber' 'xdg-desktop-portal-hyprland')
+  cd "$srcdir/omarchy"
+  install -d "$pkgdir/usr/bin" "$pkgdir/usr/lib/omarchy-psx/upstream-bin" \
+    "$pkgdir/usr/share/omarchy/bin"
+  for binary in bin/*; do
+    [[ -f $binary ]] || continue
+    name=${binary##*/}
+    install -Dm755 "$binary" "$pkgdir/usr/lib/omarchy-psx/upstream-bin/$name"
+    case $name in
+      omarchy-debug|omarchy-debug-idle|omarchy-upload-log) continue ;;
+      omarchy-launch-nautilus|omarchy-launch-nautilus-cwd)
+        install -Dm755 "$srcdir/$name" "$pkgdir/usr/bin/$name" ;;
+      *)
+        if grep -Fxq "$name" "$srcdir/console-disabled-commands.txt" || [[ $name == omarchy-update* ]]; then
+          install -Dm755 "$srcdir/omarchy-psx-unavailable" "$pkgdir/usr/bin/$name"
+        else
+          install -Dm755 "$binary" "$pkgdir/usr/bin/$name"
+        fi ;;
+    esac
+    ln -s "/usr/bin/$name" "$pkgdir/usr/share/omarchy/bin/$name"
+  done
+  cp -a install migrations shell themes "$pkgdir/usr/share/omarchy/"
+  install -Dm644 version "$pkgdir/usr/share/omarchy/version"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/omarchy-psx/LICENSE"
+  install -Dm644 "$srcdir/console-disabled-commands.txt" "$pkgdir/usr/share/omarchy-psx/disabled-commands.txt"
+  printf '%s\n' "$_commit" >"$pkgdir/usr/share/omarchy-psx/upstream-commit"
+  install -d "$pkgdir/etc/skel/.local/state/omarchy/migrations"
+  for migration in migrations/*.sh; do
+    touch "$pkgdir/etc/skel/.local/state/omarchy/migrations/${migration##*/}"
+  done
+}
+
+package_omarchy-psx-settings() {
+  provides=('omarchy-settings')
+  conflicts=('omarchy-settings' 'omarchy-settings-dev' 'omarchy-ps4-settings')
+  depends=('bash' 'curl' 'gum' 'hicolor-icon-theme' 'sddm')
+  cd "$srcdir/omarchy"
+  install -d "$pkgdir/etc/skel/.config" "$pkgdir/usr/share/omarchy/config" \
+    "$pkgdir/usr/share/omarchy/default" "$pkgdir/usr/share/omarchy/applications" \
+    "$pkgdir/etc/skel/.local/share/applications"
+  cp -a config/. "$pkgdir/etc/skel/.config/"
+  cp -a config/. "$pkgdir/usr/share/omarchy/config/"
+  cp -a default/. "$pkgdir/usr/share/omarchy/default/"
+  cp -a applications/. "$pkgdir/usr/share/omarchy/applications/"
+  cp applications/*.desktop "$pkgdir/etc/skel/.local/share/applications/"
+  for icon in applications/icons/*; do
+    [[ -f $icon ]] || continue
+    icon_name=${icon##*/}
+    icon_id=$(printf '%s\n' "${icon_name%.*}" | tr '[:upper:]' '[:lower:]' | sed 's/[^[:alnum:]]\+/-/g; s/^-//; s/-$//')
+    if [[ $icon_name == *.svg ]]; then
+      install -Dm644 "$icon" "$pkgdir/usr/share/icons/hicolor/scalable/apps/$icon_id.svg"
+    else
+      for size in 48 256; do
+        install -d "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps"
+        magick "$icon" -thumbnail "${size}x${size}" -background transparent -gravity center \
+          -extent "${size}x${size}" "PNG32:$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$icon_id.png"
+      done
+    fi
+  done
+  install -Dm644 default/uwsm/env.d/10-omarchy "$pkgdir/usr/share/uwsm/env.d/10-omarchy"
+  install -Dm644 default/fontconfig/conf.avail/50-omarchy.conf "$pkgdir/usr/share/fontconfig/conf.avail/50-omarchy.conf"
+  install -d "$pkgdir/etc/fonts/conf.d"
+  ln -s /usr/share/fontconfig/conf.avail/50-omarchy.conf "$pkgdir/etc/fonts/conf.d/50-omarchy.conf"
+  install -Dm644 default/xdg-terminal-exec/hyprland-xdg-terminals.list "$pkgdir/usr/share/xdg-terminal-exec/hyprland-xdg-terminals.list"
+  install -Dm644 default/applications/mimeapps.list "$pkgdir/usr/share/applications/mimeapps.list"
+  install -Dm644 default/wayland-sessions/omarchy.desktop "$pkgdir/usr/share/wayland-sessions/omarchy.desktop"
+  install -d "$pkgdir/usr/share/sddm/themes" "$pkgdir/etc/sddm.conf.d"
+  cp -a default/sddm/omarchy "$pkgdir/usr/share/sddm/themes/"
+  install -Dm644 default/sddm/hyprland.lua "$pkgdir/usr/share/sddm/hyprland.lua"
+  cp etc/sddm.conf.d/*.conf "$pkgdir/etc/sddm.conf.d/"
+  install -Dm644 default/fonts/omarchy/omarchy.ttf "$pkgdir/usr/share/fonts/omarchy/omarchy.ttf"
+  install -Dm644 etc/fastfetch/config.jsonc "$pkgdir/etc/fastfetch/config.jsonc"
+  install -Dm644 etc/profile.d/omarchy.sh "$pkgdir/etc/profile.d/omarchy.sh"
+  for service in omarchy-fcitx5 bt-agent; do
+    install -Dm644 "default/systemd/user/$service.service" "$pkgdir/usr/lib/systemd/user/$service.service"
+  done
+  for binary in omarchy-debug omarchy-debug-idle omarchy-upload-log; do
+    install -Dm755 "bin/$binary" "$pkgdir/usr/bin/$binary"
+  done
+  for asset in logo.txt logo.svg icon.txt icon.png; do
+    install -Dm644 "$asset" "$pkgdir/usr/share/omarchy/$asset"
+  done
+  install -Dm644 icon.png "$pkgdir/usr/share/pixmaps/omarchy.png"
+  install -Dm644 icon.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/omarchy.png"
+  install -Dm644 logo.txt "$pkgdir/etc/skel/.config/omarchy/branding/screensaver.txt"
+  install -Dm644 icon.txt "$pkgdir/etc/skel/.config/omarchy/branding/about.txt"
+  install -d "$pkgdir/etc/skel/.config/btop/themes"
+  ln -s ../../../.local/state/omarchy/current/theme/btop.theme "$pkgdir/etc/skel/.config/btop/themes/current.theme"
+  install -Dm644 default/hypr/toggles/flags.lua "$pkgdir/etc/skel/.local/state/omarchy/toggles/hypr/flags.lua"
+  install -Dm644 default/tensaku/state.toml "$pkgdir/etc/skel/.local/state/tensaku/state.toml"
+  install -Dm644 default/bashrc "$pkgdir/usr/share/omarchy/etc-overrides/dot.bashrc"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/omarchy-psx-settings/LICENSE"
+}
+
+package_omarchy-psx-provisioning() {
+  depends=('desktop-file-utils' 'e2fsprogs' 'git' 'gum' 'omarchy-psx=4.0.0-1'
+           'openssh' 'shadow' 'sudo' 'systemd' 'tzdata' 'util-linux' 'xdg-user-dirs' 'xdg-utils')
+  conflicts=('omarchy-ps4-provisioning')
+  backup=('etc/sudoers.d/10-omarchy-psx-wheel')
+  for command in omarchy-psx-provision-owner omarchy-psx-finalize-owner; do
+    install -Dm755 "$srcdir/$command" "$pkgdir/usr/bin/$command"
+  done
+  install -Dm644 "$srcdir/timezone-picker.sh" "$pkgdir/usr/lib/omarchy-psx/timezone-picker.sh"
+  install -Dm644 "$srcdir/omarchy-psx-provision-owner.service" "$pkgdir/usr/lib/systemd/system/omarchy-psx-provision-owner.service"
+  install -Dm644 "$srcdir/20-omarchy-psx-owner-gate.conf" "$pkgdir/usr/lib/systemd/system/sddm.service.d/20-omarchy-psx-owner-gate.conf"
+  install -Dm440 "$srcdir/10-omarchy-psx-wheel" "$pkgdir/etc/sudoers.d/10-omarchy-psx-wheel"
+  install -Dm644 "$srcdir/20-omarchy-psx-sshd.conf" "$pkgdir/etc/ssh/sshd_config.d/20-omarchy-psx.conf"
+  install -Dm644 "$srcdir/omarchy/LICENSE" "$pkgdir/usr/share/licenses/omarchy-psx-provisioning/LICENSE"
+}

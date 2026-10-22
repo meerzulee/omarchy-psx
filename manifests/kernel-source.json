@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "repository": "https://github.com/meerzulee/linux-psx.git",
-  "revision": "2993a2601bb6622d46db527e68778dcc21dd57d5",
-  "revision_status": "Experimental source checkpoint with scoped Liverpool UVD1080p evidence. Default6.18Baikal target unchanged; CI/default kernel is not the tested experimental runtime binary.",
+  "revision": "f064643ddeb663db4e87fe077f04a0e4bef44f58",
+  "revision_status": "Source checkpoint including optional PS4 Mesa source and qualification matrix. Mesa26.2.5 system trial was withdrawn after a Vulkan stall/UVD timeout; baseline26.1.7 recovered. Default6.18Baikal target unchanged; this pin does not identify a qualified Mesa/system binary.",
   "target": "6.18-ps4-baikal",
   "kernel_release": "6.18.44-psx-ps4-baikal2",
   "artifacts_schema": 1,

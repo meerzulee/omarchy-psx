@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+printf '%s\n' 'This feature is not available in the Omarchy console development image.' \
+  'Keep the complete image and boot files together when moving to the next version.' >&2
+exit 78

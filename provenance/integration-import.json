@@ -108,35 +108,102 @@
       ]
     },
     {
-      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
-      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
-      "source_path": "mesa-ps4/ps4-mesa.patch",
-      "source_sha256": "f7a78f8b894dc06bb6d210f2d0f9b04cdb51e285e40c2832a6813d4d88f465a9",
-      "source_bytes": 5525,
-      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/0001-ps4-graphics-families.patch",
-      "destination_sha256": "b3cf0f24fd00f156bbba12be0c270189ad30c274646b5e86298890e4cb4829cc",
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
+      "source_sha256": "f28e092adbf9d03ea1b22a9847d5684caa4c9804e709d51167d6fa53e6905a8e",
+      "source_bytes": 17206,
+      "destination_path": "packages/omarchy-psx/omarchy-psx-provision-owner",
+      "destination_sha256": "54ce6c8dfbb498ed956636e27233b95cab59a9f0f7297f9aa4228f72a638c835",
       "adaptations": [
-        "Port discovery changes to ac_identify_chip and cache changes to ac_fill_memory_info in the refactored 26.2.5 source.",
-        "Place shared family enum values after BONAIRE and before KAVERI, preserving the existing GFX7 lower bound without redundant comparisons.",
-        "Retain independent FAMILY_KV generic-then-console revision matching; narrow console revisions intentionally override SPOOKY.",
-        "Use the pinned source raster values, GS depth 32, 128 KiB per TCC cache classification, family names and Bonaire LLVM processor target.",
-        "Exclude the unrelated CLC/LLVM compatibility edit and unused private drm/radeon surface enum additions.",
-        "Do not change video capabilities or serializer; the independently owned 0002 capability patch is outside this provenance entry.",
-        "Full source, license and focused validation record: platforms/ps4/experiments/mesa-uvd/patches/ps4-graphics-provenance.json. Host-check status in that record is historical; completed hardware scope is in the experiment ledger."
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
       ],
-      "license_note": "MIT; original per-file Mesa/AMD notices remain unchanged; accompanying notice preserved in platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa."
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
     },
     {
-      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
-      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
-      "source_path": "mesa-ps4/LICENSE",
-      "source_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
-      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa",
-      "destination_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-finalize-owner",
+      "source_sha256": "6897efd828b217193d4a6c577b6f328ba4a6bb4b6dd2b927f7d1bc23ea5cbbf9",
+      "source_bytes": 3446,
+      "destination_path": "packages/omarchy-psx/omarchy-psx-finalize-owner",
+      "destination_sha256": "ceb7614f606217ef3f9b3644a283d0e6dfcc3184873ce69eb071c760a20b9fc1",
       "adaptations": [
-        "Preserve the accompanying Mesa/AMD license notices byte-for-byte."
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
       ],
-      "license_note": "MIT notices for the imported PS4 graphics port; original per-file notices remain in Mesa source."
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
+    },
+    {
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-timezone-picker",
+      "source_sha256": "7e41565aa185c972230edc2dc05198b015b164331ed9bb7901200e5f88c2ea65",
+      "source_bytes": 3292,
+      "destination_path": "packages/omarchy-psx/timezone-picker.sh",
+      "destination_sha256": "166579bbdd53488cf7986b986fd9343ea9875db61bca522283594677c703c114",
+      "adaptations": [
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
+      ],
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
+    },
+    {
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner.service",
+      "source_sha256": "b22f4c56b00417c9230c48288fa0563fa9023444e130b9390b3cc57c03cd17ad",
+      "source_bytes": 721,
+      "destination_path": "packages/omarchy-psx/omarchy-psx-provision-owner.service",
+      "destination_sha256": "66f9c768efdbc42ffd136f154951ec8955fbe7399831318b0b6818c50420a667",
+      "adaptations": [
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
+      ],
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
+    },
+    {
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4/ps4-disabled-commands.txt",
+      "source_sha256": "cb054b293c5a74c4c8eae54cfe786f01369a45023d10b8389e65aa4ce848dc0c",
+      "source_bytes": 1257,
+      "destination_path": "packages/omarchy-psx/console-disabled-commands.txt",
+      "destination_sha256": "5fc0c1cad771ceaddafa65209117651fb0590e3c50c909c55e483c6836954a67",
+      "adaptations": [
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
+      ],
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
+    },
+    {
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus",
+      "source_sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393",
+      "source_bytes": 121,
+      "destination_path": "packages/omarchy-psx/omarchy-launch-nautilus",
+      "destination_sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393",
+      "adaptations": [
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
+      ],
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
+    },
+    {
+      "source_repository": "https://github.com/meerzulee/omarchy-psx",
+      "source_commit": "e406bce81e5f450affa18f21e2b62f95f9b784fb",
+      "source_path": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus-cwd",
+      "source_sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf",
+      "source_bytes": 152,
+      "destination_path": "packages/omarchy-psx/omarchy-launch-nautilus-cwd",
+      "destination_sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf",
+      "adaptations": [
+        "Shared console package extraction for PS5; preserve original PS4 paths and deployed identities.",
+        "See provenance/ps5-image-import.json for root-label dispatch, SDDM, graphics-policy and owner-finalization adaptations."
+      ],
+      "license_note": "MIT project source; original copyright/license retained in root LICENSE and package license notices."
     }
   ],
   "repository_license": "Existing Omarchy psX MIT LICENSE remains unchanged.",
@@ -157,6 +224,45 @@
       "destination_sha256": "3d6e2923fa2749ae025a1066cb9718ab7f6da7c473d1ceb10da44586515caa41",
       "removed": "2026-10-18",
       "reason": "Removed 2026-10-18 with the adapter it tested."
+    },
+    {
+      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
+      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
+      "source_path": "mesa-ps4/ps4-mesa.patch",
+      "source_sha256": "f7a78f8b894dc06bb6d210f2d0f9b04cdb51e285e40c2832a6813d4d88f465a9",
+      "source_bytes": 5525,
+      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/0001-ps4-graphics-families.patch",
+      "destination_sha256": "b3cf0f24fd00f156bbba12be0c270189ad30c274646b5e86298890e4cb4829cc",
+      "adaptations": [
+        "Port discovery changes to ac_identify_chip and cache changes to ac_fill_memory_info in the refactored 26.2.5 source.",
+        "Place shared family enum values after BONAIRE and before KAVERI, preserving the existing GFX7 lower bound without redundant comparisons.",
+        "Retain independent FAMILY_KV generic-then-console revision matching; narrow console revisions intentionally override SPOOKY.",
+        "Use the pinned source raster values, GS depth 32, 128 KiB per TCC cache classification, family names and Bonaire LLVM processor target.",
+        "Exclude the unrelated CLC/LLVM compatibility edit and unused private drm/radeon surface enum additions.",
+        "Do not change video capabilities or serializer; the independently owned 0002 capability patch is outside this provenance entry.",
+        "Full source, license and focused validation record: platforms/ps4/experiments/mesa-uvd/patches/ps4-graphics-provenance.json. Host-check status in that record is historical; completed hardware scope is in the experiment ledger."
+      ],
+      "license_note": "MIT; original per-file Mesa/AMD notices remain unchanged; accompanying notice preserved in platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa.",
+      "removed": "2026-10-20",
+      "reason": "Owner-requested source ownership migration to Linux psX userspace/mesa; original authorship and hashes preserved in Linux psX provenance/mesa-import.json.",
+      "destination_repository": "https://github.com/meerzulee/linux-psx",
+      "moved_to": "userspace/mesa/patches/0001-ps4-graphics-families.patch"
+    },
+    {
+      "source_repository": "https://github.com/DionKill/ps4-video-archlinux",
+      "source_commit": "57e0f8ecc7a1df9b9664d682b19fadfe3e336f02",
+      "source_path": "mesa-ps4/LICENSE",
+      "source_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
+      "destination_path": "platforms/ps4/experiments/mesa-uvd/patches/LICENSE.ps4-mesa",
+      "destination_sha256": "7fdc119cf53c8ca65396ea73f6d10af641ba41ea1dd2bd44a824726e01c8b3f2",
+      "adaptations": [
+        "Preserve the accompanying Mesa/AMD license notices byte-for-byte."
+      ],
+      "license_note": "MIT notices for the imported PS4 graphics port; original per-file notices remain in Mesa source.",
+      "removed": "2026-10-20",
+      "reason": "Owner-requested source ownership migration to Linux psX userspace/mesa; original authorship and hashes preserved in Linux psX provenance/mesa-import.json.",
+      "destination_repository": "https://github.com/meerzulee/linux-psx",
+      "moved_to": "userspace/mesa/patches/LICENSE.ps4-mesa"
     }
   ]
 }

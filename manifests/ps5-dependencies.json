@@ -195,7 +195,7 @@
       "id": "kernel",
       "status": "pending",
       "firmwares": [],
-      "reason": "The separate linux-psx 7.2-ps5 target compiled locally as 7.2.3-psx-ps5-dev1 with 519 matching modules; all output checksums passed. No hardware acceptance; the 12.40 handoff remains unresolved.",
+      "reason": "The separate linux-psx 7.2-ps5 target has compiled with OrbStack and native Linux as 7.2.3-psx-ps5-dev1, with 519 matching modules and complete corresponding source packaging. No hardware acceptance; the recorded 12.40 handoff remains unresolved.",
       "evidence": [
         "https://github.com/ps5-linux/ps5-linux-patches/blob/753c7936dcb079bfeaaa0bb19dfc495744266500/.config"
       ]
@@ -204,7 +204,7 @@
       "id": "early_userspace",
       "status": "pending",
       "firmwares": [],
-      "reason": "The local RAM-only diagnostic boot set has been built and verified, including pinned BusyBox and every matching module. A complete Omarchy root filesystem, external graphics firmware, usable console and PS5 hardware acceptance remain pending.",
+      "reason": "The RAM-only probe and native Omarchy desktop rootfs have been built. The desktop initramfs contains matching amdgpu modules, explicit PS5 GPU settings and externally acquired VCN firmware. Interactive console setup, loader handoff and PS5 hardware acceptance remain pending; see platforms/ps5/IMAGE.md.",
       "evidence": [
         "https://github.com/ps5-linux/ps5-linux-image/blob/52db0a42302e4a6b5420a11fa00a84841ea5db56/README.md"
       ]

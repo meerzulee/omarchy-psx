@@ -40,7 +40,7 @@ test exists; package installation alone is not support.
 | Desktop | Bare Hyprland | Candidate | A64/A65 direct DRM, physical 1080p60, native terminal and USB input passed; repeat from a cold boot |
 | Session | UWSM | Candidate | A73 direct login/runtime and A75 clean compositor stop passed; stopping returns to the LightDM greeter, and unattended XFCE recovery needs a connected retry |
 | Integration | XDG desktop portals | Not tested | File picker and screen-share portal tests |
-| Media | PipeWire HDMI audio | Not tested | Playback, levels, restart, and recovery |
+| Media | PipeWire HDMI audio | Degraded | 44.1 kHz is clean; native 48 kHz is robotic on the MN864729 bridge regardless of codec/BDL configuration (EXP-20261022-055…-067). Re-qualify native 48 kHz from an Orbis reference capture |
 | Media | PipeWire screen capture | Not tested | Portal-mediated capture test |
 | Shell | Minimal Quickshell | Not tested | Render, input, memory, and restart test |
 | Shell | Omarchy Quattro configuration | Blocked | Bare Hyprland and Quickshell must pass |

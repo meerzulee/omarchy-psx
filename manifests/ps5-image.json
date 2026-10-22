@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "platform": "ps5",
+  "kernel_target": "7.2-ps5",
+  "kernel_release": "7.2.3-psx-ps5-dev1",
+  "omarchy_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+  "arch_snapshot": "2026/08/20",
+  "boot_reference": "https://github.com/ps5-linux/ps5-linux-image/blob/387e311fbc72ad784cb5dcb44c00381926743548/boot/cmdline.txt",
+  "cmdline": "root=LABEL=OMARCHY-PS5 rw rootwait console=ttyTitania0 console=tty0 video=DP-1:1920x1080@60 mitigations=off idle=halt preempt=full",
+  "vram_mib": 512,
+  "firmware": [
+    {
+      "path": "usr/lib/firmware/amdgpu/ps5_vcn.bin",
+      "bytes": 404544,
+      "sha256": "bbd15ab65e76178c2918e8224b6ab4ab1711f1b59d935ee131ab188a9712e596",
+      "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-patches/753c7936dcb079bfeaaa0bb19dfc495744266500/firmware/amdgpu/ps5_vcn.bin"
+    },
+    {
+      "path": "usr/share/licenses/ps5-firmware/LICENSE.amdgpu",
+      "bytes": 2938,
+      "sha256": "572872598565dc3513470de971a32bf9db301f47afeef3636345eadae33b2eee",
+      "url": "https://raw.githubusercontent.com/ps5-linux/ps5-linux-patches/753c7936dcb079bfeaaa0bb19dfc495744266500/firmware/LICENSE.amdgpu"
+    }
+  ],
+  "firmware_policy": "Acquired externally for the development image, never embedded in the kernel or committed to Git.",
+  "wireless": "The initial kernel artifact contains in-tree modules only. PS5 IW620 moal/mlan modules and loader-dumped per-console NXP firmware integration are pending. Use Ethernet and a USB keyboard for the first trial.",
+  "hardware_acceptance": "none"
+}

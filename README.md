@@ -117,7 +117,8 @@ See the [website guide](website/README.md) for hosting under a path. Builds and 
 | [`platforms/ps4/`](platforms/ps4/README.md) | Complete imported PS4 distribution source: packages, profiles, rootfs, launcher/FPKG, installers, recovery tools and tests. |
 | [`platforms/ps4/docs/`](platforms/ps4/docs/) | PS4 build, desktop, compatibility and recovery guides; dated records retain their historical scope. |
 | [`platforms/ps4/experiments/`](platforms/ps4/experiments/README.md) | Historical experiment ledger, with private identifiers redacted and raw captures excluded. |
-| [`platforms/ps5/`](platforms/ps5/README.md) | Planned PS5 boundary and prerequisites. |
+| [`platforms/ps5/`](platforms/ps5/README.md) | PS5 development image builder, shared console packages and boot prerequisites. |
+| [`docs/UNIVERSAL-IMAGE.md`](docs/UNIVERSAL-IMAGE.md) | Shared rootfs design and remaining work for PS4/PS5 media. |
 | [`docs/USING-LINUX-PSX.md`](docs/USING-LINUX-PSX.md) | Whole matching kernel/modules, optional boot profile and native Ethernet. |
 | [`docs/INITRAMFS.md`](docs/INITRAMFS.md) | Existing BusyBox initramfs preservation, source reconstruction and Wi-Fi/Bluetooth firmware download. |
 | [`docs/MIGRATION.md`](docs/MIGRATION.md) | What moved, historical compatibility interfaces and remaining qualification. |
@@ -128,10 +129,11 @@ The old `omarchy-ps4` checkout is preserved as history. Existing PS4 package
 names, services, labels and exact-hash boot profiles remain compatibility
 interfaces; a repository move does not change the installed system.
 
-This is a **source migration**, not a new turnkey image or release. Historical
-hardware results retain their original scope. New Linux psX boot sets need
-separate validation; native Ethernet passed two boots of its tested build,
-which is not acceptance. PS5 and future-console implementation remain planned.
+The migrated source and native PS5 development builder do not establish a
+turnkey release. Historical hardware results retain their original scope.
+New Linux psX boot sets need separate validation; native PS4 Ethernet passed
+two boots of its tested build. The PS5 desktop image and a combined PS4/PS5
+image have no console acceptance. Future-console implementation remains planned.
 
 ## Legal
 

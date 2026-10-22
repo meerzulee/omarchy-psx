@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "scope": "PS5 development image; shared Omarchy package extraction, not PS4 migration or hardware acceptance",
+  "omarchy_commit": "f0020448ca87329199de7cb12f2015ebc4a3e5e7",
+  "license": "MIT; preserved project/upstream licenses",
+  "imports": [
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner",
+      "source_sha256": "f28e092adbf9d03ea1b22a9847d5684caa4c9804e709d51167d6fa53e6905a8e",
+      "destination": "packages/omarchy-psx/omarchy-psx-provision-owner",
+      "sha256": "54ce6c8dfbb498ed956636e27233b95cab59a9f0f7297f9aa4228f72a638c835"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-finalize-owner",
+      "source_sha256": "6897efd828b217193d4a6c577b6f328ba4a6bb4b6dd2b927f7d1bc23ea5cbbf9",
+      "destination": "packages/omarchy-psx/omarchy-psx-finalize-owner",
+      "sha256": "ceb7614f606217ef3f9b3644a283d0e6dfcc3184873ce69eb071c760a20b9fc1"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-timezone-picker",
+      "source_sha256": "7e41565aa185c972230edc2dc05198b015b164331ed9bb7901200e5f88c2ea65",
+      "destination": "packages/omarchy-psx/timezone-picker.sh",
+      "sha256": "166579bbdd53488cf7986b986fd9343ea9875db61bca522283594677c703c114"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4-provisioning/omarchy-ps4-provision-owner.service",
+      "source_sha256": "b22f4c56b00417c9230c48288fa0563fa9023444e130b9390b3cc57c03cd17ad",
+      "destination": "packages/omarchy-psx/omarchy-psx-provision-owner.service",
+      "sha256": "66f9c768efdbc42ffd136f154951ec8955fbe7399831318b0b6818c50420a667"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4/ps4-disabled-commands.txt",
+      "source_sha256": "cb054b293c5a74c4c8eae54cfe786f01369a45023d10b8389e65aa4ce848dc0c",
+      "destination": "packages/omarchy-psx/console-disabled-commands.txt",
+      "sha256": "5fc0c1cad771ceaddafa65209117651fb0590e3c50c909c55e483c6836954a67"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus",
+      "source_sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393",
+      "destination": "packages/omarchy-psx/omarchy-launch-nautilus",
+      "sha256": "122db1123d9fe1f8c679b87b6b5f7c00316079d9f294deaff097324a38a77393"
+    },
+    {
+      "source": "platforms/ps4/packages/omarchy-ps4/omarchy-launch-nautilus-cwd",
+      "source_sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf",
+      "destination": "packages/omarchy-psx/omarchy-launch-nautilus-cwd",
+      "sha256": "d78a147033bef36e2167041b668a423d5544fb872bc497bf072081adf31807cf"
+    }
+  ],
+  "adaptations": [
+    "Preserve PS4 implementation and deployed package identities unchanged",
+    "Rename owner state/commands to common psX paths; root label comes from trusted image platform config",
+    "Replace LightDM autologin with SDDM; no PS4 growth/layout code used",
+    "Remove Liverpool-specific Chromium rendering workaround; use stock upstream graphics defaults",
+    "Keep offline owner form, centered terminal UX, resume marker and headless theme finalization",
+    "System upgrades, PC boot management, encryption, reset and snapshot workflows are unavailable in development image; coordinated update mechanism remains pending",
+    "No automatic GPT expansion in initial fixed-size development image",
+    "Apply the Omarchy bashrc in the new owner home during offline finalization; Bash retains ownership of /etc/skel/.bashrc."
+  ]
+}

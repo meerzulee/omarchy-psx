@@ -37,7 +37,7 @@ dependencies of the new workspace.
 | Source, Python checks and C/C++ fixture tests | Native | Native |
 | Linux psX kernel | OrbStack ARM64 builder with x86-64 cross compiler | Native kernel build |
 | Exact existing initramfs repack | Native Python | Native Python |
-| Full Omarchy package/rootfs/initramfs/image builds | Migrated OrbStack wrappers | Use the Mac host; native image-builder port is pending |
+| Full Omarchy package/rootfs/initramfs/image builds | Migrated PS4 OrbStack wrappers | Native PS5 development builder; PS4 wrappers still use the Mac host |
 | FPKG UI/transaction host tests | Native C++ | Native C++ |
 | Complete OpenOrbis FPKG | Existing macOS path and external pinned inputs | Source path present; Linux packaging remains unqualified |
 | UART | Explicit adapter or macOS discovery | Explicit stable serial path; qualify the adapter separately |
@@ -138,3 +138,7 @@ The curated PS4 ledger is
 [`platforms/ps4/experiments/SESSIONS.md`](../platforms/ps4/experiments/SESSIONS.md).
 Source tests are not hardware acceptance. The new kernel/initramfs pairing
 and PS5 port still require separate validation.
+
+For the native PS5 development image, see `platforms/ps5/IMAGE.md`. It uses an
+explicit offline snapshot, shared console packages and a private native chroot;
+existing PS4 wrappers retain their OrbStack checks.
