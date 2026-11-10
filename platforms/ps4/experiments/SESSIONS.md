@@ -9640,11 +9640,10 @@ but they are not evidence of a Linux 6.18 boot.
   `20260823_135234_291112-exp-20260823-021-a6-inspect-actual-raw-edid-export-without-calli-17a5a659.md` (private historical evidence; not included),
   exact sibling `.raw`; logger `.events.jsonl` is empty; evidence state
   `completed`, generation `f8b95740d2cf401aba9f191b26124baf`, epoch `1`
-- offline disassembly: the export begins `mov rsi,rdi; mov
-  rdi,[0x83dba4060]; jmp 0x83db9b7d0`. This proves the public ABI accepts one
-  output pointer and forwards it as the internal getter's second argument after
-  the AvSetting global context; it neither reads a second public argument nor
-  performs a mode-set in its wrapper
+- offline analysis: the export is a short wrapper that loads a global context and
+  jumps to an internal getter. This proves the public ABI accepts one output
+  pointer and forwards it as the getter's second argument after that context; it
+  neither reads a second public argument nor performs a mode-set in its wrapper
 - rollback: none required; the function was never called and the one-shot
   listener is consumed
 - next action: build a getter probe with a 1 MiB zeroed output region, 64 KiB

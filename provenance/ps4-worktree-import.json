@@ -487,11 +487,12 @@
       "source": "experiments/SESSIONS.md",
       "destination": "platforms/ps4/experiments/SESSIONS.md",
       "source_sha256": "45bb19d78cf122f4de32166714b6e06cfe4e8246c74c400989eca8c14c62b7a7",
-      "destination_sha256": "c04538f700f28224459dd1d1e2bbe9cfbec3a3669e4a92167a1394a0105a3a3a",
+      "destination_sha256": "eb7825c5840d050ef695739e1e0b38ec311ce3a891cfecc98191c9bb87e2fc26",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M experiments/SESSIONS.md",
       "adaptations": [
+        "Reword one analysis finding in our own words instead of quoting instructions.",
         "Keep hardware results here; reverse-engineering references moved to the private lab.",
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
