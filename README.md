@@ -13,6 +13,13 @@
   </p>
 </div>
 
+<p align="center">
+  <a href="manual/images/launcher-home.webp"><img src="manual/images/launcher-home.webp" width="420" alt="Omarchy launcher Home screen, ready to start"></a>
+  <a href="manual/images/launcher-appearance.webp"><img src="manual/images/launcher-appearance.webp" width="420" alt="Omarchy launcher Appearance screen with six themes"></a>
+</p>
+
+<p align="center"><sub>The Omarchy launcher for PS4, in development. Rendered from its real interface code on a development computer; the console draws it with its own system font.</sub></p>
+
 ## The goal
 
 We're bringing [Omarchy](https://github.com/omacom/omarchy) to
