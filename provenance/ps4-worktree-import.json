@@ -65,11 +65,12 @@
       "source": "README.md",
       "destination": "platforms/ps4/README.md",
       "source_sha256": "ae7d5c36320e37b6fee74042b3374aa8ac4f09c668e17c112b7357ffa310baa4",
-      "destination_sha256": "0dae9812b6ca0c3dcc3e4819630b198d9479b2804c3184005dc1d245076450ed",
+      "destination_sha256": "fc4b5c1c5af3b86d6029c1bf4c17eafeeb0e3834c20d323ff9ad8cd0bc55220d",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "M README.md",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Prepend current PS4 location, deployed-identifier and historical-evidence boundaries; preserve the original README below.",
         "2026-10-18: point the Ethernet documentation row at Linux psX docs/ETHERNET.md after removing the MTS2 package and its handoff document."
       ]
@@ -98,11 +99,12 @@
       "source": "docs/ARCHITECTURE-RESEARCH.md",
       "destination": "platforms/ps4/docs/ARCHITECTURE-RESEARCH.md",
       "source_sha256": "cf7cecbe79360b737041fab9cc9d2b03478f3ad44492470c637a9ebfab595d1a",
-      "destination_sha256": "f82f216428a2779d67db6950990ece701670d02f33ea9f20e8cbb88a7c6c3475",
+      "destination_sha256": "d49de804e5407424848c590600165dcab1954cbd687533ce0e94cafd702e92b7",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "Correct inherited relative links to migrated documentation."
       ]
@@ -111,11 +113,12 @@
       "source": "docs/BASELINE.md",
       "destination": "platforms/ps4/docs/BASELINE.md",
       "source_sha256": "7cb401372e2363f022f34d8332235e6a0c2fd99e83260a91144d96d90f81e8af",
-      "destination_sha256": "10c9ccd1f5486a013f3336d28c56bf12f325baee1efca48ecb68aa8f2833077e",
+      "destination_sha256": "0785f76611ee73d174aac4fff78b84e7f5fbe3f0e98e43ac7596b1ef76b4c80f",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
       ]
     },
@@ -135,11 +138,12 @@
       "source": "docs/BUILDING.md",
       "destination": "platforms/ps4/docs/BUILDING.md",
       "source_sha256": "66247d36fb3eb512bba0cb823e8ff49283d4d1e6507f2ca792615c7424ee3e4d",
-      "destination_sha256": "d7a1f3dbc594b29504b1f7f1851589e264c851754a359fb8ae31a65bd7f2cb6b",
+      "destination_sha256": "09b85402bbee27595e8f4691a838fa84d7f556f2dd2545adbeafc9c45ab5cd88",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
       ]
     },
@@ -147,11 +151,12 @@
       "source": "docs/CHECKPOINT-2026-08-13.md",
       "destination": "platforms/ps4/docs/CHECKPOINT-2026-08-13.md",
       "source_sha256": "7c6f4593015654f62602eb5f3577a748db16e143cffdf2e7723dfea1c0285f62",
-      "destination_sha256": "73f7d609d4eca91494f1d8708089ba3bcddfdb91b054975739446a123365246d",
+      "destination_sha256": "cf32eb9be62421138051f2b5ff5a0aef6281973aff62631bea07901b61d107b6",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
@@ -198,11 +203,12 @@
       "source": "docs/DEVELOPMENT-HOSTS.md",
       "destination": "platforms/ps4/docs/DEVELOPMENT-HOSTS.md",
       "source_sha256": "8ffcef6c87f8a0505ae80b195be3488687556288fc580d88d993b5e38d42cae8",
-      "destination_sha256": "9f2a6caf827168249c777e15bd0b13b926178a8afdffcf1202d2cf4932fa74c4",
+      "destination_sha256": "7fcd911ad9cc360841713c86b9e65042616ecd8b7c495131fd9dbd27a961806d",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
       ]
@@ -211,11 +217,12 @@
       "source": "docs/DEVELOPMENT-MODE.md",
       "destination": "platforms/ps4/docs/DEVELOPMENT-MODE.md",
       "source_sha256": "c72257ebf081a662b8e4b40f04d242d60f4b5c5b2a0ebcbfcce513a707a61181",
-      "destination_sha256": "22c30093452b3694dbf8cdcf16aff76489f2d1a6794a4d65c934863a21d231f8",
+      "destination_sha256": "e275c1649e5db552dfa111fafb5b20448f33fc9963ec801adfaac7d9adda5f12",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide."
       ]
@@ -224,11 +231,12 @@
       "source": "docs/FIRST-BOOT-6.18-XFCE.md",
       "destination": "platforms/ps4/docs/FIRST-BOOT-6.18-XFCE.md",
       "source_sha256": "e1e6e335e156ede78bbd4a0f9c91f68c526b4df0e785505aab98b9dfa5486df2",
-      "destination_sha256": "f1cbbdf8a98b9b4257f419becb3960d828bb42063c605c60922e37b48d67e451",
+      "destination_sha256": "cf6067d78db8ea2bee11cc297eef6a75c5d165b4962287a3597accc701aa9fe2",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
       ]
@@ -358,11 +366,12 @@
       "source": "docs/PS4-FIXES.md",
       "destination": "platforms/ps4/docs/PS4-FIXES.md",
       "source_sha256": "385d28f1145c80b5cebc25d61d8d61a2b61db476b5994d8c131bf99baf1cfcfa",
-      "destination_sha256": "5820b3193edaf913abb165b71435c5ef5d7ce771eed100335cfdf94e303b3600",
+      "destination_sha256": "119ef9c4c5e8cea9edc256541d14b485530388c2fb3e4ec8adafe247448cf9b8",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Reviewed text privacy redaction: LAN addresses, MACs, personal home paths, SSH fingerprints and historical default credentials replaced by documentation examples.",
         "Prepend a visible original-artifact/history scope notice linked to the current migration guide.",
         "2026-10-18: replace the Bluetooth-disabled default note with the scoped EXP-20261018-002 Slim/Baikal B1 Linux 7.2 service/panel and LG SL4 playback PASS; keep cold-load/reconnect/reboot qualification open.",
@@ -549,12 +558,14 @@
     {
       "source": "fpkg/CREDITS.md",
       "destination": "platforms/ps4/fpkg/CREDITS.md",
-      "source_sha256": "ab924c96c21237933b72ffbe0bfd4a2d9c87551cd62e64e6bbf7b16d41c240e3",
-      "destination_sha256": "ab924c96c21237933b72ffbe0bfd4a2d9c87551cd62e64e6bbf7b16d41c240e3",
+      "source_sha256": "a16cd8f5753832bda4ab5ef5d3f70dc63358e8fe9649dedfeec26a43509ca371",
+      "destination_sha256": "a16cd8f5753832bda4ab5ef5d3f70dc63358e8fe9649dedfeec26a43509ca371",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
-      "adaptations": []
+      "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private."
+      ]
     },
     {
       "source": "fpkg/README.md",
@@ -1230,11 +1241,12 @@
       "source": "manifests/development-sources.json",
       "destination": "platforms/ps4/manifests/development-sources.json",
       "source_sha256": "7ee9ba21276c6433561e2a18516fd2cbd89a0d0cc9791ec9b37eab7b08b57f45",
-      "destination_sha256": "495bdc9ac4566aab2d36fe1b407b2a8b3f6d4b16b2c1ff8cbf32cbc7fd074d0d",
+      "destination_sha256": "1572fe2f17916d4bc437af4c4f8d57fdcdb124241957667685f11f6d5fdf371c",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Mark original source pins as historical; root manifest now owns acquisition."
       ]
     },
@@ -2742,11 +2754,12 @@
       "source": "workspace/README.md",
       "destination": "platforms/ps4/workspace/README.md",
       "source_sha256": "23eb2805cc23cf5e305048010e89e4099e1f30ad33f9c2cf3495655ea3944360",
-      "destination_sha256": "372f7d5c0166a3b55f9a87a49289dcfa9cb57ef34b1ca08015f3d1b10b897da2",
+      "destination_sha256": "56799512c634922dcc9ba1980569df9410a6ebf7d62ca1ef22ed9c1f7d1e246d",
       "source_mode": "0o644",
       "destination_mode": "0o644",
       "source_state": "tracked-clean",
       "adaptations": [
+        "Point kernel links at linux-psx after linux-ps4 became private.",
         "Final public handoff review: current resume index, role-preserving documentation IPs, machine/volume identifier redaction or explicit historical-template scope as applicable."
       ]
     }

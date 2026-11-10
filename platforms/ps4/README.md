@@ -47,8 +47,8 @@ Hardware-development beta. One console verified: PS4 Slim, Baikal B1.
 `138ab7d05162ff4bb67faddcc1a9576a0f22dc13810f2ead5a2293b32467c6a3`
 
 Kernel source and builds:
-[`meerzulee/linux-ps4`](https://github.com/meerzulee/linux-ps4)
-· [`v6.18.44-ps4-baikal-r1`](https://github.com/meerzulee/linux-ps4/releases/tag/v6.18.44-ps4-baikal-r1)
+[`meerzulee/linux-psx`](https://github.com/meerzulee/linux-psx)
+· [Linux psX releases](https://github.com/meerzulee/linux-psx/releases)
 
 The USB root filesystem is not published yet. See
 [the release notes](docs/releases/v0.31-baikal-beta.md#publication).
