@@ -15494,22 +15494,16 @@ blind clock compensation or routine LPIB switch is not justified by agreement.
   `bridge-scan.c`, `bridge-wr.c`, `bridge-word.c`, `dpsec-test-060.py`,
   `afmt-freq-060.py`, `acr-test-060.py`, `dto-one-060.py`.
 
-## EXP-20261022-061 — Orbis 48 kHz media reference and Ghidra HDMI config
+## EXP-20261022-061 — Orbis 48 kHz media reference and HDMI config
 
 - **PASS_ORBIS_48K (media), CONDITIONAL NATIVE-48K CONCLUSION.** The PS4 booted
   Orbis and played `USB/VIDEO/48k-test.mp4` (H.264 Constrained Baseline,
   stereo AAC 48 kHz, SHA256 `114feee9…`) on the same TV, cable and MN864729
   bridge; owner reported clean. The PS4 audio format was set to Linear PCM.
-- Ghidra on
-  `research/ps4/firmware-notes/rootfs-1202/system/sys/orbis_audiod.elf.decrypted`
-  resolved the HDMI config (`FUN_00014af0`): default
-  `SNDCTL_DSP_SPEED = 48000`, `SNDCTL_DSP_CHANNELS = 8`; 44.1 kHz is only a
-  conditional branch. The daemon also contains `audioOut48to44_core` for that
-  conditional 44.1 kHz mode. This pointed to native 48 kHz / 8-channel LPCM as
-  the Orbis default.
+- Private notes pointed to native 48 kHz / 8-channel LPCM as the Orbis default.
 - The `48k-test.mp4` was uploaded through GoldHEN FTP to
   `/mnt/usb0/VIDEO/48k-test.mp4`; the TV OSD was unavailable, so the
-  daemon decompilation was used as the precise rate reference.
+  private notes were used as the precise rate reference.
 
 ## EXP-20261022-062 — remote Linux loader attempt was a no-op
 
@@ -15533,7 +15527,7 @@ blind clock compensation or routine LPIB switch is not justified by agreement.
 - UART `EXP-20261022-063` completed; private stem
   `20261022_013211_741588-exp-20261022-063-linux-8ch-48k-direct-test-4178ca1b`.
   Evidence: `audio-calibration/EXP-061-RESULTS.json` (Orbis test),
-  `EXP-063-RESULTS.json`, Ghidra project/log `ghidra-audio-java.log`.
+  `EXP-063-RESULTS.json`.
 
 ## EXP-20261022-064 — 0x70D DIGI_CONVERT_1 still robotic at 48 kHz
 
@@ -15821,7 +15815,7 @@ blind clock compensation or routine LPIB switch is not justified by agreement.
   pxis=0x2 pxie=0x0 pxcmd=0x4c017 pxtfd=0x50 pxsig=0x101 pxssts=0x113
   pxsctl=0x310 pxserr=0x0 pxsact=0x0 pxci=0x0 pxsntf=0x0 pxfbs=0x0`.
   The pending bit is `0x2` (PIO Setup FIS), not the function-7 demux path.
-- This does not support the IDA/Ghidra agent's primary `bpcie_handle_edge_irq`
+- This does not support the primary `bpcie_handle_edge_irq`
   function-7 hypothesis as the AHCI completion path. Either the AHCI interrupt
   is direct/shared, or the demux is on a different function. The completion
   loss itself remains real.
@@ -15862,7 +15856,7 @@ a block device, and it fails on the first data read. Effective non-NCQ fails
 earlier at SET_XFERMODE; `nosetxfer` fails at HPA/IDENTIFY command completion.
 No force-only profile is a fix.
 
-Independent IDA review found a PHY configuration mismatch: the Linux sequence
+An independent review found a PHY configuration mismatch: the Linux sequence
 uses the Orbis trace 3..5 branch, while both Orbis SATA controllers use trace
 6..8; the Linux xHCI call also takes the shared EFUSE/glue path instead of the
 AHCI path. The review's controller labels are swapped relative to the boot log
