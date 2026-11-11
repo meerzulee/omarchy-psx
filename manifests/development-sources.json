@@ -12,7 +12,7 @@
       "directory": "ps4-uart",
       "url": "https://github.com/meerzulee/ps4-uart.git",
       "branch": "master",
-      "commit": "c53d250de55044940727b8b607947a0b9e9dae00",
+      "commit": "8324ccea746725b808772f4ba1f293bf162f1678",
       "expected_path": "uart"
     }
   ],
